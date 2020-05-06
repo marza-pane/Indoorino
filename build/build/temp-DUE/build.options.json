@@ -1,0 +1,11 @@
+{
+  "additionalFiles": "",
+  "builtInLibrariesFolders": "/opt/arduino-1.8.12/libraries",
+  "builtInToolsFolders": "/home/n00b/.arduino15/packages/arduino/hardware/tools/,/opt/arduino-1.8.12/tools-builder/,/home/n00b/.arduino15/packages",
+  "customBuildProperties": "build.warn_data_percentage=75,runtime.tools.arm-none-eabi-gcc.path=/home/n00b/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1,runtime.tools.arm-none-eabi-gcc-4.8.3-2014q1.path=/home/n00b/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1,runtime.tools.bossac.path=/home/n00b/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino,runtime.tools.bossac-1.6.1-arduino.path=/home/n00b/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino",
+  "fqbn": "arduino:sam:arduino_due_x_dbg",
+  "hardwareFolders": "/opt/arduino-1.8.12/hardware,/home/n00b/.arduino15/packages",
+  "otherLibrariesFolders": "/home/n00b/Code/Develop/Indoorino.3.0.6/libraries",
+  "runtime.ide.version": "10600",
+  "sketchLocation": "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino"
+}

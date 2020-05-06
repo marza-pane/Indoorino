@@ -1,0 +1,179 @@
+SRC_variables = {
+
+    'message': {
+        'size': 'SERIAL_TX_BUFFER_SIZE',
+        'check': 'isPrint',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'name': {
+        'size': 'LEN_NAME',
+        'check': 'isAlpha',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'type': {
+        'size': 'LEN_NAME',
+        'check': 'isAlpha',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'board': {
+        'size': 'LEN_NAME',
+        'check': 'isAlpha',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'devname': {
+        'size': 'LEN_DEVNAME',
+        'check': 'isAlpha',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'epoch': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 'SECONDS_FROM_1970_TO_2100',
+        'vmin': 'SECONDS_FROM_1970_TO_2010',
+    },
+
+    'value': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+    'freeram': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'looptime': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'parameter1': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'parameter2': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'parameter3': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'parameter4': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'temperature': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'humidity': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'stepday1': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 'SECONDS_PER_DAY',
+        'vmin': 0,
+    },
+
+    'stephour1': {
+        'size': 'sizeof(uint32_t)',
+        'check': '',
+        'vmax': 'SECONDS_PER_HOUR',
+        'vmin': 0,
+    },
+
+    'level': {
+        'size': 'sizeof(uint8_t)',
+        'check': '',
+        'vmax': 0,
+        'vmin': 0,
+    },
+
+    'devnum': {
+        'size': 'sizeof(uint8_t)',
+        'check': '',
+        'vmax': 'MAX_ATTACHED_DEVICES',
+        'vmin': 0,
+    },
+
+    'pin': {
+        'size': 'sizeof(uint8_t)',
+        'check': '',
+        'vmax': 'NUM_DIGITAL_PINS',
+        'vmin': 0,
+    }
+}
+
+
+SRC_packets = (
+		# Command								name						   label						fields
+		(  IBACOM_NONE,                         'none',                        'empty packet',                ()),
+		(  IBACOM_INIT,                         'init',                        'init byte',                   ()),
+		(  IBACOM_RESET,                        'reset',                       'reset command',               ()),
+		(  IBACOM_REQUEST_CONFIG,               'request_config',              'config request',              ()),
+		(  IBACOM_REQUEST_STATUS,               'request_status',              'status request',              ()),
+		(  IBACOM_COMMAND_STRING,               'command_string',              'command string',              ('message',)),
+		(  IBACOM_UNIX_EPOCH,                   'unix_epoch',                  'timestamp',                   ('epoch',)),
+		(  IBACOM_REPORT,                       'report',                      'generic report',              ('message','name','epoch','level',)),
+		(  IBACOM_ACK,                          'ack',                         'acknowledge',                 ('value',)),
+		(  IBACOM_RESET_CONF,                   'reset_conf',                  'reset conf command',          ()),
+		(  IBACOM_REQUEST_SDDROP,               'request_sddrop',              'drop request',                ()),
+		(  IBACOM_REQUEST_SDCLEAR,              'request_sdclear',             'clear request sd',            ()),
+		(  IBACOM_REQUEST_SDWIPE,               'request_sdwipe',              'wipe request sd',             ()),
+		(  IBACOM_SET_DEVNAME,                  'set_devname',                 'set devname',                 ('devname','name',)),
+		(  IBACOM_SET_DEVPIN,                   'set_devpin',                  'set devpin',                  ('devname','pin',)),
+		(  IBACOM_REM_DEVICE,                   'rem_device',                  'rem device',                  ('devname',)),
+		(  IBACOM_ACTUATOR_SET,                 'actuator_set',                'set actuator',                ('devname','level',)),
+		(  IBACOM_CONF_STD,                     'conf_std',                    'standard conf',               ('name','type','board','devnum',)),
+		(  IBACOM_CONF_SAMPLER,                 'conf_sampler',                'sampler conf',                ('stepday1','stephour1',)),
+		(  IBACOM_CONF_ASENSOR,                 'conf_asensor',                'analog sensor conf',          ('devname','pin','parameter1','parameter2',)),
+		(  IBACOM_CONF_LDR,                     'conf_ldr',                    'ldr sensor conf',             ('devname','pin','parameter1','parameter2',)),
+		(  IBACOM_CONF_DHT22,                   'conf_DHT22',                  'DHT22 sensor conf',           ('devname','pin','parameter1','parameter2','parameter3','parameter4',)),
+		(  IBACOM_CONF_RELAY,                   'conf_relay',                  'relay conf',                  ('devname','pin',)),
+		(  IBACOM_CONF_DEVSTD,                  'conf_devstd',                 'device generic conf',         ('devname','pin',)),
+		(  IBACOM_STATUS_STD,                   'status_std',                  'standard status',             ('name','epoch','looptime','freeram',)),
+		(  IBACOM_STATUS_SAMPLER,               'status_sampler',              'sampler status',              ('name','stepday1','value',)),
+		(  IBACOM_STATUS_ASENSOR,               'status_asensor',              'analog sensor stat',          ('devname','value','level',)),
+		(  IBACOM_STATUS_LDR,                   'status_ldr',                  'ldr sensor stat',             ('devname','value','level',)),
+		(  IBACOM_STATUS_DHT22,                 'status_DHT22',                'DHT22 sensor stat',           ('devname','temperature','humidity','level',)),
+		(  IBACOM_STATUS_RELAY,                 'status_relay',                'relay stat',                  ('devname','level',)),
+		(  IBACOM_STATUS_SD,                    'status_sd',                   'sd statistics',               ('name', 'pin', 'parameter1','parameter2')), ######
+		(  IBACOM_STATUS_DEVSTD,                'status_devstd',               'device generic stat',         ('devname','level',)),
+		(  IBACOM_PROBE_AMBIENT,                'probe_ambient',               'ambient probe',               ('devname','type','epoch','value',)),
+	)

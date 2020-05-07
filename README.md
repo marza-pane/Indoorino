@@ -1,6 +1,6 @@
 # INDOORINO
 
-## NOTE:still under development. 
+## NOTE: <<< this project is still under development. >>> 
 
 Smart home with Arduino and ESP8266. Indoorino is a C/C++ library, it has its own packet system used by Arduino/ESP to send messages to desktop applications. User Interface is (will be) written in Python with a compiled module built on Indoorino library.
 

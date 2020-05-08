@@ -281,7 +281,7 @@ def genEvals(*file):
 
             code +='\n\t\tcase IBACOM_{}:'.format(n.upper())
             code +='\n\t\t{'
-            code +='\n\t\t#if   defined (PYIMODULE)\n\t\t#elif defined (INDOORINO_ESP)\n\t\t#elif defined (INDOORINO_SAMPLER)'
+            code +='\n\t\t#if   defined (PYIMODULE)\n\t\t#elif defined (INDOORINO_ESPSERVER)\n\t\t#elif defined (INDOORINO_SAMPLER)'
             code +='\n\t\t#elif defined (INDOORINO_CAMERA)'
             code +='\n\t\t#endif\n\t\t\tbreak;\n\t\t}\n\n'
 

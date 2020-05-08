@@ -87,7 +87,7 @@ def format_bytearray(array):
 def format_debug(array):
 
     r=list()
-    for c in list(list(array.decode(errors='ignore'))):
+    for c in list(array.decode(errors='ignore')):
         if c.isprintable() or c in ('\n', '\t'):
             r.append(c)
 
@@ -97,7 +97,7 @@ def format_packet(packet):
 
 
     code = ''
-    template = ('___>>>_PACKET_RECEIVED:_{label}\n|    FROM : {name}|\n|    DATA :')
+    template = ('___>>>_packet_received:_{label}\n|    FROM : {name}|\n|    DATA :')
 
     fields = []
     for key in ['label','command','data_size','full_size', 'name']:
@@ -128,7 +128,7 @@ def format_packet(packet):
                 datetime.datetime.fromtimestamp(item[1])))
         else:
             code += '{0:<89}|'.format('\n|          {}: {}'.format(item[0], item[1]))
-    code += ('\n|{0:<82}_<<<_|'.format('')).replace(' ', '_')
+    code += ('\n|{0:<80}_<<<___|'.format('')).replace(' ', '_')
 
     return code
 def format_list(iterable, tabs=0):

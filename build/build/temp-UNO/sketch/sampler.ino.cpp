@@ -5,7 +5,7 @@
 blinkingLed     blinker;
 ClockDS3231     rtc; 
 BoardIO         boardio(true);
-// ConfSampler     conf;
+ConfSampler     conf;
 // deviceList      devices;      
 // sdProbe         sd;
 
@@ -72,13 +72,13 @@ void setup()
     
     debug("\n<INIT:%s>",P2C(BOARD_NAME));        
     boardio.begin();
+    rtc.begin();
     sendReport(1, FPSTR(BOARD_NAME), F("BOARD STARTS"));    
     
-    rtc.begin();
-//     debug("\n<INIT:CONF>\n");
-//     conf.begin();
-//     boardio.sendConfig();
-// 
+    debug("\n<INIT:CONF>\n");
+    conf.begin();
+    sendConfig();
+
 //     debug("\n<INIT:SENSORS>\n");
 //     devices.begin();
 // 

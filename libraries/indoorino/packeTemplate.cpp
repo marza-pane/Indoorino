@@ -21,7 +21,7 @@ ipacket::ipacket            (ibacomm_t com)
             return;
         }
     }
-    error_mem("\nFATAL: con not init packet %u\nCrashing...\n",com);
+    error_mem("FATAL: con not init packet %u\nCrashing...\n",com);
     _fptr = (char *)&PackeTable[0];
 }
 
@@ -260,7 +260,7 @@ void            ipacket::dict2packet    (PyObject  * ptr)
                             }
                             else
                             {
-                                error_io("\nWARNING:packet:dict2packet: invalid string for %s <%s>", var_name, p);
+                                error_io("WARNING:packet:dict2packet: invalid string for %s <%s>", var_name, p);
                             }
                             break;
                         }

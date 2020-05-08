@@ -12,7 +12,7 @@
     #error "SAMPLER can not be uploaded to ESP8266"
 #endif
 
-#include "definitions.h"
+#include <Arduino.h>
 
 const char INDOORINO_TYPE[] PROGMEM = "SAMPLER";
 

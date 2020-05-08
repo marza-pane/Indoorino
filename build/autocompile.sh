@@ -15,11 +15,11 @@ PATH_PROJECT_SKETCH="../sketches/debug_packets/debug_packets.ino ../sketches/sam
 PATH_ESP_PROJECT_SKETCH="../sketches/debug_packets/debug_packets.ino ../sketches/sampler/espserver.ino"
 
 FLAG_COMPILE_ARDUINO="1"
-FLAG_COMPILE_ESP=""
-FLAG_COMPILE_RAWRUN=""
+FLAG_COMPILE_ESP="1"
+FLAG_COMPILE_RAWRUN="1"
 FLAG_COMPILE_MODULE="1"
 
-FLAG_TEST_RAWRN=""
+FLAG_TEST_RAWRN="1"
 FLAG_TEST_PYMODULE="1"
 
 FILENAME_USER_DEF="../libraries/indoorino/project.h"

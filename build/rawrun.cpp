@@ -70,6 +70,10 @@ int     main    (void)
             }
         }
     }
+    
+    delete(ptr);
+    if (obt != nullptr) delete(obt);
+    
     printf("\n\n");
     return 0;
 }

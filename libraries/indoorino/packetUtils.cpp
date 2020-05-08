@@ -5,15 +5,15 @@
  *      Author: n00b
  */
 
-#include "packetUtils.h"
+#include "indoorino.h"
 #if defined(ARDUINO)
-#include "stddev.h"
     
 //      _____________________________________________________________________
 //      |                                                                   |
 //      |       Board IO                                                    |
 //      |___________________________________________________________________|
 //
+
 BoardIO::BoardIO                (bool strict)
 {
     _rx = new packetParse(strict);
@@ -98,6 +98,72 @@ void            sendReport
 	va_end(args);
 }
 
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       Send Config                                                 |
+//      |___________________________________________________________________|
+//
+
+void        sendConfig            (void)
+{
+    
+    ipacket * ptr = new ipacket(IBACOM_CONF_STD);    
+    char buf[LEN_NAME];
+    strcpy(buf,P2C(BOARD_NAME));
+    strcpy(ptr->p_name(), buf);
+
+    strcpy(buf,P2C(INDOORINO_TYPE));
+    strcpy(ptr->p_type(), buf);
+
+    strcpy(buf,P2C(BOARD_TYPE));
+    strcpy(ptr->p_board(), buf);
+    *ptr->p_devnum() = conf.devnum();
+    
+    boardio.tx()->send(ptr);
+    debug("\niop:sendConfig:devnum is %u",conf.devnum());
+
+#if defined INDOORINO_SAMPLER
+
+    ptr = reallocPacket(ptr, IBACOM_CONF_SAMPLER);
+    
+    *ptr->p_stepday1()  = conf.step();
+    *ptr->p_stephour1() = conf.cool();
+
+    debug("\niop:sendConfig:devnum is %u",conf.devnum());
+    for (uint8_t i=0; i<conf.devnum(); i++)
+    {
+        ptr=conf.device(ptr,i);
+        boardio.tx()->send(ptr);
+    }
+
+#elif defined INDOORINO_ESPSERVER
+    
+//     ptr = reallocPacket(ptr, IBACOM_CONF_ESP);
+//     
+//     uint32_t p = conf.localport();
+//     uint8_t  a = conf.attempts();
+//     uint32_t t = conf.timeout();
+//     
+//     char ip[LEN_IPADDRESS];
+//     WiFi.localIP().toString().toCharArray(ip,LEN_IPADDRESS);
+//     strcpy(ptr->p_ip(), ip);
+//     memcpy(ptr->p_port(), &p, sizeof(uint32_t));
+//     memcpy(ptr->p_timeout(), &t, sizeof(uint32_t));
+//     memcpy(ptr->p_level(), &a, sizeof(uint8_t));
+//     boardio.tx()->send(ptr);
+//     
+//     debug("\niop:sendConfig:devnum is %u",conf.devnum());
+//     for (uint8_t i=0; i<conf.devnum(); i++)
+//     {
+//         ptr=conf.device(ptr,i);
+//         boardio.tx()->send(ptr);
+//     }
+    
+#endif
+    delete(ptr);
+}
+
+
 #endif /* ARDUINO */
 
     
@@ -143,15 +209,15 @@ ibasize_t   packet_size         (ibacomm_t com)
 
 
 
-// bool                isDeviceConf                    (ipacket * ptr)
-// {
-//     if (ptr->command() > IBACOM_CONF_ASENSOR && 
-//         ptr->command() <= IBACOM_CONF_DEVSTD)
-//     {
-//         return true;
-//     }
-//     return false;
-// }
+bool        is_type_devconf     (ipacket * ptr)
+{
+    ibacomm_t c = ptr->command();
+    for (uint8_t i=0; i<ATT_DEVICE_LIST_NUM; i++)
+    {
+        if (c == ATT_DEVICE_LIST[i]) return true;
+    }
+    return false;
+}
 
 // bool                isSensorConf                    (ipacket * ptr)
 // {

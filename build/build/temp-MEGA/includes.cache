@@ -21,8 +21,13 @@
   },
   {
     "Sourcefile": "/home/n00b/Code/Develop/Indoorino.3.0.6/build/build/temp-MEGA/sketch/sampler.ino.cpp",
-    "Include": "stddev.h",
+    "Include": "boardconf.h",
     "Includepath": "/home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices"
+  },
+  {
+    "Sourcefile": "/home/n00b/Code/Develop/Indoorino.3.0.6/build/build/temp-MEGA/sketch/sampler.ino.cpp",
+    "Include": "EEPROM.h",
+    "Includepath": "/opt/arduino-1.8.12/hardware/arduino/avr/libraries/EEPROM/src"
   },
   {
     "Sourcefile": "/home/n00b/Code/Develop/Indoorino.3.0.6/build/build/temp-MEGA/sketch/sampler.ino.cpp",
@@ -86,6 +91,11 @@
   },
   {
     "Sourcefile": "/home/n00b/Code/Develop/Indoorino.3.0.6/libraries/RTC/RTClib.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices/boardconf.cpp",
     "Include": "",
     "Includepath": null
   },

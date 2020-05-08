@@ -8,17 +8,16 @@
 #ifndef SOURCE_ARDUINO_BOARD_WEMOS_D1R1_H_
 #define SOURCE_ARDUINO_BOARD_WEMOS_D1R1_H_
     
-    #include "ESP8266WiFi.h"
-    #include <WiFiUdp.h>
+    #include "boards/board_esp8266.h"
     
     const char BOARD_TYPE[] PROGMEM = "WEMOS";
     #pragma message "Compiling for WEMOS D1R1"
 
     #define EEPROM_MODULE
+    #define EEPROM_SIZE 512
     #define RAMEND 32000
-    extern WiFiUDP Udp;
 
-//      ________________________________
+    //      ________________________________
 //      |                               |
 //      |       PIN MAP                 |
 //      |_______________________________|
@@ -44,7 +43,6 @@
 //      |_______________________________|
 //
 
-    #include <SoftwareSerial.h>
     #define DEBUG_PIN_RX D5
     #define DEBUG_PIN_TX D6
     

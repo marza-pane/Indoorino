@@ -58,18 +58,18 @@
 
 #if defined (ARDUINO)
 
+    #include "stddev.h"
+    #include "boardconf.h"
+
     #if defined (INDOORINO_SAMPLER)
 
-        #include "stddev.h"
-    //         #include "indoorinoConfig.h"
-    //         #include "devices.h"
-    //         #include "sensors.h"
-    //         #include "sdCard.h"
+//         #include "devices.h"
+//         #include "sensors.h"
+//         #include "sdCard.h"
         
-        extern  blinkingLed     blinker;
-        extern  ClockDS3231     rtc; 
         extern  BoardIO         boardio;
-    //         extern  ConfSampler     conf;        
+        extern  blinkingLed     blinker;
+        extern  ConfSampler     conf;        
     //         extern  deviceList      devices;      
     //         extern  sdProbe         sd;
 
@@ -77,25 +77,19 @@
 
     #elif defined (INDOORINO_PHONEDOOR)
 
-        #include "stddev.h"
-    //         #include "indoorinoConfig.h"
     //         #include "devices.h"
     //         #include "sensors.h"
         
         extern  blinkingLed     blinker;
-        extern  millisClock     rtc; 
         extern  BoardIO         boardio;
     //         extern  ConfBase        conf;        
 
-    #elif defined (INDOORINO_ESP)
+    #elif defined (INDOORINO_ESPSERVER)
 
-    //         #include "stddev.h"
-    //         #include "indoorinoConfig.h"
     //         #include "espServerUtils.h"
-    //         extern  blinkingLed     blinker;
-    //         extern  millisClock     rtc; 
-    //         extern  packetRouter    boardio;
-    //         extern  ConfEspServer   conf;
+        extern  blinkingLed     blinker;
+        extern  BoardIO         boardio;
+        extern  ConfEspServer   conf;
     //         extern  AddressList     addresslist;
     //         extern  connectionLoop  connection;
         
@@ -103,7 +97,9 @@
     #elif defined (INDOORINO_CAMERA)
 
     #else
-    
+        
+        extern  ConfBase        conf;   
+
     #endif /* PROJECTS */
 
         

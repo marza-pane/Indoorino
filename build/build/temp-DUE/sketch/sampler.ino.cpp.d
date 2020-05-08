@@ -148,6 +148,8 @@
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/indoorino/packetMap.h \
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/indoorino/comtable.h \
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/indoorino/packetSend.h \
+ /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices/boardconf.h \
+ /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices/staticspace.h \
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices/stddev.h \
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/DHT/DHT.h \
  /home/n00b/.arduino15/packages/arduino/hardware/sam/1.6.12/libraries/Wire/src/Wire.h \

@@ -4,7 +4,7 @@
 blinkingLed blinker;
 ClockDS3231 rtc;
 BoardIO boardio(0x1);
-// ConfSampler     conf;
+ConfSampler conf;
 // deviceList      devices;      
 // sdProbe         sd;
 
@@ -66,13 +66,13 @@ void setup()
 
     debughelper((reinterpret_cast<const __FlashStringHelper *>(("\n<INIT:%s>"))),({ char buf[64]; strcpy((buf), (BOARD_NAME)); buf; }));
     boardio.begin();
+    rtc.begin();
     sendReport(1, (reinterpret_cast<const __FlashStringHelper *>(BOARD_NAME)), (reinterpret_cast<const __FlashStringHelper *>(("BOARD STARTS"))));
 
-    rtc.begin();
-//     debug("\n<INIT:CONF>\n");
-//     conf.begin();
-//     boardio.sendConfig();
-// 
+    debughelper((reinterpret_cast<const __FlashStringHelper *>(("\n<INIT:CONF>\n"))));
+    conf.begin();
+    sendConfig();
+
 //     debug("\n<INIT:SENSORS>\n");
 //     devices.begin();
 // 

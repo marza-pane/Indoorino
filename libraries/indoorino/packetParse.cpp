@@ -123,9 +123,9 @@ void            packetParse::parse_name         (uint8_t incoming)
                 debug_io("\nparse:name: [%s:%s] PASS", boardname, _buff_name);
                 return;
             }
-            else    { error_io("\nparse:name: [%s:%s] comparison FAILED!",boardname, _buff_name); }
+            else    { error_io("WARNING:parse:name: [%s:%s] comparison FAILED!",boardname, _buff_name); }
         }
-        else        { error_io("\nparse:name: could not find init byte"); }
+        else        { error_io("\nWARNING:parse:name: could not find init byte"); }
     }
     
     _flag_preamble=false;

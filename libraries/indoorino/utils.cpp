@@ -152,21 +152,7 @@ void        time_string         (char * buf, uint32_t epoch)
         timeinfo = localtime(&rawtime);   
         strftime (buf, LEN_DATETIMESTR, "%Y %b %d %H:%M:%S", timeinfo);
     #endif
-    
-//     #if defined (ARDUINO_SAM_DUE) || defined (ESP8266)
-//         const long int rawtime = (long int)epoch;
-//     #elif defined (ARDUINO_AVR_MEGA) ||
-//           defined (ARDUINO_AVR_MEGA2560) ||
-//           defined (ARDUINO_AVR_UNO) 
-//         const uint32_t rawtime = (const uint32_t)epoch;
-//     #else
-//         const int64_t  rawtime = (const uint64_t)epoch;
-//     #endif
-//     
-//     struct tm * timeinfo;
-//     timeinfo = localtime(&rawtime);
-// 
-//     strftime (buf, LEN_DATETIMESTR, "%Y %b %d %H:%M:%S", timeinfo);
+
     return;
 }
 

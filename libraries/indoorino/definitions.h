@@ -155,7 +155,18 @@ const uint8_t   PREAMBLE[] PROGMEM = {UINT8_MAX,1,1,UINT8_MAX};
 //
 
 const char  DEFAULT_TARGET_IP[] PROGMEM = "192.168.1.42";
-#define     DEFAULT_TARGET_PORT 7890
+
+// _______                                                                      _______
+// |     |                                                                      |     |
+// |     | ip (dynamic): 192.168.X.Y                  ip (static): 192.168.1.42 |     |
+// | ESP |   <--------------------------------------------------------------->  | APP |   
+// |     | port: 7870 (DEFAULT_LOCALPORT)      port: 7890 (DEFAULT_TARGET_PORT) |     |
+// |_____|                                                                      |_____|
+
+#define     DEFAULT_TARGET_PORT 7890    // Port on PC UDP server
+#define     DEFAULT_LOCALPORT   7870    // Default port for ESP UDP
+
+
 
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -191,7 +202,7 @@ typedef struct {
     
 #elif defined (INDOORINO_ESPSERVER)
 
-//     #include "types/esp8266Std.h"
+    #include "projectypes/espserverStd.h"
 
 #elif defined (INDOORINO_CAMERA)
 
@@ -270,8 +281,15 @@ void        debughelper     (const __FSH * format, ...);
     #define debug_net(S,...)    {}
 #endif
 
-#define error_mem(S,...) debughelper(F(S), ## __VA_ARGS__)
-#define error_io(S,...) debughelper(F(S), ## __VA_ARGS__)
+#define error_mem(S,...) debughelper(F("\nMEM:" S), ## __VA_ARGS__)
+#define error_io(S,...) debughelper(F("\nIO:" S), ## __VA_ARGS__)
+#define error_dev(S,...) debughelper(F("\nDEV:" S), ## __VA_ARGS__)
+#define error_net(S,...) debughelper(F("\nNET:" S), ## __VA_ARGS__)
+
+// #define error_mem(S,...) debughelper(F(S), ## __VA_ARGS__)
+// #define error_io(S,...) debughelper(F(S), ## __VA_ARGS__)
+// #define error_dev(S,...) debughelper(F(S), ## __VA_ARGS__)
+
 
 
 

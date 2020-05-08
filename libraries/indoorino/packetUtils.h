@@ -51,11 +51,22 @@ void                sendStatus          (void);
 void                sendAllarm          (const uint8_t, const uint8_t);  
 void                sendWarning         (const uint8_t, const uint8_t);
 
-bool                isDeviceConf        (ipacket *);
+#endif /* ARDUINO */
+
+#define ATT_DEVICE_LIST_NUM 6
+const ibacomm_t ATT_DEVICE_LIST[] PROGMEM = {
+    IBACOM_CONF_ASENSOR,
+    IBACOM_CONF_SWITCH,
+    IBACOM_CONF_LDR,
+    IBACOM_CONF_DHT22,
+    IBACOM_CONF_RELAY,
+    IBACOM_CONF_DEVSTD
+};
+
+bool                is_type_devconf     (ipacket *);
 bool                isSensorConf        (ipacket *);
 bool                isActuatorConf      (ipacket *);
 
-#endif /* ARDUINO */
 
 ibasize_t           packet_size         (ibacomm_t);
 ipacket     *       reallocPacket       (ipacket *, ibacomm_t);

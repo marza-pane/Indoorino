@@ -24,6 +24,9 @@
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/indoorino/packetMap.h \
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/indoorino/comtable.h \
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/indoorino/packetSend.h \
+ /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices/boardconf.h \
+ /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices/staticspace.h \
+ /opt/arduino-1.8.12/hardware/arduino/avr/libraries/EEPROM/src/EEPROM.h \
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices/stddev.h \
  /home/n00b/Code/Develop/Indoorino.3.0.6/libraries/DHT/DHT.h \
  /opt/arduino-1.8.12/hardware/arduino/avr/libraries/Wire/src/Wire.h \

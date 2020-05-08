@@ -33,6 +33,12 @@ void        benchmark_debug     (void)
         debug_io("pass");
         SerialDebugPrint(F("\n\tDEBUG_NET: "));
         debug_net("pass");
+        SerialDebugPrint(F("\n\tWARNING_MEM: "));
+        error_mem("INFO: pass");
+        SerialDebugPrint(F("\n\tWARNING_IO: "));
+        error_io("INFO: pass");
+        SerialDebugPrint(F("\n\tWARNING_DEV: "));
+        error_dev("INFO: pass");
     }
     
     f = F("**This is a flash string**");

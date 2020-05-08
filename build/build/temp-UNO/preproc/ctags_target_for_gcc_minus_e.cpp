@@ -4,7 +4,7 @@
 blinkingLed blinker;
 ClockDS3231 rtc;
 BoardIO boardio(true);
-// ConfSampler     conf;
+ConfSampler conf;
 // deviceList      devices;      
 // sdProbe         sd;
 
@@ -74,21 +74,29 @@ void setup()
 # 66 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino"
    )),({ char buf[64]; strcpy_P(buf, BOARD_NAME); buf; }));
     boardio.begin();
+    rtc.begin();
     sendReport(1, (reinterpret_cast<const __FlashStringHelper *>(BOARD_NAME)), (reinterpret_cast<const __FlashStringHelper *>(
-# 68 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino" 3
+# 69 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino" 3
                                     (__extension__({static const char __c[] __attribute__((__progmem__)) = (
-# 68 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino"
+# 69 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino"
                                     "BOARD STARTS"
-# 68 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino" 3
+# 69 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino" 3
                                     ); &__c[0];}))
-# 68 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino"
+# 69 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino"
                                     )));
 
-    rtc.begin();
-//     debug("\n<INIT:CONF>\n");
-//     conf.begin();
-//     boardio.sendConfig();
-// 
+    debughelper((reinterpret_cast<const __FlashStringHelper *>(
+# 71 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino" 3
+   (__extension__({static const char __c[] __attribute__((__progmem__)) = (
+# 71 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino"
+   "\n<INIT:CONF>\n"
+# 71 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino" 3
+   ); &__c[0];}))
+# 71 "/home/n00b/Code/Develop/Indoorino.3.0.6/sketches/sampler/sampler.ino"
+   )));
+    conf.begin();
+    sendConfig();
+
 //     debug("\n<INIT:SENSORS>\n");
 //     devices.begin();
 // 

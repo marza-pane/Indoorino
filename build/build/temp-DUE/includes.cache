@@ -21,7 +21,7 @@
   },
   {
     "Sourcefile": "/home/n00b/Code/Develop/Indoorino.3.0.6/build/build/temp-DUE/sketch/sampler.ino.cpp",
-    "Include": "stddev.h",
+    "Include": "boardconf.h",
     "Includepath": "/home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices"
   },
   {
@@ -86,6 +86,11 @@
   },
   {
     "Sourcefile": "/home/n00b/Code/Develop/Indoorino.3.0.6/libraries/RTC/RTClib.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/n00b/Code/Develop/Indoorino.3.0.6/libraries/devices/boardconf.cpp",
     "Include": "",
     "Includepath": null
   },

@@ -1,7 +1,7 @@
 import utils.IndoorinoModule
 from utils.installer import build_setup
 from utils.definitions import *
-from utils.utils import format_packet, format_dict
+from utils.utils import format_packet, format_debug
 from serial.tools import list_ports
 
 import cProfile
@@ -42,11 +42,12 @@ class IndoorinoCLI_PacketListener:
         for port in self.serial_port_list:
             port.connection = serial.Serial()
             port.connection_status = False
+            port.parser = utils.IndoorinoModule
 
     def connect(self):
 
         for port in self.serial_port_list:
-            if not port.connection_status:
+            if not port.connection_status and not 'USB1' in port.device:
                 print('Connecting to Serial port {}'.format(port.device), end='')
                 try:
                     port.connection = serial.Serial(port.device, DEFALT_SERIAL_BAUDRATE)
@@ -85,6 +86,9 @@ class IndoorinoCLI_PacketListener:
                     continue
 
                 if len(buffer) > 0:
+
+                    # print(format_debug(buffer))
+
                     utils.IndoorinoModule.parse(buffer)
                     # time.sleep(0.1)
                     incoming = utils.IndoorinoModule.obtain()

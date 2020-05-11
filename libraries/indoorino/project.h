@@ -41,7 +41,7 @@
     #define SD_MODULE
 
     /* Uncomment this if RTC clock is attached */
-    #define RTC_MODULE
+//     #define RTC_MODULE
     
     /* Uncomment one or more of these for debugging */    
     #define DEBUG_GENERIC

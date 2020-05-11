@@ -16,7 +16,7 @@
                
 const char INDOORINO_TYPE[] PROGMEM = "ESPSERVER";
 
-#define DEFAULT_DEVNUM  1    
+#define DEFAULT_DEVNUM 0
 
 // const char DEFAULT_TARGET_NAME[] PROGMEM = "IP0";
 const char DEFAULT_SSID[]        PROGMEM = "";

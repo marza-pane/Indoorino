@@ -61,13 +61,14 @@
     #include "stddev.h"
     #include "boardconf.h"
 
+    extern  BoardIO         boardio;
+    
     #if defined (INDOORINO_SAMPLER)
 
 //         #include "devices.h"
 //         #include "sensors.h"
 //         #include "sdCard.h"
         
-        extern  BoardIO         boardio;
         extern  blinkingLed     blinker;
         extern  ConfSampler     conf;        
     //         extern  deviceList      devices;      
@@ -81,14 +82,12 @@
     //         #include "sensors.h"
         
         extern  blinkingLed     blinker;
-        extern  BoardIO         boardio;
     //         extern  ConfBase        conf;        
 
     #elif defined (INDOORINO_ESPSERVER)
 
     //         #include "espServerUtils.h"
         extern  blinkingLed     blinker;
-        extern  BoardIO         boardio;
         extern  ConfEspServer   conf;
     //         extern  AddressList     addresslist;
     //         extern  connectionLoop  connection;

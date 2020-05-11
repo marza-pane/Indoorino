@@ -10,7 +10,8 @@
 
 #include "staticspace.h"
 #if defined (INDOORINO_ESPSERVER)
-#include "../netmodule/net_utils.h"
+#include "../netmodule/netutils.h"
+#include "../netmodule/esputils.h"
 #endif
 
 //  ___________________________________________________________________________________________
@@ -83,7 +84,7 @@
     
     class   ConfBase_AVR        : public ConfBase
     {
-        uint8_t  validate           (ipacket *);
+        uint8_t     validate        (ipacket *);
     public:
                     ConfBase_AVR()  {};
         virtual    ~ConfBase_AVR()  {};
@@ -131,6 +132,9 @@
 
     class   ConfEspServer   : public ConfBase_ESP
     {
+        netaddress          _address;
+        uint32_t            _address_num=0;
+    
     public:
         void                factory         (void);
         void                begin           (void);
@@ -143,9 +147,11 @@
         uint32_t            timeout         (void);
         uint8_t             attempts        (void);
         
-        address         *   address_list[MAX_ATTACHED_DEVICES];
-        void                addAddress      (address *);
-        void                remAddress      (address *);
+        netaddress      *   address         (uint8_t);
+        uint32_t            address_num     (void)      { return _address_num; };
+        
+        void                addAddress      (netaddress *);
+        void                remAddress      (netaddress *);
         
     };
     #endif /* PROJECTS */

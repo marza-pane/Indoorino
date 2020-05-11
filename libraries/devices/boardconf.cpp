@@ -459,7 +459,6 @@ uint8_t     ConfBase_AVR::devindexBypin     (uint8_t pin)
     return UINT8_MAX;
 }
 
-
 bool        ConfBase_AVR::devSetPin         (const char * name, uint8_t pin)
 {
     
@@ -491,6 +490,20 @@ bool        ConfBase_AVR::devSetPin         (const char * name, uint8_t pin)
 }
 
 const char string_foundinvalid[] PROGMEM = "Found invalid ";
+
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       AVR BASE CONFIGURATION                                      |
+//      |___________________________________________________________________|
+//
+
+
+
+uint8_t     ConfBase_ESP::validate            (ipacket * ptr)
+{
+    return ConfBase::validate(ptr);
+}
+
 
 #if defined (INDOORINO_SAMPLER)
 
@@ -631,6 +644,14 @@ void        ConfSampler::cool               (uint32_t value)
 //      |___________________________________________________________________|
 //
     
+/*
+ *  _______________________________________________
+ *  |         |     :     :     :     |           |
+ *  | STDCONF | IP0 : IP1 : ... : IPn | LOCALPORT |
+ *  |_________|_____:_____:_____:_____|___________|
+ *  
+ */
+
     
 void        ConfEspServer::begin            (void)
 {
@@ -640,10 +661,33 @@ void        ConfEspServer::begin            (void)
     uint8_t     num=0;
     ibasize_t   ndx=SIZEOF_STDCONF;
     
+    
+    st_address      addr;
+    
+    for (uint8_t i=0; i<MAX_NET_TARGETS; i++)
+    {
+        staticspace.get(ndx + i* sizeof(st_address), addr);
+        
+        if (!_address.set(&addr))
+        {
+            if (i == 0)
+            {
+                error_dev("%sIP TARGET (none)",P2C(string_foundinvalid));
+                delay(200);
+                this->factory();
+                this->begin();
+            }
+            else break;
+        }
+        else _address_num ++;
+    }
+
+    ndx += MAX_NET_TARGETS * sizeof(st_address);
+    
     staticspace.get(ndx, par);
     if (par < PORT_SOCKET_FIRST || par > PORT_SOCKET_LAST)
     {
-        sendReport(3, _id, F("%sPORT <%u>"),P2C(string_foundinvalid), par);
+        error_dev("%sPORT <%u>",P2C(string_foundinvalid), par);
         delay(200);
         this->factory();
         this->begin();
@@ -653,7 +697,8 @@ void        ConfEspServer::begin            (void)
     staticspace.get(ndx, par);
     if (par < 100)
     {
-        sendReport(3, _id, F("\n%sTIMEOUT <%u>"),P2C(string_foundinvalid), par);
+        error_dev("%sTIMEOUT <%u>",P2C(string_foundinvalid), par);
+//         sendReport(3, _id, F("\n%sTIMEOUT <%u>"),P2C(string_foundinvalid), par);
         delay(200);
         this->factory();
         this->begin();
@@ -664,11 +709,13 @@ void        ConfEspServer::begin            (void)
     staticspace.get(ndx, num);
     if (num > MAX_RETRY_NUM)
     {
-        sendReport(3, _id, F("\n%sATTEMPTS <%u>"),P2C(string_foundinvalid), par);
+        error_dev("%sATTEMPTS <%u>",P2C(string_foundinvalid), par);
+//         sendReport(3, _id, F("\n%sATTEMPTS <%u>"),P2C(string_foundinvalid), par);
         delay(200);
         this->factory();
         this->begin();
     }
+    
     
     ndx += sizeof(uint8_t);    
     initdev(ndx);
@@ -685,6 +732,12 @@ void        ConfEspServer::factory          (void)
     uint32_t    par=0;
     uint8_t     num=0;
     
+    _address.set(P2C(DEFAULT_TARGET_IP), DEFAULT_TARGET_PORT);
+    _address_num = 1;
+    staticspace.put(ndx, * _address.get());
+    
+    ndx += MAX_NET_TARGETS * sizeof(st_address);
+    
     par =DEFAULT_LOCALPORT;
     staticspace.put(ndx, par);
     ndx +=sizeof(uint32_t);
@@ -697,7 +750,8 @@ void        ConfEspServer::factory          (void)
     staticspace.put(ndx, num);
     ndx +=sizeof(uint8_t);
     
-
+    
+    staticspace.update();
     debug_dev("\nConfBase:begin: FACTORY");
 
 //     ipacket * ptr = new ipacket(IBACOM_ESP_ADDRESS);
@@ -721,61 +775,123 @@ void        ConfEspServer::factory          (void)
 //     delete ptr;    
 }
 
-uint32_t    ConfEspServer::localport        (void)
+uint32_t        ConfEspServer::localport        (void)
 {
     uint32_t par;
-    staticspace.get(SIZEOF_STDCONF, par);
+    staticspace.get(SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address), par);
     return par;
 }
 
-uint32_t    ConfEspServer::timeout          (void)
+uint32_t        ConfEspServer::timeout          (void)
 {
     uint32_t par;
-    staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), par);
+    staticspace.get(SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address) + sizeof(uint32_t), par);
     return par;
 }
 
-uint8_t     ConfEspServer::attempts         (void)
+uint8_t         ConfEspServer::attempts         (void)
 {
     uint32_t par;
-    staticspace.get(SIZEOF_STDCONF + 2 * sizeof(uint32_t), par);
+    staticspace.get(SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address) + 2 * sizeof(uint32_t), par);
     return par;
 }
 
-void        ConfEspServer::localport        (uint32_t value)
+void            ConfEspServer::localport        (uint32_t value)
 {
     uint32_t par;
-    staticspace.get(SIZEOF_STDCONF, par);
+    staticspace.get(SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address), par);
     if (par != value)
     {
         staticspace.put(SIZEOF_STDCONF, value);        
+        staticspace.update();
     }
-    staticspace.update();
 }
 
-void        ConfEspServer::timeout          (uint32_t value)
+void            ConfEspServer::timeout          (uint32_t value)
 {
     uint32_t par;
-    staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), par);
+    
+    staticspace.get(SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address) + sizeof(uint32_t), par);
     if (par != value)
     {
         staticspace.put(SIZEOF_STDCONF + sizeof(uint32_t), value);        
+        staticspace.update();
     }
-    staticspace.update();
 }
 
-void        ConfEspServer::attempts         (uint8_t value)
+void            ConfEspServer::attempts         (uint8_t value)
 {
     uint32_t par;
-    staticspace.get(SIZEOF_STDCONF + 2 * sizeof(uint32_t), par);
+    staticspace.get(SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address) + 2 * sizeof(uint32_t), par);
     if (par != value)
     {
-        staticspace.put(SIZEOF_STDCONF + 2 * sizeof(uint32_t), value);        
+        staticspace.put(SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address) + 2 * sizeof(uint32_t), value);        
+        staticspace.update();
     }
-    staticspace.update();
 }
 
+void            ConfEspServer::addAddress      (netaddress * apt)
+{
+    if (_address_num == MAX_NET_TARGETS - 1)
+    {
+        error_dev("conf:espServer: too many targets!");
+        return;
+    }
+    
+    ibasize_t   ndx = SIZEOF_STDCONF + _address_num * sizeof(st_address);
 
+    st_address  addr;
+    memcpy(&addr, apt->get(), sizeof(st_address));
+    staticspace.put(ndx, addr);
+    staticspace.update();
+    _address_num++;
+}
+
+void            ConfEspServer::remAddress      (netaddress * apt)
+{
+
+
+    bool flag=true;
+    st_address addr;
+    ibasize_t   ndx = SIZEOF_STDCONF;
+    
+    for (uint8_t i=0; i<_address_num; i++)
+    {
+        staticspace.get(ndx, addr);
+        for (uint8_t j=0; j<4; j++)
+        {
+            if (apt->ip(j) !=addr.ip[j])
+            {
+                flag = false;
+                break;
+            }
+        }
+        
+        if (flag && apt->port() == addr.port)
+        {
+            uint8_t byte=0;
+            debug("\nconf:remAddress: found %s:%u", apt->ip(), apt->port());
+            for (ibasize_t j=ndx; j<SIZEOF_STDCONF + (_address_num - 1) * sizeof(st_address); j++)
+            {
+                byte = staticspace.read(j + sizeof(st_address));
+                staticspace.update(j, byte);
+                ndx++;
+            }
+            for (ibasize_t j=ndx; j<ndx + sizeof(st_address); j++)
+            {
+                staticspace.update(j, 0);
+            }
+            return;
+        }
+        ndx += sizeof(st_address);
+    }
+    
+}
+
+netaddress  *   ConfEspServer::address         (uint8_t index)
+{
+        uint32_t            _address_num     =0;
+};
    
 #elif defined (INDOORINO_CAMERA)
 

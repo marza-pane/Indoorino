@@ -126,7 +126,9 @@ typedef     uint16_t                ibacomm_t;
 typedef     uint32_t                ibaepoch_t;
 typedef     uint8_t                 ibavar_t;
 
+#define     MAX_PACKET_ENTRIES      16
 #define     MAX_ATTACHED_DEVICES    20
+#define     MAX_NET_TARGETS         MAX_ATTACHED_DEVICES
 #define     MAX_PAYLOAD_SIZE       512
 
 #define     LEN_NAME                16
@@ -137,7 +139,6 @@ typedef     uint8_t                 ibavar_t;
 #define     LEN_PSK                 64
 #define     LEN_IPADDRESS           17
 #define     LEN_DATETIMESTR         22
-#define     MAX_PACKET_ENTRIES      16
 #define     F2C_BUFFER_SIZE         64
 
 #define     SIZEOF_STDCONF          (3 * LEN_NAME + sizeof(uint8_t))

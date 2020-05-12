@@ -9,6 +9,7 @@
 
 ipacket::ipacket            (ibacomm_t com)
 {
+    varmap_template s;
     packetmap_template p;
     for (ibacomm_t i=0; i<TOTAL_IBACOM; i++)
     {
@@ -16,8 +17,23 @@ ipacket::ipacket            (ibacomm_t com)
         if (p.comm == com)
         {
             _fptr = (char *)&PackeTable[i];
-            _data = (char *)calloc(data_size(), sizeof(char));
-            debug_mem("\nMEM: new packet %s (malloc %u bytes)", F2C(label()), data_size());
+            
+            
+            for (ibavar_t  n=0; n<p.fields; n++)
+            {
+                for (ibavar_t m=0; m<VARMAP_NUMBER; m++)
+                {
+                    if (p.var[n] == m)
+                    { 
+                        memcpy_P(&s, &VarTable[m], sizeof(s));
+                        _data_size+=s.size;
+                    }
+                }
+            }
+            
+            
+            _data = (char *)calloc(_data_size, sizeof(char));
+            debug_mem("\nMEM: new packet %s (malloc %u bytes)", F2C(label()), _data_size);
             return;
         }
     }
@@ -37,30 +53,30 @@ const  __FSH *  ipacket::label          (void)
     return FPSTR(_fptr + 3);   
 }
 
-ibasize_t       ipacket::data_size      (void)
-{
-    ibasize_t r=0;
-    varmap_template s;
-    packetmap_template p;
-
-    memcpy_P(&p, _fptr, sizeof(p));
-    for (ibavar_t  i=0; i<p.fields; i++)
-    {
-        for (ibavar_t j=0; j<VARMAP_NUMBER; j++)
-        {
-            if (p.var[i] == j)
-            { 
-                memcpy_P(&s, &VarTable[j], sizeof(s));
-                r+=s.size;
-            }
-        }
-    }
-    return r;
-}
+// ibasize_t       ipacket::data_size      (void)
+// {
+//     ibasize_t r=0;
+//     varmap_template s;
+//     packetmap_template p;
+// 
+//     memcpy_P(&p, _fptr, sizeof(p));
+//     for (ibavar_t  i=0; i<p.fields; i++)
+//     {
+//         for (ibavar_t j=0; j<VARMAP_NUMBER; j++)
+//         {
+//             if (p.var[i] == j)
+//             { 
+//                 memcpy_P(&s, &VarTable[j], sizeof(s));
+//                 r+=s.size;
+//             }
+//         }
+//     }
+//     return r;
+// }
 
 ibasize_t       ipacket::full_size      (void)
 {
-    return(2 + SIZEOF_PREAMBLE + LEN_NAME + SIZEOF_COMMAND + data_size());
+    return(2 + SIZEOF_PREAMBLE + LEN_NAME + SIZEOF_COMMAND + _data_size);
 }
 
 void            ipacket::forge          (char * buffer)
@@ -86,8 +102,8 @@ void            ipacket::forge          (char * buffer, const char * name)
     memcpy(buffer + ndx, &comm, SIZEOF_COMMAND);
     ndx += SIZEOF_COMMAND;
     
-    memcpy(buffer + ndx, _data, data_size());
-    ndx+=data_size();
+    memcpy(buffer + ndx, _data, _data_size);
+    ndx+=_data_size;
 
     buffer[ndx]=0;
     debug_mem("...done");
@@ -95,13 +111,13 @@ void            ipacket::forge          (char * buffer, const char * name)
 
 void            ipacket::clear          (void)
 {
-    memset(_data, 0, data_size());
+    memset(_data, 0, _data_size);
     _ndx=0;
 }
 
 bool            ipacket::append         (uint8_t app)
 {
-    if (_ndx < data_size())
+    if (_ndx < _data_size)
     {
         _data[_ndx]=app;
         _ndx++;
@@ -112,7 +128,7 @@ bool            ipacket::append         (uint8_t app)
 
 ibasize_t       ipacket::fill           (char * buffer, ibasize_t size)
 {
-    if (size <= data_size())
+    if (size <= _data_size)
     {
         memcpy(_data, buffer, size);
         return true;
@@ -122,8 +138,8 @@ ibasize_t       ipacket::fill           (char * buffer, ibasize_t size)
 
 uint32_t        ipacket::checksum       (void)
 {
-    debug_net("\nNET: ipacket %u:%s: checksum", command(), F2C(label()));
-    return packet_chksum(_data, data_size());
+//     debug_net("\nNET: ipacket %u:%s: checksum", command(), F2C(label()));
+    return packet_chksum(_data, _data_size);
 }
 
 bool            ipacket::check          (void)
@@ -145,7 +161,7 @@ PyObject  *     ipacket::packet2dict    (char * name)
     PyDict_SetItemString(obj_buffer, "label",        PyUnicode_FromString(F2C(label())));
     PyDict_SetItemString(obj_buffer, "name",         PyUnicode_FromString(name));
     PyDict_SetItemString(obj_buffer, "command",      PyLong_FromUnsignedLong(command()));
-    PyDict_SetItemString(obj_buffer, "data_size",    PyLong_FromUnsignedLong(data_size()));
+    PyDict_SetItemString(obj_buffer, "data_size",    PyLong_FromUnsignedLong(_data_size));
     PyDict_SetItemString(obj_buffer, "full_size",    PyLong_FromUnsignedLong(full_size()));
     
     PyObject * data=PyDict_New();

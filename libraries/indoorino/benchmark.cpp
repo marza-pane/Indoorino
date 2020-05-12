@@ -8,6 +8,15 @@
 #include "packetUtils.h"
 #if defined(ARDUINO)
     #include "RTClib.h"
+    #include "boardconf.h"
+    #if defined (INDOORINO_SAMPLER)
+        ConfSampler     conf;
+    #elif defined (INDOORINO_ESPSERVER)
+        ConfEspServer   conf;
+    #else
+        ConfBase        conf;
+    #endif /* PROJECTS */
+
 #endif
 
 const char ip0[] PROGMEM = "192.168.1.12";
@@ -246,43 +255,96 @@ void        benchmark_packets   (void)
 
     for (ibacomm_t i=0; i<max_packet; i++)
     {
-        debug("\n[%03.3u]Packet %u:%s (size=%u/%u)",i,
-              l[i]->command(), F2C(l[i]->label()), l[i]->data_size(), l[i]->full_size());
-        
-        if(l[i]->p_message() != nullptr) debug("\n\t--> message");
-        if(l[i]->p_command() != nullptr) debug("\n\t--> command");
-        if(l[i]->p_name() != nullptr) debug("\n\t--> name");
-        if(l[i]->p_type() != nullptr) debug("\n\t--> type");
-        if(l[i]->p_board() != nullptr) debug("\n\t--> board");
-        if(l[i]->p_devname() != nullptr) debug("\n\t--> devname");
-        if(l[i]->p_epoch() != nullptr) debug("\n\t--> epoch");
-        if(l[i]->p_value() != nullptr) debug("\n\t--> value");
-        if(l[i]->p_freemem() != nullptr) debug("\n\t--> freemem");
-        if(l[i]->p_looptime() != nullptr) debug("\n\t--> looptime");
-        if(l[i]->p_errors() != nullptr) debug("\n\t--> errors");
-        if(l[i]->p_totalrx() != nullptr) debug("\n\t--> totalrx");
-        if(l[i]->p_totaltx() != nullptr) debug("\n\t--> totaltx");
-        if(l[i]->p_serialrx() != nullptr) debug("\n\t--> serialrx");
-        if(l[i]->p_serialtx() != nullptr) debug("\n\t--> serialrx");
-        if(l[i]->p_param1() != nullptr) debug("\n\t--> param1");
-        if(l[i]->p_param2() != nullptr) debug("\n\t--> param1");
-        if(l[i]->p_param3() != nullptr) debug("\n\t--> param1");
-        if(l[i]->p_param4() != nullptr) debug("\n\t--> param1");
-        if(l[i]->p_temperature() != nullptr) debug("\n\t--> temperature");
-        if(l[i]->p_humidity() != nullptr) debug("\n\t--> humidity");
-        if(l[i]->p_stepday1() != nullptr) debug("\n\t--> stepday1");
-        if(l[i]->p_stephour1() != nullptr) debug("\n\t--> stephour1");
-        if(l[i]->p_timeout() != nullptr) debug("\n\t--> timeout");
-        if(l[i]->p_port() != nullptr) debug("\n\t--> port");
-        if(l[i]->p_level() != nullptr) debug("\n\t--> level");
-        if(l[i]->p_status() != nullptr) debug("\n\t--> status");
-        if(l[i]->p_devnum() != nullptr) debug("\n\t--> devnum");
-        if(l[i]->p_pin() != nullptr) debug("\n\t--> pin");
-        if(l[i]->p_ip() != nullptr) debug("\n\t--> ip");
+        dump_packet(l[i]);
+//         debug("\n[%03.3u]Packet %u:%s (size=%u/%u)",i,
+//               l[i]->command(), F2C(l[i]->label()), l[i]->data_size(), l[i]->full_size());
+//         
+//         if(l[i]->p_message() != nullptr) debug("\n\t--> message");
+//         if(l[i]->p_command() != nullptr) debug("\n\t--> command");
+//         if(l[i]->p_name() != nullptr) debug("\n\t--> name");
+//         if(l[i]->p_type() != nullptr) debug("\n\t--> type");
+//         if(l[i]->p_board() != nullptr) debug("\n\t--> board");
+//         if(l[i]->p_devname() != nullptr) debug("\n\t--> devname");
+//         if(l[i]->p_epoch() != nullptr) debug("\n\t--> epoch");
+//         if(l[i]->p_value() != nullptr) debug("\n\t--> value");
+//         if(l[i]->p_freemem() != nullptr) debug("\n\t--> freemem");
+//         if(l[i]->p_looptime() != nullptr) debug("\n\t--> looptime");
+//         if(l[i]->p_errors() != nullptr) debug("\n\t--> errors");
+//         if(l[i]->p_totalrx() != nullptr) debug("\n\t--> totalrx");
+//         if(l[i]->p_totaltx() != nullptr) debug("\n\t--> totaltx");
+//         if(l[i]->p_serialrx() != nullptr) debug("\n\t--> serialrx");
+//         if(l[i]->p_serialtx() != nullptr) debug("\n\t--> serialrx");
+//         if(l[i]->p_param1() != nullptr) debug("\n\t--> param1");
+//         if(l[i]->p_param2() != nullptr) debug("\n\t--> param1");
+//         if(l[i]->p_param3() != nullptr) debug("\n\t--> param1");
+//         if(l[i]->p_param4() != nullptr) debug("\n\t--> param1");
+//         if(l[i]->p_temperature() != nullptr) debug("\n\t--> temperature");
+//         if(l[i]->p_humidity() != nullptr) debug("\n\t--> humidity");
+//         if(l[i]->p_stepday1() != nullptr) debug("\n\t--> stepday1");
+//         if(l[i]->p_stephour1() != nullptr) debug("\n\t--> stephour1");
+//         if(l[i]->p_timeout() != nullptr) debug("\n\t--> timeout");
+//         if(l[i]->p_port() != nullptr) debug("\n\t--> port");
+//         if(l[i]->p_level() != nullptr) debug("\n\t--> level");
+//         if(l[i]->p_status() != nullptr) debug("\n\t--> status");
+//         if(l[i]->p_devnum() != nullptr) debug("\n\t--> devnum");
+//         if(l[i]->p_pin() != nullptr) debug("\n\t--> pin");
+//         if(l[i]->p_ip() != nullptr) debug("\n\t--> ip");
         delete l[i];
     }
     
     debug("\nPacket test finished!\n\n");
     fflush(stdout);
     
+}
+
+void        benchmark_config    (void)
+{
+#if defined(ARDUINO)
+
+    conf.begin();
+    sendConfig();
+    
+    debug("\n\n\t*** TESTING BOARDCONF ***\n");
+    
+    ipacket * ptr = new ipacket(IBACOM_CONF_LDR);
+    ipacket * pdh = new ipacket(IBACOM_CONF_DHT22);
+    
+    strcpy(ptr->p_devname(), "LDR0");
+    *ptr->p_pin() = 22;
+
+    debug("\n\n\t*** Adding LDR0 ***\n");
+    
+    conf.devAdd(ptr);
+    sendConfig();
+
+    debug("\n\n\t*** Editing LDR0 ***\n");
+
+    *ptr->p_pin() = 24;
+    conf.devMod("LDR0", ptr);
+    sendConfig();
+
+    debug("\n\n\t*** WRONG PIN: Editing LDR0 ***\n");
+
+    *ptr->p_pin() = 8;
+    conf.devMod("LDR0", ptr);
+    sendConfig();
+
+    debug("\n\n\t*** Editing LDR0 - LDR1 name***\n");
+
+    *ptr->p_pin() = 8;
+    conf.devSetName("LDR0", "LDR1");
+    sendConfig();
+    
+    debug("\n\n\t*** WRONG NAME: Editing LDR0 ***\n");
+    *ptr->p_pin() = 30;
+    conf.devMod("LDR0", ptr);
+    sendConfig();
+    
+    debug("\n\n\t*** Resetting to factory ***\n");
+
+    delay(5000);
+    conf.factory();
+    sendConfig();
+
+#endif
 }

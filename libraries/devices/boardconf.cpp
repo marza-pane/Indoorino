@@ -58,6 +58,11 @@ void        ConfBase::factory               (void)
             staticspace.update( (n * LEN_NAME) + i, d[n][i]);
     }
     staticspace.write( 3 * LEN_NAME, DEFAULT_DEVNUM);
+
+    if(DEFAULT_DEVNUM == 0)
+        for (uint8_t i=SIZEOF_STDCONF; i<SIZEOF_STDCONF+100; i++)
+            staticspace.update(SIZEOF_STDCONF, 0);
+    
     staticspace.update();
     
     for (uint8_t n=0; n<3; n++)
@@ -65,7 +70,7 @@ void        ConfBase::factory               (void)
         debug("\nReading base prop %u : ", n);
         for (uint8_t i=0; i<LEN_NAME; i++)
         {
-            Serial.print(staticspace.read((n * LEN_NAME) + i));
+            debug("%c", staticspace.read((n * LEN_NAME) + i));
         }    
     }
     debug("\nDEVNUM updated is %u", devnum());
@@ -283,7 +288,26 @@ bool        ConfBase::devAdd                (ipacket * ptr)
 
 bool        ConfBase::devMod                (const char * name, ipacket * ptr)
 {
-    ibasize_t ndx=_dpos[devindex(name)] + sizeof(ibacomm_t);
+    ibasize_t n=devindex(name);
+    if (n == UINT8_MAX)
+    {
+        error_dev("WARNING: devMod: invalid name %s",name);
+        return false;
+    }
+    
+    ipacket *p;
+    if (device(p, n)->command() != ptr->command())
+    {
+        error_dev("WARNING: devMod: mismatching types [%u - %u]",
+                  device(p, n)->command(),
+                  ptr->command());
+        return false;
+    }
+ 
+     debug_dev("conf:devMod: editing <%u:%s> :  %s on pin %u->%u", 
+              ptr->command(), F2C(ptr->label()), ptr->p_devname(), *ptr->p_pin(), *p->p_pin());
+    
+    ibasize_t ndx=_dpos[n] + sizeof(ibacomm_t);
       
     for (ibasize_t j=0; j<ptr->data_size(); j++)
     {        
@@ -364,6 +388,7 @@ uint8_t     ConfBase_AVR::validate            (ipacket * ptr)
 
 bool        ConfBase_AVR::devAdd            (ipacket * ptr)
 {
+    
     const __FSH * constring =F("conf:devadd: ");
     uint8_t r = this->validate(ptr);
     if (r > 0)
@@ -372,7 +397,7 @@ bool        ConfBase_AVR::devAdd            (ipacket * ptr)
         {
             case 1:
             {
-                sendReport(2, _id, "%sgot NULLPOINTER!", constring);
+                sendReport(2, _id, "%sgot NULLPOINTER!", F2C(constring));
                 break;
             }
             case 2:
@@ -397,6 +422,9 @@ bool        ConfBase_AVR::devAdd            (ipacket * ptr)
         return false;
     }
     
+    debug_dev("conf:devAdd: adding <%u:%s> :  %s on pin %u", 
+              ptr->command(), F2C(ptr->label()), ptr->p_devname(), *ptr->p_pin());
+    
     return ConfBase::devAdd(ptr);
 }
 
@@ -409,7 +437,7 @@ bool        ConfBase_AVR::devMod            (const char * name, ipacket * ptr)
 
     if (nameindex == UINT8_MAX)
     {
-        sendReport(2, _id, F("%sinvalid device %s"),constring, name);
+        sendReport(2, _id, F("%sinvalid device %s"),F2C(constring), name);
         return false;
     }
     
@@ -420,7 +448,7 @@ bool        ConfBase_AVR::devMod            (const char * name, ipacket * ptr)
     
     if (index != UINT8_MAX && index != nameindex)
     {
-        sendReport(2, _id, F("%spin %u alredy in use"),constring, pin);
+        sendReport(2, _id, F("%spin %u alredy in use"),F2C(constring), pin);
         return false;
     }
     
@@ -434,13 +462,13 @@ bool        ConfBase_AVR::devSetName            (const char * name, const char *
     uint8_t index = devindex(name);
     if (index == UINT8_MAX)
     {
-        sendReport(2, _id, F("%sdevice %s"), constring, name);
+        sendReport(2, _id, F("%sdevice %s"), F2C(constring), name);
         return false;
     }
     
     if (!is_string_devname(new_name,1,LEN_DEVNAME))
     {
-        sendReport(2, _id, F("%sname %s"), constring, new_name);
+        sendReport(2, _id, F("%sname %s"), F2C(constring), new_name);
         return false;
     }
     
@@ -591,10 +619,10 @@ void        ConfSampler::factory            (void)
         delete data;
     }
 
-    for(ibasize_t i=0; i<100; i++)
+    for(ibasize_t i=ndx; i<ndx + 100; i++)
     {
         // trailing zeros
-        staticspace.update(ndx + i, 0);
+        staticspace.update(i, 0);
     }      
 }
 

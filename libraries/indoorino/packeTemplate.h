@@ -23,6 +23,7 @@ private:
 protected:
     char    *           _data=nullptr;
     char    *           _fptr=nullptr;
+    ibasize_t           _data_size=0;
     
 public:
     ipacket     (ibacomm_t);
@@ -31,7 +32,7 @@ public:
     ibacomm_t           command         (void);
     char            *   payload         (void)      { return _data;  };
     const __FSH     *   label           (void);
-    ibasize_t           data_size       (void);
+    ibasize_t           data_size       (void)      { return _data_size; };
     ibasize_t           full_size       (void);
     
     void                clear           (void);

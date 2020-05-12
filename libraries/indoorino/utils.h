@@ -21,6 +21,7 @@ void        benchmark_board     (void);
 void        benchmark_esp       (void);
 void        benchmark_utils     (void);
 void        benchmark_packets   (void);
+void        benchmark_config    (void);
 
 //      _____________________________________________________________________
 //      |                                                                   |

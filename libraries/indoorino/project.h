@@ -30,8 +30,8 @@
         /* MANDATORY FOR ARDUINO: choose a unique board name */
         const char BOARD_NAME[] PROGMEM = "TEST";
 
-//         #define INDOORINO_SAMPLER
-        #define INDOORINO_ESPSERVER
+        #define INDOORINO_SAMPLER
+//         #define INDOORINO_ESPSERVER
 //         #define INDOORINO_CAMERA
 //         #define INDOORINO_PHONEDOOR
 
@@ -41,12 +41,12 @@
     #define SD_MODULE
 
     /* Uncomment this if RTC clock is attached */
-//     #define RTC_MODULE
+    #define RTC_MODULE
     
     /* Uncomment one or more of these for debugging */    
     #define DEBUG_GENERIC
     #define DEBUG_DEVICES
-    #define DEBUG_MEMORY
+//     #define DEBUG_MEMORY
     #define DEBUG_SERVER
 //     #define DEBUG_IO
 

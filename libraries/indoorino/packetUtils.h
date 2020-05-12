@@ -69,6 +69,7 @@ bool                isActuatorConf      (ipacket *);
 
 
 ibasize_t           packet_size         (ibacomm_t);
+void                dump_packet         (ipacket * ptr);
 ipacket     *       reallocPacket       (ipacket *, ibacomm_t);
 
 #endif /* PACKETUTILS_H_ */

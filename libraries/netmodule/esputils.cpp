@@ -7,8 +7,6 @@
 
 #include "../indoorino/indoorino.h"
 
-// extern  WiFiUDP Udp;
-
 //    ________________________________________________________________________
 //    |                                                                      |
 //    |    DEBUG TOOLS   (keeps connection alive)                            |

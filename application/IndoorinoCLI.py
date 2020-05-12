@@ -47,7 +47,7 @@ class IndoorinoCLI_PacketListener:
     def connect(self):
 
         for port in self.serial_port_list:
-            if not port.connection_status and not 'USB1' in port.device:
+            if not port.connection_status and not 'USB2' in port.device:
                 print('Connecting to Serial port {}'.format(port.device), end='')
                 try:
                     port.connection = serial.Serial(port.device, DEFALT_SERIAL_BAUDRATE)

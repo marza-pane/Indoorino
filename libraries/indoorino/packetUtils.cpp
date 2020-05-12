@@ -207,8 +207,6 @@ ibasize_t   packet_size         (ibacomm_t com)
     return s;
 }
 
-
-
 bool        is_type_devconf     (ipacket * ptr)
 {
     ibacomm_t c = ptr->command();
@@ -217,6 +215,78 @@ bool        is_type_devconf     (ipacket * ptr)
         if (c == ATT_DEVICE_LIST[i]) return true;
     }
     return false;
+}
+
+void        dump_packet         (ipacket * ptr)
+{
+    varmap_template s;
+    packetmap_template p;
+    ibasize_t position=0;
+    ibacomm_t c = ptr->command();
+    
+    char        c_buffer    [SERIAL_TX_BUFFER_SIZE] {0};
+    uint8_t     c_uint8     =0;
+    uint32_t    c_uint32    =0;
+    
+    debug("\nDUMP: Packet <%u:%s> ",
+           ptr->command(),
+           ptr->label());
+    debug("[size:total:checksum] [%u:%u:%u]",
+           ptr->data_size(),
+           ptr->full_size(),
+           ptr->checksum());
+    
+    for (ibacomm_t i=0; i<TOTAL_IBACOM; i++)
+    {
+        memcpy_P(&p, &PackeTable[i], sizeof(p));
+        if (p.comm == c)
+        {            
+            for (ibavar_t  n=0; n<p.fields; n++)
+            {
+                for (ibavar_t m=0; m<VARMAP_NUMBER; m++)
+                {
+                    if (p.var[n] == m)
+                    {
+                        memcpy_P(&s, &VarTable[m], sizeof(s));
+                        switch (s.type)
+                        {
+                            case 'c':
+                            {
+                                memset(c_buffer, 0, SERIAL_TX_BUFFER_SIZE);
+                                strncpy(c_buffer, ptr->payload() + position, s.size);
+                                debug("\n\t --> %s: <%s>",s.name, c_buffer);
+                                break;
+                            }
+                            case 's':
+                            {
+                                memcpy(&c_uint8, ptr->payload() + position, sizeof(uint8_t));
+                                debug("\n\t --> %s: [ %u ]",s.name, c_uint8);
+                                break;
+                            }
+                            case 'l':
+                            {
+                                memcpy(&c_uint32, ptr->payload() + position, sizeof(uint32_t));
+                                debug("\n\t --> %s: [ %u ]",s.name, c_uint32);
+                                break;
+                            }
+                            default:    error_mem("\n\t *** INVALID VAR TYPE <%s:%c> ***", s.name, s.type);
+                        }
+                        position += s.size;
+                    }
+                }
+            }
+            break;
+        }
+    }
+    
+//     if (ptr->command() == IBACOM_REPORT)
+//     {
+//         printf("\n\tName : <%s>\n\tMessage : <%s>\n\tEpoch : <%u>, Level : <%u>",
+//                ptr->p_name(),
+//                ptr->p_message(),
+//                *ptr->p_epoch(),
+//                *ptr->p_level());
+//     }
 }
 
 // bool                isSensorConf                    (ipacket * ptr)

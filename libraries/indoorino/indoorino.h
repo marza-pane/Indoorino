@@ -86,6 +86,8 @@
 
     #elif defined (INDOORINO_ESPSERVER)
 
+        #include "../netmodule/netutils.h"
+
     //         #include "espServerUtils.h"
         extern  blinkingLed     blinker;
         extern  ConfEspServer   conf;
@@ -104,9 +106,12 @@
         
 #elif defined (INDOORINO_PYLIB)
         
+    #include "../netmodule/netutils.h"
     extern  packetParse boardio;
     
 #elif defined (RAWRUN)
+
+    #include "../netmodule/netutils.h"
 
 #endif /* ARDUINO */
 

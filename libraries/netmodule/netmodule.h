@@ -1,11 +1,17 @@
+/*
+ * packetUtils.h
+ *
+ *  Created on: Apr 28, 2020
+ *      Author: n00b
+ */
 
 #ifndef _NETMODULE_SOURCE_H_
 #define _NETMODULE_SOURCE_H_
 
+#if defined(INDOORINO_PYLIB) || defined(RAWRUN)
+
 #include "../indoorino/indoorino.h"
 #include "netutils.h"
-
-#if defined(INDOORINO_PYLIB) || defined(RAWRUN)
 
 #include <unistd.h> 
 #include <sys/types.h> 
@@ -13,7 +19,9 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 
-#define MAX_PACKET_PER_BOARD 20000
+void            printpacket(ipacket * ptr);
+
+#define MAX_PACKET_PER_BOARD 5
 
 //    ________________________________________________________________________
 //    |                                                                      |
@@ -85,52 +93,74 @@ public:
 
 //    ________________________________________________________________________
 //    |                                                                      |
-//    |    Connection Manager                                                |
+//    |    Boards List                                                       |
 //    |______________________________________________________________________|
 //
 
-class   ConnectionManager
+class   BoardManager
+{
+    BoardImage      **  _boardlist=nullptr;
+    uint32_t            _boardnum=0;
+    bool                add_board_p (void);
+
+public:
+    BoardManager        () {};
+    
+    void                add_board   (const char *, sockaddr_in *);
+    void                add_board   (const char *, const char *);
+    bool                rem_board   (const char *);
+
+    BoardImage      *   board       (const char *); 
+    BoardImage      *   board       (uint32_t i)    { return _boardlist[i]; }; 
+    uint32_t            boardnum    (void)          { return _boardnum; };   
+    
+};
+
+//    ________________________________________________________________________
+//    |                                                                      |
+//    |    Connections                                                       |
+//    |______________________________________________________________________|
+//
+
+extern BoardManager boardlist;
+
+class   ConnectionTemplate
 {
 protected:
     packetParse         _parser;
-    BoardImageUdp   **  _boardlist=nullptr;
-    uint32_t            _boardnum=0;
     char            *   _rxbuffer=nullptr;
 
-    void                add_board   (const char *, sockaddr_in *);
-    bool                rem_board   (const char *);
 
 public:
     
-             ConnectionManager          ();
-    virtual ~ConnectionManager          ();
+             ConnectionTemplate          ();
+    virtual ~ConnectionTemplate          ();
     
     virtual void            begin       (void) {};
     virtual void            loop        (void) {};
     virtual bool            read        (void) { return false; };
 };
 
-class   ConnectionUdp : public ConnectionManager
-{
-protected:
-    int                 _socket;
-    sockaddr_in         _addr_server;
-    sockaddr_in         _addr_client;
-    timeval             _read_timeout;
-    
-public:
-    
-    ConnectionUdp       ();
-    ~ConnectionUdp      ();
-    
-    void                begin       (void);
-    void                loop        (void) {};
-    bool                read        (void);
-    
-};
+// class   ConnectionUdp : public ConnectionTemplate
+// {
+// protected:
+//     int                 _socket;
+//     sockaddr_in         _addr_server;
+//     sockaddr_in         _addr_client;
+//     timeval             _read_timeout;
+//     
+// public:
+//     
+//     ConnectionUdp       ();
+//     ~ConnectionUdp      ();
+//     
+//     void                begin       (void);
+//     void                loop        (void) {};
+//     bool                read        (void);
+//     
+// };
 
-#endif /* ! ARDUINO */
-
+#endif /*  PYMODULE or RAWRUN  */
 
 #endif /* _NETMODULE_SOURCE_H_ */
 

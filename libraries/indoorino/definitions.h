@@ -167,7 +167,18 @@ const char  DEFAULT_TARGET_IP[] PROGMEM = "192.168.1.42";
 #define     DEFAULT_TARGET_PORT 7890    // Port on PC UDP server
 #define     DEFAULT_LOCALPORT   7870    // Default port for ESP UDP
 
+#ifndef PORT_SOCKET_FIRST
+    #define PORT_SOCKET_FIRST 1023
+#endif
 
+#ifndef PORT_SOCKET_LAST
+    #define PORT_SOCKET_LAST UINT16_MAX //65535
+#endif
+
+#ifndef UDP_TX_PACKET_MAX_SIZE
+#define UDP_TX_PACKET_MAX_SIZE 8192
+#endif
+#define DEFAULT_UTC 1
 
 //      _____________________________________________________________________
 //      |                                                                   |

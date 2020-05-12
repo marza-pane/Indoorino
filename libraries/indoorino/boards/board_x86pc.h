@@ -9,7 +9,7 @@
 #define SOURCE_PC_X86GENERIC_H_
 
     #include <stdint.h>
-    
+
     const char BOARD_TYPE[] = "APPLICATION";
     #pragma message "Compiling for PC DESKTOP APPLICATION"
 

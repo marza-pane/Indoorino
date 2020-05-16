@@ -2,7 +2,7 @@
  * packetStub.cpp
  *
  *  Created on: Apr 25, 2020
- *   Edited on: May 02, 2020 - 01:48:17
+ *   Edited on: May 15, 2020 - 00:29:36
  *      Author: n00b
  */
 
@@ -38,7 +38,7 @@ char       * ipacket::p_command         (void)
 			return (char *) (payload());
 		case IBACOM_SET_DEVICE :
 			return (char *) (payload());
-		case IBACOM_SET_ADDR :
+		case IBACOM_SET_ESP_ADDR :
 			return (char *) (payload());
 		default:
 			return nullptr;
@@ -127,10 +127,6 @@ char       * ipacket::p_devname         (void)
 		case IBACOM_STATUS_DEVSTD :
 			return (char *) (payload());
 		case IBACOM_PROBE_AMBIENT :
-			return (char *) (payload());
-		case IBACOM_SET_ADDR :
-			return (char *) (payload() + SERIAL_TX_BUFFER_SIZE);
-		case IBACOM_ESP_ADDRESS :
 			return (char *) (payload());
 		case IBACOM_DOORBELL :
 			return (char *) (payload());
@@ -379,10 +375,10 @@ uint32_t   * ipacket::p_port            (void)
 	{
 		case IBACOM_CONF_ESP :
 			return (uint32_t *) (payload() + LEN_IPADDRESS);
-		case IBACOM_SET_ADDR :
-			return (uint32_t *) (payload() + SERIAL_TX_BUFFER_SIZE + LEN_DEVNAME + LEN_IPADDRESS);
-		case IBACOM_ESP_ADDRESS :
-			return (uint32_t *) (payload() + LEN_DEVNAME + LEN_IPADDRESS);
+		case IBACOM_SET_ESP_ADDR :
+			return (uint32_t *) (payload() + SERIAL_TX_BUFFER_SIZE + LEN_IPADDRESS);
+		case IBACOM_NET_ADDRESS :
+			return (uint32_t *) (payload() + LEN_IPADDRESS);
 		default:
 			return nullptr;
 	}
@@ -472,10 +468,10 @@ char       * ipacket::p_ip              (void)
 	{
 		case IBACOM_CONF_ESP :
 			return (char *) (payload());
-		case IBACOM_SET_ADDR :
-			return (char *) (payload() + SERIAL_TX_BUFFER_SIZE + LEN_DEVNAME);
-		case IBACOM_ESP_ADDRESS :
-			return (char *) (payload() + LEN_DEVNAME);
+		case IBACOM_SET_ESP_ADDR :
+			return (char *) (payload() + SERIAL_TX_BUFFER_SIZE);
+		case IBACOM_NET_ADDRESS :
+			return (char *) (payload());
 		default:
 			return nullptr;
 	}

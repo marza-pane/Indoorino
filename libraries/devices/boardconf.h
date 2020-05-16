@@ -84,7 +84,6 @@
     
     class   ConfBase_AVR        : public ConfBase
     {
-        uint8_t     validate        (ipacket *);
     public:
                     ConfBase_AVR()  {};
         virtual    ~ConfBase_AVR()  {};
@@ -100,12 +99,26 @@
 //      |       ESP CONFIGURATION                                           |
 //      |___________________________________________________________________|
 //
+
     class   ConfBase_ESP        : public ConfBase
     {
-        uint8_t  validate           (ipacket *);
+    protected:
+        netaddress          _address;
+        uint32_t            _address_num=0;
    public:
                  ConfBase_ESP() {};
         virtual ~ConfBase_ESP() {};
+        
+        virtual void        begin           (void);
+        virtual void        factory         (void);
+        bool                addAddress      (netaddress *);
+        bool                remAddress      (netaddress *);
+        bool                remAddress      (const char *);
+
+        netaddress      *   address         (const char *);
+        netaddress      *   address         (uint8_t);
+        uint32_t            address_num     (void)      { return _address_num; };
+
     };
 
 //      _____________________________________________________________________
@@ -131,10 +144,7 @@
     #elif defined (INDOORINO_ESPSERVER)
 
     class   ConfEspServer   : public ConfBase_ESP
-    {
-        netaddress          _address;
-        uint32_t            _address_num=0;
-    
+    { 
     public:
         void                factory         (void);
         void                begin           (void);
@@ -146,13 +156,6 @@
         uint32_t            localport       (void);
         uint32_t            timeout         (void);
         uint8_t             attempts        (void);
-        
-        netaddress      *   address         (uint8_t);
-        uint32_t            address_num     (void)      { return _address_num; };
-        
-        void                addAddress      (netaddress *);
-        void                remAddress      (netaddress *);
-        
     };
     #endif /* PROJECTS */
 

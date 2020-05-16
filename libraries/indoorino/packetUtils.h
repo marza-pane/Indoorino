@@ -22,7 +22,8 @@ public:
     void                begin       (void);
     void                loop        (void);
     packetParse     *   rx          (void)  { return _rx; };
-    packetTransmit  *   tx          (void)  { return _tx; };  
+    packetTransmit  *   tx          (void)  { return _tx; };
+    
 };
 
 extern BoardIO boardio;
@@ -53,15 +54,15 @@ void                sendWarning         (const uint8_t, const uint8_t);
 
 #endif /* ARDUINO */
 
-#define ATT_DEVICE_LIST_NUM 6
-const ibacomm_t ATT_DEVICE_LIST[] PROGMEM = {
-    IBACOM_CONF_ASENSOR,
-    IBACOM_CONF_SWITCH,
-    IBACOM_CONF_LDR,
-    IBACOM_CONF_DHT22,
-    IBACOM_CONF_RELAY,
-    IBACOM_CONF_DEVSTD
-};
+// #define ATT_DEVICE_LIST_NUM 6
+// const ibacomm_t ATT_DEVICE_LIST[ATT_DEVICE_LIST_NUM] PROGMEM = {
+//     IBACOM_CONF_ASENSOR,
+//     IBACOM_CONF_SWITCH,
+//     IBACOM_CONF_LDR,
+//     IBACOM_CONF_DHT22,
+//     IBACOM_CONF_RELAY,
+//     IBACOM_CONF_DEVSTD
+// };
 
 bool                is_type_devconf     (ipacket *);
 bool                isSensorConf        (ipacket *);

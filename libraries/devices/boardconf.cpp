@@ -2,10 +2,14 @@
  * eepromConf.cpp
  *
  *  Created on: Oct 27, 2019
+ *  Edited on May 15 2020
  *      Author: n00b
  */
 
 #include    "indoorino.h"
+  
+const char _k_ERROR_[] PROGMEM = { "ERROR" };
+const char _k_WARNING_[] PROGMEM = { "WARNING" };
 
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -29,7 +33,7 @@ ConfBase::ConfBase()
 
 ConfBase::~ConfBase()
 {
-    debug_dev("\nDeleting ConfBase");
+    debug_dev("\nConf:deleted!");
 }
 
 
@@ -37,7 +41,6 @@ uint8_t     ConfBase::devnum                (void)
 {
     return staticspace.read(3 * LEN_NAME); 
 }
-
 
 void        ConfBase::factory               (void)
 {
@@ -51,9 +54,11 @@ void        ConfBase::factory               (void)
     strcpy_P(d[1], INDOORINO_TYPE);
     strcpy_P(d[2], BOARD_TYPE);
     
+    debug("\nConf:factory");
+    
     for (uint8_t n=0; n<3; n++)
     {
-        debug("\nWriting base prop %u : %s", n, d[n]);
+        debug_dev("\n\tWriting base prop %u : %s", n, d[n]);
         for (uint8_t i=0; i<LEN_NAME; i++)
             staticspace.update( (n * LEN_NAME) + i, d[n][i]);
     }
@@ -64,16 +69,18 @@ void        ConfBase::factory               (void)
             staticspace.update(SIZEOF_STDCONF, 0);
     
     staticspace.update();
-    
+
+#if defined(DEBUG_DEVICES)
     for (uint8_t n=0; n<3; n++)
     {
-        debug("\nReading base prop %u : ", n);
+        debug_dev("\n\tReading base prop %u : ", n);
         for (uint8_t i=0; i<LEN_NAME; i++)
         {
             debug("%c", staticspace.read((n * LEN_NAME) + i));
         }    
     }
-    debug("\nDEVNUM updated is %u", devnum());
+#endif
+    debug(" DONE! devnum = %u", devnum());
 }
 
 
@@ -85,7 +92,7 @@ void        ConfBase::begin                 (void)
     
     for (uint8_t i=0; i<3; i++)
     {
-        debug_dev("\nConfBase:begin: Parameter %u:%s",i, P2C(ptr[i]));
+        debug_dev("\nConf:begin Parameter %u:%s", i, P2C(ptr[i]));
         memset(buf, 0, LEN_NAME);
         for (uint16_t j=0; j<LEN_NAME; j++)
         { 
@@ -95,27 +102,25 @@ void        ConfBase::begin                 (void)
         debug_dev(" [ %s ] ",buf);
         if (strcmp_P(buf, ptr[i]) != 0)
         {
-            debug_dev(">> FAILED!\n");
-            sendReport(3, _id, "ConfBase:begin: invalid parameter %u [%s:%s]", i, P2C(ptr[i]), buf);
-            delay(200);
+            error_dev("%s: failed begin!\n", P2C(_k_ERROR_));
+            /* sendReport(3, _id, "%s invalid parameter %u [%s:%s]",P2C(_k_nConfBase_), i, P2C(ptr[i]), buf); */
             this->factory();
             this->begin();
+            return;
         }   
         
     }
 
-    if (devnum() > MAX_ATTACHED_DEVICES)
-    {
-        debug_dev("\nConfBase:begin: too many devices : %u (max %u)", devnum(),MAX_ATTACHED_DEVICES);
-        sendReport(3, _id, F("Too many attached devices <%u>"), devnum());
-        this->factory();
-        delay(200);
-        this->begin();
-    }
+//     if (devnum() > MAX_ATTACHED_DEVICES)
+//     {
+//         error_dev("%s%s: %s : %u", P2C(_k_nConfBase_), P2C(_k_begin_), F2C(_k_too_many_), devnum());
+//         sendReport(3, _id, F("%s%s%u"), P2C(_k_nConfBase_), P2C(dst_dev_1), devnum());
+//         this->factory();
+//         this->begin();
+//     }
     
-    debug("\nConfBase:begin: complete!\n");
+    debug("\nConf:begin: complete!\n");
 }
-
 
 void        ConfBase::initdev               (ibasize_t start)
 {
@@ -131,14 +136,18 @@ void        ConfBase::initdev               (ibasize_t start)
     {
         
         staticspace.get(index, com);
-        debug_dev("\nConfBase:initdev: [%u/%u] <%u> at index %u", m, n, com, index);
+        debug_dev("\nConf:init: [%u/%u] <%u> at index %u", m, n, com, index);
         index +=sizeof(ibacomm_t);
 
-        p = new ipacket(com);
+        p = reallocPacket(p, com);
+        
 
         if (p->data_size() == 0)
         {
-            sendReport(3, _id, F("Invalid device [%u:%s] at position %u"),com, F2C(p->label()));
+            error_dev("ERROR:init: invalid [%u:%s] at index %u",
+                      com, F2C(p->label()), index);
+
+            /* sendReport(2, _id, F("%s"),buf); */
             break;
         }
         
@@ -148,21 +157,23 @@ void        ConfBase::initdev               (ibasize_t start)
             index++;
         }
         
-        debug_dev(" - loaded %s on pin %u",p->p_devname(), *p->p_pin());
+        debug_dev(" - loaded %s on pin %u", p->p_devname(), *p->p_pin());
 
         _dpos[m+1]=index;
-        delete p;
     }
+    if (p != nullptr) delete p;
         
     if (m != n)
     {
-        debug_dev("\nConfBase:initdev: truncating array at %u/%u", m, n);
+        error_dev("WARNING:init: truncating array at %u/%u", m, n);
+
+        /* sendReport(2, _id, F("%s"),buf); */
         staticspace.write( 3 * LEN_NAME, m); // update devnum() 
         staticspace.update();
     }
 
     #if defined(DEBUG_DEVICES)
-        debug_dev("\nConfBase:initdev: position array: [ ");
+        debug_dev("\nConf:init: dev array: [ ");
         for(uint8_t i=0; i<devnum() + 1; i++)
         {
             debug_dev("%u ",_dpos[i]);
@@ -206,7 +217,7 @@ ipacket  *   ConfBase::device               (ipacket * ptr, const char * name)
     }
     else
     {
-        error_dev("ERROR:ConfBase:device: invalid call for device %s", name);
+        error_dev("%s:devCall: invalid name <%s>", P2C(_k_ERROR_), name);
         return ptr;
     }
 }
@@ -219,20 +230,16 @@ ipacket  *   ConfBase::device               (ipacket * ptr, uint8_t index)
     if (index < devnum())
     {
         staticspace.get(_dpos[index], com);
-        debug_dev("\nAllocating dev %u ...", com);
         ptr = reallocPacket(ptr, com);
 
-        debug_dev("reading...");
         for (ibasize_t j=0; j<ptr->data_size(); j++)
         {
             ptr->append(staticspace.read(_dpos[index] + sizeof(ibacomm_t) + j));
         }
-        debug_dev("done!");
-
     }
     else
     {
-        debug_dev("\nERROR:ConfBase:device: invalid call for device at [%u]", index);
+        error_dev("%s:devCall: invalid index %u", P2C(_k_ERROR_), index);
     }
     return ptr;
 }
@@ -241,22 +248,47 @@ uint8_t     ConfBase::validate              (ipacket * ptr)
 {
     if (ptr == nullptr)
     {
-        error_dev("WARNING:validate: got nullpointer");
+        error_dev("%s:validate: got nullpointer", P2C(_k_ERROR_));
         return 1;        
     }
     
     if (ptr->data_size() == 0)
     {
-        error_dev("WARNING:validate: got nullpointer");
-        sendReport(2, _id, F("Got invalid packet <%s> for conf"),F2C(ptr->label()));
+        error_dev("%s:validate: <%s> has zero size", P2C(_k_WARNING_), F2C(ptr->label()));
         return 2;
     }
+    if (!is_type_devconf(ptr))
+    {
+        error_dev("%s:validate: <%s> is not a device", P2C(_k_WARNING_), F2C(ptr->label()));
+        return 3;
+    }
+    if (!is_string_devname(ptr->p_devname()))
+    {
+        error_dev("%s:validate: <%s> has invalid devname %s", P2C(_k_WARNING_), F2C(ptr->label()), ptr->p_devname());
+        return 4;
+    }
+    
 
     return 0;
 }
 
 bool        ConfBase::devAdd                (ipacket * ptr)
 {
+    if (devnum() == MAX_ATTACHED_DEVICES)
+    {
+        error_dev("%s:devAdd: too many devices",P2C(_k_WARNING_));
+        return false;
+    }
+    
+    if (validate(ptr) > 0) return false;
+    
+    if (devindex(ptr->p_devname()) != UINT8_MAX)
+    {
+        error_dev("%s:devAdd: %s already defined",P2C(_k_WARNING_), ptr->p_devname());
+        return false;
+    }
+    
+    
     uint8_t     dvn=devnum();
     ibasize_t   ndx=_dpos[dvn];
     
@@ -276,7 +308,7 @@ bool        ConfBase::devAdd                (ipacket * ptr)
     _dpos[devnum()] = ndx;
     
     #if defined(DEBUG_DEVICES)
-        debug("\n\n\tconf:devAdd:added %s on pin %u!", ptr->p_devname(), * ptr->p_pin());
+        debug("\nConf:devAdd: added %s on pin %u!", ptr->p_devname(), * ptr->p_pin());
         debug_dev("\n\tTotal devices: %u [ ", dvn);
         for (uint8_t i=0; i<dvn; i++) debug_dev("%u ",_dpos[i]);
         debug_dev("]\n\n");
@@ -291,21 +323,24 @@ bool        ConfBase::devMod                (const char * name, ipacket * ptr)
     ibasize_t n=devindex(name);
     if (n == UINT8_MAX)
     {
-        error_dev("WARNING: devMod: invalid name %s",name);
+        error_dev("%s:devMod: invalid name <%s>", P2C(_k_WARNING_), name);
+        /* sendReport(2, _id, F("%sinvalid device %s"),F2C(constring), name); */
         return false;
     }
     
-    ipacket *p;
+    ipacket *p=nullptr;
     if (device(p, n)->command() != ptr->command())
     {
-        error_dev("WARNING: devMod: mismatching types [%u - %u]",
+        error_dev("%s:devMod: mismatching types [%u - %u]",
+                  P2C(_k_WARNING_),
                   device(p, n)->command(),
                   ptr->command());
+        if (p) delete p;
         return false;
     }
  
-     debug_dev("conf:devMod: editing <%u:%s> :  %s on pin %u->%u", 
-              ptr->command(), F2C(ptr->label()), ptr->p_devname(), *ptr->p_pin(), *p->p_pin());
+    debug_dev("\nConf:devMod: editing %s", ptr->p_devname());
+    if (p) delete p;
     
     ibasize_t ndx=_dpos[n] + sizeof(ibacomm_t);
       
@@ -323,10 +358,9 @@ bool        ConfBase::devRem                (const char * name)
     uint8_t     dvn=devnum();
     uint8_t     index=devindex(name);
     
-    if (dvn == 0 || index == UINT8_MAX)
+    if (index == UINT8_MAX)
     {
-        if (dvn == 0)   { sendReport(2, _id, F("No device to remove"));       }
-        else            { sendReport(2, _id, F("Device %s not found"), name); }
+        error_dev("%s:devRem: invalid name <%s>", P2C(_k_WARNING_), name);
         return false;
     }
     
@@ -342,7 +376,7 @@ bool        ConfBase::devRem                (const char * name)
     staticspace.write( 3 * LEN_NAME, dvn);
     
     
-    debug_dev("\nRemoving from %u to %u",ndx, ndx + size);
+    debug_dev("\nConf:devRem: removing from %u to %u", ndx, ndx + size);
     for (ibasize_t i=ndx; i<last; i++)
     {
         b = staticspace.read(i + size);
@@ -356,7 +390,15 @@ bool        ConfBase::devRem                (const char * name)
 
 bool        ConfBase::devSetName            (const char * name, const char *new_name)
 {
-    ibasize_t ndx=_dpos[devindex(name)] + sizeof(ibacomm_t);
+
+        ibasize_t i = devindex(name);
+    if (i == UINT8_MAX)
+    {
+        error_dev("%s:devSetName: invalid name <%s>", P2C(_k_WARNING_), name);
+        /* sendReport(2, _id, F("%sdevice %s"), F2C(constring), name); */
+        return false;
+    }
+    ibasize_t ndx=_dpos[i] + sizeof(ibacomm_t);
     for (ibasize_t j=0; j<LEN_DEVNAME; j++)
     {
         staticspace.update(ndx, new_name[j]);
@@ -372,45 +414,33 @@ bool        ConfBase::devSetName            (const char * name, const char *new_
 //      |___________________________________________________________________|
 //
 
-uint8_t     ConfBase_AVR::validate            (ipacket * ptr)
-{
-    
-    uint8_t r = ConfBase::validate(ptr);
-    
-    if (r > 0) return r;
-
-    if (!is_type_devconf(ptr))
-    {
-        return 3;
-    }
-    return 0;
-}
-
 bool        ConfBase_AVR::devAdd            (ipacket * ptr)
 {
     
-    const __FSH * constring =F("conf:devadd: ");
-    uint8_t r = this->validate(ptr);
+    uint8_t r = validate(ptr);
     if (r > 0)
     {
-        switch (r)
-        {
-            case 1:
-            {
-                sendReport(2, _id, "%sgot NULLPOINTER!", F2C(constring));
-                break;
-            }
-            case 2:
-            {
-                sendReport(2, _id, "%s<%s> : size is 0!", F2C(constring), F2C(ptr->label()));
-                break;
-            }
-            case 3:
-            {
-                sendReport(2, _id, "%s<%s> : is a not valid device conf", F2C(constring), F2C(ptr->label()));
-                break;
-            }
-        }
+
+//     const __FSH * constring =F("conf:devadd: ");
+//         switch (r)
+//         {
+//             case 1:
+//             {
+//                 sendReport(2, _id, "%sgot NULLPOINTER!", F2C(constring));
+//                 break;
+//             }
+//             case 2:
+//             {
+//                 sendReport(2, _id, "%s<%s> : size is 0!", F2C(constring), F2C(ptr->label()));
+//                 break;
+//             }
+//             case 3:
+//             {
+//                 sendReport(2, _id, "%s<%s> : is a not valid device conf", F2C(constring), F2C(ptr->label()));
+//                 break;
+//             }
+//         }
+        
         return false;
     }
 
@@ -418,37 +448,27 @@ bool        ConfBase_AVR::devAdd            (ipacket * ptr)
     
     if (devindexBypin(pin) != UINT8_MAX)
     {
-        sendReport(2, _id, "%s<%s> : pin %u alredy in use", F2C(constring), F2C(ptr->label()),pin);
+        error_dev("%s:devAdd: pin %u alredy in use", P2C(_k_WARNING_) ,pin);
+        /* sendReport(2, _id, "%s<%s> : ", F2C(constring), F2C(ptr->label()), pin); */
         return false;
     }
-    
-    debug_dev("conf:devAdd: adding <%u:%s> :  %s on pin %u", 
-              ptr->command(), F2C(ptr->label()), ptr->p_devname(), *ptr->p_pin());
-    
+       
     return ConfBase::devAdd(ptr);
 }
 
-
-
 bool        ConfBase_AVR::devMod            (const char * name, ipacket * ptr)
 {
-    const __FSH * constring =F("conf:devmod: ");
     uint8_t nameindex = devindex(name);
-
-    if (nameindex == UINT8_MAX)
-    {
-        sendReport(2, _id, F("%sinvalid device %s"),F2C(constring), name);
-        return false;
-    }
     
-    if (validate(ptr)) return false; /* Qui swicchare per devmod */
+    if (validate(ptr) > 0) return false; /* Qui swicchare per devmod */
     
     uint8_t pin = *ptr->p_pin();
     uint8_t index = devindexBypin(pin);
     
     if (index != UINT8_MAX && index != nameindex)
     {
-        sendReport(2, _id, F("%spin %u alredy in use"),F2C(constring), pin);
+        error_dev("%s:devMod: pin %u already in use ", P2C(_k_WARNING_), pin);
+        /* sendReport(2, _id, F("%spin %u alredy in use"),F2C(constring), pin); */
         return false;
     }
     
@@ -457,18 +477,11 @@ bool        ConfBase_AVR::devMod            (const char * name, ipacket * ptr)
 }
 
 bool        ConfBase_AVR::devSetName            (const char * name, const char * new_name)
-{
-    const __FSH * constring =F("conf:set:devname: invalid ");
-    uint8_t index = devindex(name);
-    if (index == UINT8_MAX)
-    {
-        sendReport(2, _id, F("%sdevice %s"), F2C(constring), name);
-        return false;
-    }
-    
+{  
     if (!is_string_devname(new_name,1,LEN_DEVNAME))
     {
-        sendReport(2, _id, F("%sname %s"), F2C(constring), new_name);
+        error_dev("%s:devSetName: invalid new name <%s>", P2C(_k_WARNING_), new_name);
+        /* sendReport(2, _id, F("%sname %s"), F2C(constring), new_name); */
         return false;
     }
     
@@ -490,7 +503,7 @@ uint8_t     ConfBase_AVR::devindexBypin     (uint8_t pin)
 bool        ConfBase_AVR::devSetPin         (const char * name, uint8_t pin)
 {
     
-    const __FSH * constring =F("conf:set:pin: ");
+    /* const __FSH * constring =F("conf:set:pin: "); */
     uint8_t nameindex = devindex(name);
     uint8_t pinindex  = devindexBypin(pin);
     
@@ -499,13 +512,15 @@ bool        ConfBase_AVR::devSetPin         (const char * name, uint8_t pin)
         
     if (nameindex == UINT8_MAX)
     {
-        sendReport(2, _id, F("%sinvalid device %s"), constring, name);
+        error_dev("%s:devSetPin: invalid name <%s>", P2C(_k_WARNING_), name);
+        /* sendReport(2, _id, F("%sinvalid device %s"), constring, name); */
         return false;
     }
     
     if (pinindex != UINT8_MAX && nameindex != pinindex)
     {
-        sendReport(2, _id, F("%s pin %u already in use"), constring, pin);
+        error_dev("%s:devSetPin: pin %u already in use", P2C(_k_WARNING_), pin);
+        /* sendReport(2, _id, F("%s pin %u already in use"), constring, pin); */
         return false;
     }
 
@@ -517,22 +532,177 @@ bool        ConfBase_AVR::devSetPin         (const char * name, uint8_t pin)
 
 }
 
-const char string_foundinvalid[] PROGMEM = "Found invalid ";
-
 //      _____________________________________________________________________
 //      |                                                                   |
-//      |       AVR BASE CONFIGURATION                                      |
+//      |       ESP BASE CONFIGURATION                                      |
 //      |___________________________________________________________________|
 //
 
+/*
+ *  _______________________________________________
+ *  |         |     :     :     :     |           |
+ *  | STDCONF | IP0 : IP1 : ... : IPn | LOCALPORT |
+ *  |_________|_____:_____:_____:_____|___________|
+ *  
+ */
 
-
-uint8_t     ConfBase_ESP::validate            (ipacket * ptr)
+void            ConfBase_ESP::begin             (void)
 {
-    return ConfBase::validate(ptr);
+    ConfBase::begin();
+    
+    st_address      addr;
+    
+    for (uint8_t i=0; i<MAX_NET_TARGETS; i++)
+    {
+        staticspace.get(SIZEOF_STDCONF + i* sizeof(st_address), addr);
+        
+        debug_dev("\nESPserver:begin: loaded %u.%u.%u.%u:%u",
+                  addr.ip[0],addr.ip[1],addr.ip[2],addr.ip[3],addr.port);
+        if (!_address.set(&addr))
+        {
+            if (i == 0)
+            {
+                error_dev("\nESPserver:begin: invalid IP TARGET (none)");
+                this->factory();
+                this->begin();
+            }
+            else break;
+        }
+        else _address_num ++;
+    }
 }
 
+void            ConfBase_ESP::factory           (void)
+{
+    ConfBase::factory();
 
+    _address.set(P2C(DEFAULT_TARGET_IP), DEFAULT_TARGET_PORT);
+    _address_num = 1;
+
+    st_address  adr;
+    memcpy(&adr, _address.get(), sizeof(st_address));
+    staticspace.put(SIZEOF_STDCONF, adr);
+    
+    // trailing zeros
+    for (ibasize_t i=SIZEOF_STDCONF + sizeof(st_address); i<(MAX_NET_TARGETS  ) * sizeof(st_address); i++) staticspace.update(i,0);
+}
+
+bool            ConfBase_ESP::addAddress        (netaddress * apt)
+{
+    if (_address_num == MAX_NET_TARGETS - 1)
+    {
+        error_dev("espServer:add: too many targets!");
+        return false;
+    }
+    if (apt==nullptr)
+    {
+        error_dev("%s:espServer:add: got nullpointer", P2C(_k_WARNING_));
+        return false; 
+        
+    }
+    if (!apt->is_valid())
+    {
+        error_dev("espServer:add: invalid target %s:%u", apt->ip(), apt->port());
+        return false;
+    }
+    
+    ibasize_t   ndx = SIZEOF_STDCONF + _address_num * sizeof(st_address);
+
+    st_address  addr;
+    memcpy(&addr, apt->get(), sizeof(st_address));
+    staticspace.put(ndx, addr);
+    staticspace.update();
+    _address_num++;
+    return true;
+}
+
+bool            ConfBase_ESP::remAddress      (netaddress * apt)
+{
+    if (apt==nullptr)
+    {
+        error_dev("%s:espServer:rem: got nullpointer", P2C(_k_WARNING_));
+        return false; 
+    }
+
+    bool flag=true;
+    st_address addr;
+    ibasize_t   ndx = SIZEOF_STDCONF;
+    
+    for (uint8_t i=0; i<_address_num; i++)
+    {
+        flag=true;
+        staticspace.get(ndx, addr);
+        for (uint8_t j=0; j<4; j++)
+        {
+            if (apt->ip(j) !=addr.ip[j])
+            {
+                flag = false;
+                break;
+            }
+        }
+        
+        if (flag && apt->port() == addr.port)
+        {
+            uint8_t byte=0;
+            debug_dev("\nConf:remAddress: found %s:%u", apt->ip(), apt->port());
+            for (ibasize_t j=ndx; j<SIZEOF_STDCONF + (_address_num - 1) * sizeof(st_address); j++)
+            {
+                byte = staticspace.read(j + sizeof(st_address));
+                staticspace.update(j, byte);
+                ndx++;
+            }
+            for (ibasize_t j=ndx; j<ndx + sizeof(st_address); j++)
+            {
+                staticspace.update(j, 0);
+            }
+            _address_num--; 
+            return true;
+        }
+        ndx += sizeof(st_address);
+    }
+    error_dev("espServer:rem: invalid address %s:%u", apt->ip(), apt->port());
+    return false; 
+    
+}
+
+bool            ConfBase_ESP::remAddress      (const char * addr)
+{
+    return remAddress(address(addr));
+}
+
+netaddress  *   ConfBase_ESP::address          (uint8_t index)
+{
+    static uint8_t n=UINT8_MAX;
+    
+    if(index >= _address_num)
+    {
+        error_dev("%s:address: index OOR",P2C(_k_ERROR_));
+        return nullptr;
+    }
+    
+    if(n != index)
+    {
+        n = index;
+        st_address      addr;    
+        staticspace.get(SIZEOF_STDCONF + index * sizeof(st_address), addr);
+        debug_dev("\nESPserver:address: read %u.%u.%u.%u:%u",
+                    addr.ip[0],addr.ip[1],addr.ip[2],addr.ip[3],addr.port);
+        _address.set(&addr);
+    }
+    return &_address;
+};
+
+netaddress  *   ConfBase_ESP::address          (const char * addr)
+{
+    netaddress * p=nullptr;
+    for (uint8_t i=0; i<_address_num; i++)
+    {
+        p = address(i);
+        if (strcmp(p->ip(), addr) == 0) break;
+    }
+    return p;
+}
+    
 #if defined (INDOORINO_SAMPLER)
 
 //      _____________________________________________________________________
@@ -550,8 +720,8 @@ void        ConfSampler::begin              (void)
     staticspace.get(SIZEOF_STDCONF, par);
     if (par < DT_MIN_STEP || par > DT_MAX_STEP)
     {
-        sendReport(3, _id, F("%sSTEP <%u>"), P2C(string_foundinvalid), par);
-        delay(200);
+        error_dev("\nSampler:begin: invalid STEP <%u>", par); 
+        /* sendReport(3, _id, F("%s:%s STEP <%u>"), P2C(_k_begin_), P2C(_k_invalid_), par); */
         this->factory();
         this->begin();
     }
@@ -559,14 +729,14 @@ void        ConfSampler::begin              (void)
     staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), par);
     if (par < DT_MIN_COOL || par > DT_MAX_COOL)
     {
-        sendReport(3, _id, F("%sCOOL TIME <%u>"), P2C(string_foundinvalid), par);
-        delay(200);
+//         sendReport(3, _id, F("%sCOOL TIME <%u>"), P2C(string_foundinvalid), par);
+        error_dev("\nSampler:begin: invalid COOL TIME  <%u>", par); 
         this->factory();
         this->begin();
     }
     
     initdev(SIZEOF_STDCONF + 2 * sizeof(uint32_t));
-    debug("\nEEPROM:Sampler begin complete");
+    debug("\n%s:Sampler begin complete", F2C(_id));
 }
 
 void        ConfSampler::factory            (void)
@@ -584,11 +754,6 @@ void        ConfSampler::factory            (void)
     par =DT_DEF_COOL;
     staticspace.put(ndx, par);
     ndx +=sizeof(uint32_t);
-        
-//     const ibacomm_t     stdcom[DEFAULT_DEVNUM]                  = DEFAULT_DEV_COMS;
-//     const uint8_t       stdpin[DEFAULT_DEVNUM]                  = DEFAULT_DEV_PINS;
-//     const char  *       stdname[DEFAULT_DEVNUM]                 = DEFAULT_DEV_NAME;
-
     
     default_dev_conf_template       dev;
     for (uint8_t i=0; i<DEFAULT_DEVNUM; i++)
@@ -671,63 +836,31 @@ void        ConfSampler::cool               (uint32_t value)
 //      |       eepromConfig - project ESPSERVER                            |
 //      |___________________________________________________________________|
 //
-    
-/*
- *  _______________________________________________
- *  |         |     :     :     :     |           |
- *  | STDCONF | IP0 : IP1 : ... : IPn | LOCALPORT |
- *  |_________|_____:_____:_____:_____|___________|
- *  
- */
 
-    
-void        ConfEspServer::begin            (void)
+void            ConfEspServer::begin            (void)
 {
-    ConfBase::begin();
+    ConfBase_ESP::begin();
         
     uint32_t    par=0;
     uint8_t     num=0;
-    ibasize_t   ndx=SIZEOF_STDCONF;
-    
-    
-    st_address      addr;
-    
-    for (uint8_t i=0; i<MAX_NET_TARGETS; i++)
-    {
-        staticspace.get(ndx + i* sizeof(st_address), addr);
-        
-        if (!_address.set(&addr))
-        {
-            if (i == 0)
-            {
-                error_dev("%sIP TARGET (none)",P2C(string_foundinvalid));
-                delay(200);
-                this->factory();
-                this->begin();
-            }
-            else break;
-        }
-        else _address_num ++;
-    }
+    ibasize_t   ndx=SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address);
 
-    ndx += MAX_NET_TARGETS * sizeof(st_address);
-    
     staticspace.get(ndx, par);
+    debug_dev("\n\t--> PORT:%u",par);
     if (par < PORT_SOCKET_FIRST || par > PORT_SOCKET_LAST)
     {
-        error_dev("%sPORT <%u>",P2C(string_foundinvalid), par);
-        delay(200);
+        error_dev("\n%s:ESPserver:begin: invalid PORT:%u",P2C(_k_WARNING_), par);
         this->factory();
         this->begin();
     }
         
     ndx += sizeof(uint32_t);    
     staticspace.get(ndx, par);
+    debug_dev("\n\t--> TIMEOUT:%u",par);
     if (par < 100)
     {
-        error_dev("%sTIMEOUT <%u>",P2C(string_foundinvalid), par);
+        error_dev("\n%s:ESPserver:begin: invalid TIMEOUT:%u",P2C(_k_WARNING_), par);
 //         sendReport(3, _id, F("\n%sTIMEOUT <%u>"),P2C(string_foundinvalid), par);
-        delay(200);
         this->factory();
         this->begin();
     }
@@ -735,11 +868,11 @@ void        ConfEspServer::begin            (void)
 
     ndx += sizeof(uint32_t);    
     staticspace.get(ndx, num);
+    debug_dev("\n\t--> ATTEMPTS:%u",num);
     if (num > MAX_RETRY_NUM)
     {
-        error_dev("%sATTEMPTS <%u>",P2C(string_foundinvalid), par);
-//         sendReport(3, _id, F("\n%sATTEMPTS <%u>"),P2C(string_foundinvalid), par);
-        delay(200);
+        error_dev("\n%s:ESPserver:begin: invalid ATTEMPTS:%u",P2C(_k_WARNING_), num);
+//         sendReport(3, _id, F("\n%sATTEMPTS <%u>"),P2C(string_foundinvalid), num);
         this->factory();
         this->begin();
     }
@@ -747,25 +880,19 @@ void        ConfEspServer::begin            (void)
     
     ndx += sizeof(uint8_t);    
     initdev(ndx);
-    debug("\nEEPROM:EspServer begin complete");
+    debug("\nESPserver:begin: complete");
 }
 
-void        ConfEspServer::factory          (void)
+void            ConfEspServer::factory          (void)
 {
-    ConfBase::factory();
+    ConfBase_ESP::factory();
 
-//     ( 1003,     'conf_esp',         'esp conf',             ('ip', 'port', 'timeout', 'level')),
+    debug_dev("\nESPserver:factory");
 
-    ibasize_t   ndx=SIZEOF_STDCONF;
+    ibasize_t   ndx=SIZEOF_STDCONF + MAX_NET_TARGETS * sizeof(st_address);
     uint32_t    par=0;
     uint8_t     num=0;
-    
-    _address.set(P2C(DEFAULT_TARGET_IP), DEFAULT_TARGET_PORT);
-    _address_num = 1;
-    staticspace.put(ndx, * _address.get());
-    
-    ndx += MAX_NET_TARGETS * sizeof(st_address);
-    
+     
     par =DEFAULT_LOCALPORT;
     staticspace.put(ndx, par);
     ndx +=sizeof(uint32_t);
@@ -778,29 +905,7 @@ void        ConfEspServer::factory          (void)
     staticspace.put(ndx, num);
     ndx +=sizeof(uint8_t);
     
-    
-    staticspace.update();
-    debug_dev("\nConfBase:begin: FACTORY");
-
-//     ipacket * ptr = new ipacket(IBACOM_ESP_ADDRESS);
-//     
-//     strcpy_P(ptr->p_devname(), DEFAULT_TARGET_NAME);
-//     strcpy_P(ptr->p_ip(), DEFAULT_TARGET_IP);
-//     par = DEFAULT_TARGET_PORT;
-//     memcpy(ptr->p_port(), &par, sizeof(uint32_t));
-//     debug_dev("\nConfBase:begin: PTRPORT:%u --> %u",ptr->data_size(),par);
-//     
-//     staticspace.put(ndx, IBACOM_ESP_ADDRESS);
-//     ndx+=sizeof(ibacomm_t);
-//     for (ibasize_t j=0; j<ptr->data_size(); j++)
-//     {
-//         staticspace.write(ndx, ptr->payload()[j]);
-//         ndx++;
-//     }
-//     staticspace.update();
-//     memcpy(&par, ptr->p_port(), sizeof(uint32_t));
-//     debug_dev("\nWrote target %s:%u\n", ptr->p_ip(), par);
-//     delete ptr;    
+    staticspace.update();  
 }
 
 uint32_t        ConfEspServer::localport        (void)
@@ -858,69 +963,6 @@ void            ConfEspServer::attempts         (uint8_t value)
     }
 }
 
-void            ConfEspServer::addAddress      (netaddress * apt)
-{
-    if (_address_num == MAX_NET_TARGETS - 1)
-    {
-        error_dev("conf:espServer: too many targets!");
-        return;
-    }
-    
-    ibasize_t   ndx = SIZEOF_STDCONF + _address_num * sizeof(st_address);
-
-    st_address  addr;
-    memcpy(&addr, apt->get(), sizeof(st_address));
-    staticspace.put(ndx, addr);
-    staticspace.update();
-    _address_num++;
-}
-
-void            ConfEspServer::remAddress      (netaddress * apt)
-{
-
-
-    bool flag=true;
-    st_address addr;
-    ibasize_t   ndx = SIZEOF_STDCONF;
-    
-    for (uint8_t i=0; i<_address_num; i++)
-    {
-        staticspace.get(ndx, addr);
-        for (uint8_t j=0; j<4; j++)
-        {
-            if (apt->ip(j) !=addr.ip[j])
-            {
-                flag = false;
-                break;
-            }
-        }
-        
-        if (flag && apt->port() == addr.port)
-        {
-            uint8_t byte=0;
-            debug("\nconf:remAddress: found %s:%u", apt->ip(), apt->port());
-            for (ibasize_t j=ndx; j<SIZEOF_STDCONF + (_address_num - 1) * sizeof(st_address); j++)
-            {
-                byte = staticspace.read(j + sizeof(st_address));
-                staticspace.update(j, byte);
-                ndx++;
-            }
-            for (ibasize_t j=ndx; j<ndx + sizeof(st_address); j++)
-            {
-                staticspace.update(j, 0);
-            }
-            return;
-        }
-        ndx += sizeof(st_address);
-    }
-    
-}
-
-netaddress  *   ConfEspServer::address         (uint8_t index)
-{
-        uint32_t            _address_num     =0;
-};
-   
 #elif defined (INDOORINO_CAMERA)
 
 #endif

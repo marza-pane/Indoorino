@@ -77,8 +77,9 @@ bool            netaddress::set         (const char * ip_addr, uint16_t port_add
 
 bool            netaddress::set         (st_address * address)
 {
-    for (uint8_t i=0; i<4; i++) _address.ip[i]=address->ip[i];
-    _address.port = address->port;
+    memcpy(&_address, address, sizeof(st_address));
+//     for (uint8_t i=0; i<4; i++) _address.ip[i]=address->ip[i];
+//     _address.port = address->port;
     
      sprintf(_buffer, "%u.%u.%u.%u",
             _address.ip[0],

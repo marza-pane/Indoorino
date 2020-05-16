@@ -14,8 +14,8 @@ PATH_BUILD_BOARDS="temp-UNO temp-MEGA temp-DUE temp-ESP8266 temp-D1MINI"
 PATH_PROJECT_SKETCH="../sketches/debug_packets/debug_packets.ino ../sketches/sampler/sampler.ino"
 PATH_ESP_PROJECT_SKETCH="../sketches/debug_packets/debug_packets.ino ../sketches/sampler/espserver.ino"
 
-FLAG_COMPILE_ARDUINO=""
-FLAG_COMPILE_ESP=""
+FLAG_COMPILE_ARDUINO="1"
+FLAG_COMPILE_ESP="1"
 FLAG_COMPILE_RAWRUN="1"
 FLAG_COMPILE_MODULE="1"
 
@@ -316,7 +316,7 @@ test $FLAG_COMPILE_RAWRUN &&
 {
     echo -e "\n$YLW\tCompiling RAWRUN DESKTOP APP\n$TRS"
 
-    c++ -DRAWRUN $FLAG_WALL -I/usr/include/ -I../libraries/indoorino -pedantic -o rawrun $PATH_SOURCE rawrun.cpp ||
+    c++ -DRAWRUN $FLAG_WALL -I/usr/include/ -I../libraries/ -pedantic -o rawrun $PATH_SOURCE rawrun.cpp ||
         {
             echo -e "\n$RED\tERROR Compiling RAWRUN DESKTOP APP!$TRS\n\n"
             exit 1

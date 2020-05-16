@@ -114,8 +114,8 @@ SRC_packets = (
 
     #---#   [05001    - 06000]   :  esp commands
 
-    ( 5001,     'set_addr',         'network address set',  ('command', 'devname', 'ip', 'port')),
-    ( 5002,     'esp_address',      'esp address',          ('devname', 'ip', 'port')),
+    ( 5001,     'set_esp_addr',     'esp address set',      ('command', 'ip', 'port')),
+    ( 5002,     'net_address',      'network address',      ('ip', 'port')),
 
     # ( 5505,     'espaddr_add',      'add esp address',      ('devname','ip', 'port',)),
     # ( 65529,    'packetest',     'test packet',             ('name','devname', 'bash','type','epoch','value','ip',

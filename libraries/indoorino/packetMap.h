@@ -2,7 +2,7 @@
  * packetPgm.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: May 02, 2020 - 01:48:17
+ *   Edited on: May 15, 2020 - 00:29:36
  *      Author: n00b
  */
 
@@ -476,23 +476,23 @@ const packetmap_template PackeTable[TOTAL_IBACOM] PROGMEM = {
 
 //    ________________________________________________________________________
 //    |                                                                      |
-//    |    IBACOM - 5001 - IBACOM_SET_ADDR - network address set             |
+//    |    IBACOM - 5001 - IBACOM_SET_ESP_ADDR - esp address set             |
 //    |______________________________________________________________________|
 //
 	{
-		IBACOM_SET_ADDR, 4,
-		"network address set", { 1, 5, 29, 24 }
+		IBACOM_SET_ESP_ADDR, 3,
+		"esp address set", { 1, 29, 24 }
 	},
 
 
 //    ________________________________________________________________________
 //    |                                                                      |
-//    |    IBACOM - 5002 - IBACOM_ESP_ADDRESS - esp address                  |
+//    |    IBACOM - 5002 - IBACOM_NET_ADDRESS - network address              |
 //    |______________________________________________________________________|
 //
 	{
-		IBACOM_ESP_ADDRESS, 3,
-		"esp address", { 5, 29, 24 }
+		IBACOM_NET_ADDRESS, 2,
+		"network address", { 29, 24 }
 	},
 
 

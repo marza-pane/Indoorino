@@ -53,7 +53,8 @@ extern blinkingLed blinker;
 class       rtclock
 {
 protected:
-    const __FSH *   _id;   
+    const __FSH *   _id; 
+    uint32_t        _looptime=0;
 
 public:
 
@@ -61,11 +62,12 @@ public:
     virtual ~rtclock        () {};
     
     virtual void            begin       ()=0;
-    virtual void            loop        ()=0;
     virtual uint32_t        epoch       ()=0;
-    virtual bool            status		()=0;
-    virtual void            set			(DateTime)=0;
+    virtual bool            status      ()=0;
+    virtual void            set         (DateTime)=0;
     
+    virtual void            loop        (void);
+    uint32_t                looptime    (void) { return _looptime; };
     void                    set         (uint32_t synctime) { set(DateTime(synctime)); };
 };
 
@@ -76,8 +78,8 @@ public:
     millisClock     ();
     ~millisClock    ();
     void            begin       (void);
-    void            loop        (void) {};
-    void            set		    (DateTime synctime);
+    void            loop        (void) { rtclock::loop(); };
+    void            set		(DateTime synctime);
     uint32_t        epoch       (void);
     bool            status		(void){ return true;};
 

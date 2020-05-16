@@ -80,6 +80,13 @@ void        blinkingLed::loop	 	    (void)
 //      |___________________________________________________________________|
 //
 
+void        rtclock::loop               (void)
+{
+    static uint32_t last_m=0;
+    uint32_t current_m=micros();
+    _looptime=(current_m - last_m);
+    last_m=current_m ;
+}
 
 millisClock::millisClock()
 {

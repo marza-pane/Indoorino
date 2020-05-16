@@ -35,12 +35,21 @@ void            packetParse::begin              (void)
 
 void            packetParse::loop               (void)
 {
+    /* This is the default behaviour for incoming packets on boards */
 #if defined(ARDUINO)
-    // da mettere in BoardIO
-    static uint32_t m=0;
-    uint32_t t=micros();
-    _looptime=(t - m);
-    m=t;
+    if (Serial.available())
+    {
+        while (Serial.available())
+        {
+            append((uint8_t)Serial.read());
+            if (_ready && _packet != nullptr)
+            {
+                _ready=false;
+                /* HERE parse incoming packet with something like */
+                /* if (_packet->check()) _packet->eval(); */
+            }
+        }
+    }
 #endif
 }
 

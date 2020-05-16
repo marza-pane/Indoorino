@@ -55,6 +55,7 @@
  */
 
 #include "packetUtils.h"
+#include "../netmodule/netutils.h"
 
 #if defined (ARDUINO)
 
@@ -86,33 +87,35 @@
 
     #elif defined (INDOORINO_ESPSERVER)
 
-        #include "../netmodule/netutils.h"
+        #include "netutils.h"
 
     //         #include "espServerUtils.h"
         extern  blinkingLed     blinker;
         extern  ConfEspServer   conf;
-    //         extern  AddressList     addresslist;
-    //         extern  connectionLoop  connection;
+//             extern  AddressList     addresslist;
+            extern  connectionLoop  connection;
         
 
     #elif defined (INDOORINO_CAMERA)
 
     #else
         
-        extern  ConfBase        conf;   
-
+        #if defined(ESP8266)
+            extern  ConfBase_ESP    conf;
+        #else
+            extern  ConfBase_AVR    conf;
+        #endif
+    
     #endif /* PROJECTS */
 
         
 #elif defined (INDOORINO_PYLIB)
         
-    #include "../netmodule/netutils.h"
     extern  packetParse boardio;
     
 #elif defined (RAWRUN)
 
-    #include "../netmodule/netutils.h"
-
+    
 #endif /* ARDUINO */
 
 

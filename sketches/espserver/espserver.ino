@@ -11,9 +11,8 @@ millisClock     rtc;
 ConfEspServer   conf;
 WiFiUDP         Udp;
 
-// connectionLoop  connection;
-// PacketList      packetlist;
-// AddressList     addresslist;
+connectionLoop  connection;
+PacketList      packetlist;
 
 char boardname[LEN_NAME];
 
@@ -48,11 +47,10 @@ void setup()
     boardio.begin();   
     
     rtc.begin();
-//     connection.begin();
+    connection.begin();
 
     conf.factory();
     conf.begin();
-//     addresslist.update();
 
     sendConfig();
     sendReport(1, boardname, F("SERVER STARTS"));
@@ -63,6 +61,15 @@ void loop()
     blinker.loop();
     boardio.loop();
     rtc.loop();
+    
+    static uint32_t z=0;
+    if (millis() > (z + 500))
+    {
+        SerialDebugPrint(".");
+//         Serial.print(".");
+        z=millis();
+    }
+    
     
     static uint32_t s=0;
     if (millis() > (s + REFRESH_RATE_1))

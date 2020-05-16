@@ -44,7 +44,11 @@
     #ifndef memcpy_P
     #define memcpy_P(...) memcpy(__VA_ARGS__)
     #endif
-
+    
+    #ifndef sprintf_P
+    #define sprintf_P(...) sprintf(__VA_ARGS__)
+    #endif
+    
 //     #ifndef strcmp_P
 //     #define strcmp_P(...) strcmp(__VA_ARGS__)
 //     #endif

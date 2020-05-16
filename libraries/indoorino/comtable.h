@@ -2,7 +2,7 @@
  * comtable.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: May 02, 2020 - 01:48:17
+ *   Edited on: May 15, 2020 - 00:29:36
  *      Author: n00b
  */
 
@@ -86,8 +86,8 @@
 
 	/***    [05001  - 06000 ] : network ***/
 
-#define	IBACOM_SET_ADDR                     5001
-#define	IBACOM_ESP_ADDRESS                  5002
+#define	IBACOM_SET_ESP_ADDR                 5001
+#define	IBACOM_NET_ADDRESS                  5002
 #define	IBACOM_DOORBELL                     65530
 
 

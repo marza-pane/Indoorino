@@ -5,19 +5,13 @@
  *      Author: n00b
  */
 
-#include "packetUtils.h"
-#if defined(ARDUINO)
-    #include "RTClib.h"
-    #include "boardconf.h"
-    #if defined (INDOORINO_SAMPLER)
-        ConfSampler     conf;
-    #elif defined (INDOORINO_ESPSERVER)
-        ConfEspServer   conf;
-    #else
-        ConfBase        conf;
-    #endif /* PROJECTS */
+#include "indoorino.h"
+// #if defined(ARDUINO)
+//     #include "RTClib.h"
+//     #include "boardconf.h"
 
-#endif
+// 
+// #endif
 
 const char ip0[] PROGMEM = "192.168.1.12";
 const char ip1[] PROGMEM = "0.0.0.0";
@@ -25,6 +19,7 @@ const char ip2[] PROGMEM = "127.0.0.1";
 
     
 const char s[] PROGMEM = "**This is a PROGMEM string**";
+const char c[] PROGMEM = "-- This %s is %s to %s --";
 const __FSH * f; /* statement-expressions are not allowed outside functions */
 
 void        benchmark_debug     (void)
@@ -63,6 +58,13 @@ void        benchmark_debug     (void)
         debug("%s", F2C(f));
         SerialDebugPrint(F("\n\tDEBUG:Passing multiple args: "));
         debug("%s %s %s", P2C(ip0), P2C(ip1), P2C(ip2));
+        SerialDebugPrint(F("\n\tDEBUG:formatting FSH with sprintf: "));
+        
+        char buff[SERIAL_TX_BUFFER_SIZE] {0};
+        sprintf_P(buff, c, "string", "compiled", "format");
+        debug("%s", buff);
+        
+        
  
     }
 }
@@ -256,6 +258,130 @@ void        benchmark_packets   (void)
     for (ibacomm_t i=0; i<max_packet; i++)
     {
         dump_packet(l[i]);
+        delete l[i];
+    }
+    
+    debug("\nPacket test finished!\n\n");
+    fflush(stdout);
+    
+}
+
+void        benchmark_config    (void)
+{
+#if defined(ARDUINO)
+    sendConfig();
+    
+    debug("\n\n\t*** TESTING BOARDCONF ***\n");
+    
+    ipacket * ptr0 = new ipacket(IBACOM_CONF_LDR);
+    ipacket * ptr1 = new ipacket(IBACOM_RESET);
+
+    debug("\n\n\t*** Adding nullptr ***\n");
+    conf.devAdd(nullptr);
+
+    debug("\n\n\t*** ADD wrong device ***\n");
+    conf.devAdd(ptr1);
+
+    debug("\n\n\t*** ADD wrong device type ***\n");
+    ptr1 = reallocPacket(ptr1, IBACOM_REPORT);
+    conf.devAdd(ptr1);
+
+    debug("\n\n\t*** Adding DHTX ***\n");
+
+    ptr1 = reallocPacket(ptr1, IBACOM_CONF_DHT22);
+    strcpy(ptr1->p_devname(), "DHTX");
+    *ptr1->p_pin() = 22;
+    conf.devAdd(ptr1);
+    
+    debug("\n\n\t*** ADD LDRX busy pin***\n");
+    strcpy(ptr0->p_devname(), "LDRX");
+    *ptr0->p_pin() = 22;
+    conf.devAdd(ptr0);
+    
+    debug("\n\n\t*** Adding LDRX ***\n");
+    
+    *ptr0->p_pin() = 24;
+    conf.devAdd(ptr0);
+
+    debug("\n\n\t*** MOD LDRY wrong name***\n");
+    conf.devMod("LDRY", ptr0);
+
+    debug("\n\n\t*** MOD LDRX - wrong type***\n");
+    *ptr1->p_pin() = 28;
+    conf.devMod("LDRX", ptr1);
+
+    debug("\n\n\t*** MOD LDRX - used pin***\n");
+    *ptr0->p_pin() = 22;
+    conf.devMod("LDRX", ptr0);
+
+    debug("\n\n\t*** Editing LDRX ***\n");
+    *ptr0->p_pin() = 26;
+    conf.devMod("LDRX", ptr0);
+    
+    debug("\n\n\t*** Editing LDRX - LDR1 name***\n");
+
+    *ptr1->p_pin() = 22;
+    conf.devSetName("LDRX", "LDR1");
+
+    debug("\n\n\t*** MOD LDRX wrong name ***\n");
+    *ptr1->p_pin() = 30;
+    conf.devMod("LDRX", ptr1);
+
+    debug("\n\n\t*** MOD LDR1 wrong type ***\n");
+    *ptr1->p_pin() = 30;
+    conf.devMod("LDR1", ptr1);
+    
+    debug("\n\n\t*** REM LDRY wrong name ***\n");
+    conf.devRem("LDRY");
+   
+    debug("\n\n\t*** Removing LDR1 ***\n");
+    conf.devRem("LDR1");
+
+    debug("\n\n\t*** Removing DHTX ***\n");
+    conf.devRem("DHTX");
+   
+    delete ptr0;
+    delete ptr1;
+    
+#if defined (ESP8266)
+    
+    debug("\n\n\t*** TESTING ESP ADDRESSES***\n");
+    debug("\n\t*** Adding 192.168.1.14:5678 ***\n");
+
+    netaddress n("192.168.1.14", 5678);
+    conf.addAddress(&n);
+    sendConfig();
+    
+    debug("\n\n\t*** Adding 192.168.1.16:9678 ***\n");
+
+    n.set("192.168.1.16", 9678);
+    conf.addAddress(&n);
+    sendConfig();
+
+    debug("\n\n\t*** Removing 192.168.1.14***\n");
+
+    conf.remAddress("192.168.1.14");
+    sendConfig();
+
+    debug("\n\n\t*** Removing 192.168.1.16:9678***\n");
+
+    conf.remAddress(&n);
+    sendConfig();
+
+#endif
+    
+    debug("\n\n\t*** Resetting to factory ***\n");
+    
+    delay(5000);
+    conf.factory();
+    sendConfig();
+
+#endif
+}
+
+
+
+
 //         debug("\n[%03.3u]Packet %u:%s (size=%u/%u)",i,
 //               l[i]->command(), F2C(l[i]->label()), l[i]->data_size(), l[i]->full_size());
 //         
@@ -289,62 +415,3 @@ void        benchmark_packets   (void)
 //         if(l[i]->p_devnum() != nullptr) debug("\n\t--> devnum");
 //         if(l[i]->p_pin() != nullptr) debug("\n\t--> pin");
 //         if(l[i]->p_ip() != nullptr) debug("\n\t--> ip");
-        delete l[i];
-    }
-    
-    debug("\nPacket test finished!\n\n");
-    fflush(stdout);
-    
-}
-
-void        benchmark_config    (void)
-{
-#if defined(ARDUINO)
-
-    conf.begin();
-    sendConfig();
-    
-    debug("\n\n\t*** TESTING BOARDCONF ***\n");
-    
-    ipacket * ptr = new ipacket(IBACOM_CONF_LDR);
-    ipacket * pdh = new ipacket(IBACOM_CONF_DHT22);
-    
-    strcpy(ptr->p_devname(), "LDR0");
-    *ptr->p_pin() = 22;
-
-    debug("\n\n\t*** Adding LDR0 ***\n");
-    
-    conf.devAdd(ptr);
-    sendConfig();
-
-    debug("\n\n\t*** Editing LDR0 ***\n");
-
-    *ptr->p_pin() = 24;
-    conf.devMod("LDR0", ptr);
-    sendConfig();
-
-    debug("\n\n\t*** WRONG PIN: Editing LDR0 ***\n");
-
-    *ptr->p_pin() = 8;
-    conf.devMod("LDR0", ptr);
-    sendConfig();
-
-    debug("\n\n\t*** Editing LDR0 - LDR1 name***\n");
-
-    *ptr->p_pin() = 8;
-    conf.devSetName("LDR0", "LDR1");
-    sendConfig();
-    
-    debug("\n\n\t*** WRONG NAME: Editing LDR0 ***\n");
-    *ptr->p_pin() = 30;
-    conf.devMod("LDR0", ptr);
-    sendConfig();
-    
-    debug("\n\n\t*** Resetting to factory ***\n");
-
-    delay(5000);
-    conf.factory();
-    sendConfig();
-
-#endif
-}

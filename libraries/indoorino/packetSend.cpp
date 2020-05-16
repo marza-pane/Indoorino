@@ -47,16 +47,16 @@ void        packetTransmit::sendSerial          (ipacket * ptr, const char * nam
     #if defined(INDOORINO_ESPSERVER)
     
     // *** These are shortcuts for appending packets to server list. DO NOT EDIT ***
-//     extern PacketList packetlist;
+    extern PacketList packetlist;
     
     void        packetTransmit::sendUdp             (ipacket * ptr)
     {
-//         packetlist.push(ptr);
+        packetlist.push(ptr);
     }
 
     void        packetTransmit::sendUdp             (ipacket * ptr, const char * name)
     {
-//         packetlist.push(ptr, name);
+        packetlist.push(ptr, name);
     }
     
     #else

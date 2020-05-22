@@ -68,7 +68,7 @@ void setup()
     rtc.begin();
     sendReport(1, FPSTR(BOARD_NAME), F("BOARD STARTS"));    
     
-    debug("\n<INIT:CONF>\n");
+    debug("\n\n<INIT:%s>\n",P2C(BOARD_NAME));        
     conf.begin();
     sendConfig();
 

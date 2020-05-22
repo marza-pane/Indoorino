@@ -141,24 +141,24 @@ public:
     virtual bool            read        (void) { return false; };
 };
 
-// class   ConnectionUdp : public ConnectionTemplate
-// {
-// protected:
-//     int                 _socket;
-//     sockaddr_in         _addr_server;
-//     sockaddr_in         _addr_client;
-//     timeval             _read_timeout;
-//     
-// public:
-//     
-//     ConnectionUdp       ();
-//     ~ConnectionUdp      ();
-//     
-//     void                begin       (void);
-//     void                loop        (void) {};
-//     bool                read        (void);
-//     
-// };
+class   ConnectionUdp : public ConnectionTemplate
+{
+protected:
+    int                 _socket;
+    sockaddr_in         _addr_server;
+    sockaddr_in         _addr_client;
+    timeval             _read_timeout;
+    
+public:
+    
+    ConnectionUdp       ();
+    ~ConnectionUdp      ();
+    
+    void                begin       (void);
+    void                loop        (void) {};
+    bool                read        (void);
+    
+};
 
 #endif /*  PYMODULE or RAWRUN  */
 

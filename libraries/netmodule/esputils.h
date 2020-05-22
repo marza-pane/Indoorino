@@ -88,7 +88,7 @@ class                               PacketList
     transientPacket **  _list               =nullptr;    
     uint16_t            _count              =0;
     uint32_t            _total_miss         =0;
-    uint32_t            _total_tx         =0;
+    uint32_t            _total_tx           =0;
 
     void                _reallocate_list    (uint16_t);
 

@@ -26,9 +26,5 @@ DEFAULT_UDP_PORT                = 7890
 
 DEBUG_FLAG                      = True
 
-MAIN_WINDOW_WIDTH               =600
-MAIN_WINDOW_HEIGH               =800
-
-
 SIZE_MAX_PACKET_TX              =5000
 SIZE_MAX_PACKET_RX              =5000

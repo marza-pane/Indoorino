@@ -217,21 +217,23 @@ void        sendStatus            (void)
 #if defined INDOORINO_SAMPLER
 
     extern  uint32_t lastprobe;
-    uint32_t a=lastprobe + conf.step() - rtc.epoch();
-    uint32_t b=sd.probenum();
 
     ptr = reallocPacket(ptr, IBACOM_STATUS_SAMPLER);
-    
     strcpy(ptr->p_name(), buf);
+
+    uint32_t a=lastprobe + conf.step() - rtc.epoch();
     memcpy(ptr->p_stepday1(), &a, sizeof(uint32_t)); 
-    memcpy(ptr->p_value(), &b, sizeof(uint32_t)); 
-    
+
+//     uint32_t b=sd.probenum();
+//     memcpy(ptr->p_value(), &b, sizeof(uint32_t)); 
+
     boardio.tx()->send(ptr);
             
     for (uint8_t i=0; i<conf.devnum(); i++)
     {
-        ptr = devices(i)->status(ptr);
-        boardio.send(ptr);
+        // First define devices :)
+//         ptr = devices(i)->status(ptr);
+//         boardio.send(ptr);
     }
 
 #elif defined INDOORINO_ESP

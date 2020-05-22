@@ -3,6 +3,8 @@
 #if defined (ESP8266)
 SoftwareSerial  SerialDebug(DEBUG_PIN_RX, DEBUG_PIN_TX, false);
 WiFiUDP Udp;
+PacketList      packetlist;
+connectionLoop  connection;
 #endif
 
 #if defined (INDOORINO_SAMPLER)
@@ -10,11 +12,16 @@ WiFiUDP Udp;
 #elif defined (INDOORINO_ESPSERVER)
     ConfEspServer   conf;
 #else
-    ConfBase        conf;
+    ConfBase_AVR    conf;
 #endif /* PROJECTS */
 
 blinkingLed     blinker;
-ClockDS3231     rtc; 
+#if defined(RTC_MODULE)
+    ClockDS3231     rtc;
+#else
+    millisClock     rtc;
+#endif
+
 BoardIO         boardio(false);
 
 void setup()

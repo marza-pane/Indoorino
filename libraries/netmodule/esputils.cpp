@@ -71,8 +71,8 @@ void                connectionLoop::loop        (void)
                 blinker.stop();
                 
                 WiFi.localIP().toString().toCharArray(ip,LEN_IPADDRESS);    
-                error_net("\n ### Connected (channel %u)! ###",WiFi.channel());
-                error_net("### UDP server address %s:%u ###\n", ip, DEFAULT_LOCALPORT);
+                error_net(" ### Connected (channel %u)! ###",WiFi.channel());
+                error_net(" ### UDP server address %s:%u ###\n", ip, DEFAULT_LOCALPORT);
                 sendReport(1, BOARD_NAME, F("ESP connected to %s address :%s:%u"),
                                    P2C(DEFAULT_SSID),ip,DEFAULT_LOCALPORT);  
             }
@@ -101,9 +101,9 @@ transientPacket::transientPacket (ipacket * ptr, const char * name)
     _checksum = ptr->checksum();
     _data = (char *)calloc(_size, sizeof(char));
 
-    _time_sent=(uint32_t*)calloc(conf.devnum(), sizeof(uint32_t));
-    _time_count=(uint16_t*)calloc(conf.devnum(), sizeof(uint16_t));
-    _match=(uint8_t*)calloc(conf.devnum(), sizeof(uint8_t));
+    _time_sent=(uint32_t*)calloc(conf.address_num(), sizeof(uint32_t));
+    _time_count=(uint16_t*)calloc(conf.address_num(), sizeof(uint16_t));
+    _match=(uint8_t*)calloc(conf.address_num(), sizeof(uint8_t));
     
     debug("\ntransientPacket: New %s:%s:%uB checksum:%u", name, F2C(ptr->label()), _size, _checksum);
     ptr->forge(_data, name);
@@ -137,13 +137,13 @@ bool                transientPacket::match      (const char * ip, uint32_t check
     
     if (checksum == _checksum)
     {
-        for (uint8_t i=0; i<conf.devnum(); i++)
+        for (uint8_t i=0; i<conf.address_num(); i++)
         {
             if (strcmp(ip, conf.address(i)->ip()) == 0)
             {
                 debug_net("\ntransientPacket: MATCH %u:%u [B:C]", _size, _checksum);
                 _match[i]=true;
-                for (uint8_t j=0; j<conf.devnum(); j++)
+                for (uint8_t j=0; j<conf.address_num(); j++)
                 {
                     if (_match[i]==false)   return(true);
                 }
@@ -168,7 +168,7 @@ void                transientPacket::loop       (void)
     else if (_status == 1)
     {
         uint32_t t0 = millis();
-        for (uint8_t i=0; i<conf.devnum(); i++)
+        for (uint8_t i=0; i<conf.address_num(); i++)
         {
             if (!_match[i] && ((t0 - _time_sent[i]) > conf.timeout()) )
             {

@@ -1,5 +1,7 @@
+import inspect
+import socket
+import os
 
-from utils.imports import *
 from utils.definitions import *
 
 #_______________________________________________________________#
@@ -8,8 +10,23 @@ from utils.definitions import *
 #_______________________________________________________________#
 #                                                               #
 
-def debug(string):
-    if DEBUG_FLAG:  print(string)
+def _debug_helper(preamble, string, *args, **kwargs):
+    s = inspect.stack()[2:-1]
+    c = '{}'.format(preamble)
+    c += '{}'.format(datetime.datetime.now().strftime(' %y-%m-%d %H:%M:%S '))
+    for i in s:
+        if str(i[3]) == '__call__': continue
+        c += '{}:'.format(i[3])
+    c += string
+    print(c, *args, **kwargs)
+
+def debug(string, *args, **kwargs):
+    if DEBUG_FLAG:
+        _debug_helper('DEBUG', string, *args, **kwargs)
+
+def error_packet(string, *args, **kwargs):
+    _debug_helper('ERROR:PACKET', string, *args, **kwargs)
+
 
 def format_timespan(delta, short=False, seconds=True):
 
@@ -131,6 +148,7 @@ def format_packet(packet):
     code += ('\n|{0:<80}_<<<___|'.format('')).replace(' ', '_')
 
     return code
+
 def format_list(iterable, tabs=0):
 
     r='[ iterable ]'

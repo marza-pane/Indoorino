@@ -19,8 +19,8 @@ const char INDOORINO_TYPE[] PROGMEM = "ESPSERVER";
 #define DEFAULT_DEVNUM 0
 
 // const char DEFAULT_TARGET_NAME[] PROGMEM = "IP0";
-const char DEFAULT_SSID[]        PROGMEM = "";
-const char DEFAULT_PSK[]         PROGMEM = "";
+const char DEFAULT_SSID[]        PROGMEM = "FoxWiFi";
+const char DEFAULT_PSK[]         PROGMEM = "L4nT4n1D1=14";
 
 // #define RESEND_TIMEOUT       500
 #define DEFAULT_RETRY_NUM       20

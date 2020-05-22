@@ -78,6 +78,6 @@ IBACOM_PROBE_AMBIENT                = 3505
 
 	# --- #    [05001  - 06000 ] : network # --- #
 
-IBACOM_SET_ESP_ADDR                 = 5001
-IBACOM_NET_ADDRESS                  = 5002
+IBACOM_SET_ADDR                     = 5001
+IBACOM_ESP_ADDRESS                  = 5002
 IBACOM_DOORBELL                     = 65530

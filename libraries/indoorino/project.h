@@ -45,7 +45,7 @@
     
     /* Uncomment one or more of these for debugging */    
     #define DEBUG_GENERIC
-    #define DEBUG_DEVICES
+//     #define DEBUG_DEVICES
 //     #define DEBUG_MEMORY
     #define DEBUG_SERVER
 //     #define DEBUG_IO

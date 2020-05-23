@@ -12,35 +12,35 @@ class GenericDeviceTemplate:
         self.label = ''
 
 
-class GenericSensor(GenericDeviceTemplate):
+class SensorGeneric(GenericDeviceTemplate):
 
-    def __init__(self, **kwargs):
+    def __init__(self, board, name, pin):
 
-        GenericDeviceTemplate.__init__(self, **kwargs)
+        GenericDeviceTemplate.__init__(self, board, name, pin)
         self.value = AmbientValue('value')
 
-class DeviceDHT22(GenericDeviceTemplate):
+class SensorDHT22(GenericDeviceTemplate):
 
-    def __init__(self, **kwargs):
+    def __init__(self, board, name, pin):
 
-        GenericDeviceTemplate.__init__(self, **kwargs)
+        GenericDeviceTemplate.__init__(self, board, name, pin)
         self.temperature = VariableTemperature()
         self.humidity = VariableHumidiy
         self.label = 'temperature/humidity'
 
-class DevicePH(GenericDeviceTemplate):
+class SensorPH(GenericDeviceTemplate):
 
-    def __init__(self, **kwargs):
+    def __init__(self, board, name, pin):
 
-        GenericDeviceTemplate.__init__(self, **kwargs)
+        GenericDeviceTemplate.__init__(self, board, name, pin)
         self.ph = VariablePH()
         self.label = 'PH reader'
 
-class DeviceLDR(GenericDeviceTemplate):
+class SensorLDR(GenericDeviceTemplate):
 
-    def __init__(self, **kwargs):
+    def __init__(self, board, name, pin):
 
-        GenericDeviceTemplate.__init__(self, **kwargs)
+        GenericDeviceTemplate.__init__(self, board, name, pin)
         self.ph = VariablePH()
         self.label = 'light resistor'
 

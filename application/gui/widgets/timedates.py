@@ -321,6 +321,21 @@ if __name__ == '__main__':
     datetimewidget.date.start()
     datetimewidget.time.start()
     datetimewidget.place(x=10, y=10, width=280, heigh=50)
+
+    timewidget =  EntryTime(app.win)
+
+    timewidget.configure(bg='blue')
+    timewidget.set(datetime.datetime.now())
+    timewidget.start()
+    timewidget.place(x=10, y=70, width=280, heigh=50)
+
+    datewidget =  EntryDate(app.win)
+
+    datewidget.configure(bg='blue')
+    datewidget.set(datetime.datetime.now())
+    datewidget.start()
+    datewidget.place(x=10, y=130, width=280, heigh=50)
+
     app.show()
 
 

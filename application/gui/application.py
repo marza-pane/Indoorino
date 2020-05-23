@@ -2,7 +2,7 @@ import sys
 import tkinter as tk
 
 from gui.utils import *
-from utils.utils import debug
+from utils.utils import debug_gui
 from gui.templates import GenericGuiTemplate
 
 class ApplicationWindowTemplate(GenericGuiTemplate):
@@ -47,5 +47,5 @@ class ApplicationWindowTemplate(GenericGuiTemplate):
         if self._win_height != self.win.winfo_height() or self._win_width != self.win.winfo_width():
             self._win_width = self.win.winfo_width()
             self._win_height = self.win.winfo_height()
-            debug('Resized to {}x{}'.format(self._win_width, self._win_height))
+            debug_gui('Resized to {}x{}'.format(self._win_width, self._win_height))
             self.on_resize()

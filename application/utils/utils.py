@@ -24,9 +24,15 @@ def debug(string, *args, **kwargs):
     if DEBUG_FLAG:
         _debug_helper('DEBUG', string, *args, **kwargs)
 
+def debug_gui(string, *args, **kwargs):
+    if DEBUG_FLAG_GUI:
+        _debug_helper('GUI', string, *args, **kwargs)
+
 def error_packet(string, *args, **kwargs):
     _debug_helper('ERROR:PACKET', string, *args, **kwargs)
 
+def format_type(object):
+    return '<' + str(type(object)).strip('<class >').strip('\'') + '>'
 
 def format_timespan(delta, short=False, seconds=True):
 
@@ -101,7 +107,7 @@ def format_bytearray(array):
     e_string[-1] = ']'
     return ''.join(e_string), ''.join(d_string)
 
-def format_debug(array):
+def format_serialdebug(array):
 
     r=list()
     for c in list(array.decode(errors='ignore')):
@@ -132,11 +138,6 @@ def format_packet(packet):
 
     code += template.format(label=label, name=name)
     code += '{0:<77}|'.format('')
-    # for item in packet.items():
-    #     if item[0] == 'data':
-    #         continue
-    #     code += ('\n|    {}: {}'.format(item[0],item[1]))
-    # code += ('\n|')
     for item in packet['data'].items():
         if item[0] == 'epoch':
             code += '{0:<89}|'.format('\n|          {}: {} ({})'.format(

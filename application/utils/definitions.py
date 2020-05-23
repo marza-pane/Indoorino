@@ -6,6 +6,9 @@ import serial
 #           Macros and global variables                        #
 #--------------------------------------------------------------#
 
+DEBUG_FLAG              = True
+DEBUG_FLAG_GUI          = True
+
 DEFAULT_FOLDER_NAME     = '.Indoorino'
 DEFAULT_SUBFOLDER_NAME  = ('session', 'conf', 'database')
 DEFAULT_FOLDER_PATH = pathlib.Path().home().joinpath(DEFAULT_FOLDER_NAME) # <-- dipende da sys.platform?
@@ -23,8 +26,6 @@ BAUDRATES                       = tuple(sorted(list(serial.Serial.BAUDRATES) + [
 
 SOCKET_TIMEOUT                  = 0.001
 DEFAULT_UDP_PORT                = 7890
-
-DEBUG_FLAG                      = True
 
 SIZE_MAX_PACKET_TX              =5000
 SIZE_MAX_PACKET_RX              =5000

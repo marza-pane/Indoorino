@@ -2,6 +2,10 @@ from codesource.ibacomSource import SRC_packets
 from utils.utils import *
 import datetime
 
+"""
+ TODO: REVIEW THIS PLEASE!
+"""
+
 class PacketTemplate:
 
     def __init__(self, name, command, label, data):
@@ -61,7 +65,8 @@ class IndoorinoPacket(PacketTemplate):
     def __init__(self, packet):
 
         if not isinstance(packet, dict):
-            error_packet('IndoorinoPacket.init: cant find field {}'.format(key))
+            # error_packet('IndoorinoPacket.init: cant find field {}'.format(key))
+            pass
 
         elif isinstance(packet, int):
             pass

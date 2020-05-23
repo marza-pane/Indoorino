@@ -1,4 +1,5 @@
 import tkinter as tk
+from utils.utils import debug_gui
 
 class GenericGuiTemplate:
     """Generic template class for tkinter widgets. Declarations go in __init__
@@ -12,23 +13,23 @@ class GenericGuiTemplate:
         self.parent = parent
 
     def build(self):
-        pass
+        debug_gui('building from template')
 
     def on_update(self, query=False):
-        pass
+        debug_gui('value update')
 
     def loop(self):
         pass
 
     def on_resize(self):
-        pass
+        debug_gui('graphic update')
 
 
 class FrameTemplate(GenericGuiTemplate, tk.Frame):
 
-    def __init__(self, parent, *args):
+    def __init__(self, parent, *args, **kwargs):
         GenericGuiTemplate.__init__(self, parent)
-        tk.Frame.__init__(self, parent, *args)
+        tk.Frame.__init__(self, parent, *args, **kwargs)
 
     def on_resize(self):
         super(FrameTemplate, self).on_resize()
@@ -36,10 +37,10 @@ class FrameTemplate(GenericGuiTemplate, tk.Frame):
 
 class PanedTemplate(GenericGuiTemplate, tk.PanedWindow):
 
-    def __init__(self, parent, *args):
+    def __init__(self, parent, *args, **kwargs):
 
         GenericGuiTemplate.__init__(self, parent)
-        tk.PanedWindow.__init__(self, parent, *args)
+        tk.PanedWindow.__init__(self, parent, *args, **kwargs)
 
     def on_resize(self):
         super(PanedTemplate, self).on_resize()
@@ -47,6 +48,10 @@ class PanedTemplate(GenericGuiTemplate, tk.PanedWindow):
 
 
 if __name__ == '__main__':
-
+    # it's not working as we try to import utils.utils
     app = tk.Tk()
+    app.geometry('300x300')
+    panel = PanedTemplate(app, bg='blue')
+    panel.configure(bg='blue')
+    panel.place(x=10,y=10,width=100, heigh=100)
     app.mainloop()

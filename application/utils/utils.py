@@ -11,14 +11,25 @@ from utils.definitions import *
 #                                                               #
 
 def _debug_helper(preamble, string, *args, **kwargs):
-    s = inspect.stack()[2:-1]
-    c = '{}'.format(preamble)
-    c += '{}'.format(datetime.datetime.now().strftime(' %y-%m-%d %H:%M:%S '))
+    s = inspect.stack()[2::][::-1]
+    # s = inspect.stack()
+    c = ['{}'.format(preamble)]
+    c.append('{}'.format(datetime.datetime.now().strftime(' %y-%m-%d %H:%M:%S ')))
     for i in s:
         if str(i[3]) == '__call__': continue
-        c += '{}:'.format(i[3])
-    c += string
-    print(c, *args, **kwargs)
+        if str(i[3]) == '<module>': continue
+        if 'super' in i[4][0]:
+            p = str(i[4]).split('(')[1].split(',')[0]
+            c .append('{}:'.format(p))
+            continue
+        p = '{}:'.format(i[3])
+        if c[-1] != p:
+            c.append(p)
+        # for p in i:
+        #     c += '\n{}:'.format(p)
+        #
+    c.append(' {}'.format(string))
+    print(''.join(c), *args, **kwargs)
 
 def debug(string, *args, **kwargs):
     if DEBUG_FLAG:

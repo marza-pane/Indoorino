@@ -12,8 +12,27 @@ class SensorWidgetTemplate(PanedTemplate):
         self.sensor = sensor
         PanedTemplate.__init__(self, parent, **kwargs)
         self.title = tk.Label(self)
+        self.label = tk.Label(self)
 
         self.build()
+
+    def build(self):
+        super(SensorWidgetTemplate, self).build()
+        self.title.configure(
+            bg='green',
+            padx=10,
+            anchor=tk.W,
+            font=Fonts.monobold(12),
+            relief=tk.FLAT,
+        )
+        self.label.configure(
+            bg='green',
+            padx=8,
+            anchor=tk.W,
+            font=Fonts.monobold(12),
+            relief=tk.FLAT,
+        )
+
 
 class SensorDHT22_Widget(SensorWidgetTemplate):
 
@@ -22,14 +41,12 @@ class SensorDHT22_Widget(SensorWidgetTemplate):
         SensorWidgetTemplate.__init__(self, parent, sensor, **kwargs)
 
     def build(self):
-
+        super(SensorDHT22_Widget, self).build()
         self.title.configure(
-            bg='green',
-            padx=10,
-            anchor=tk.W,
-            font=Fonts.monobold(12),
-            relief=tk.FLAT,
-            text='DHT22 sensor',
+            text='{} - DHT22 sensor'.format(self.sensor.name),
+        )
+        self.label.configure(
+            text='{} on pin {}'.format(self.sensor.label, self.sensor.pin),
         )
 
     def on_resize(self):
@@ -42,4 +59,9 @@ class SensorDHT22_Widget(SensorWidgetTemplate):
             width=w - 2 * min(10, 0.1 * w),
             height=min(30, 0.1*h),
         )
-
+        self.label.place(
+            x=min(10, 0.1 * w),
+            y=min(h - min(30, 0.1*h), 0.025 * h),
+            width=w - 2 * min(10, 0.1 * w),
+            height=min(30, 0.1*h),
+        )

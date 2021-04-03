@@ -8,15 +8,15 @@
 #ifndef STDDEV_H_
 #define STDDEV_H_
 
-#if defined (ARDUINO) || defined (ESP8266)
+#if defined (ARDUINO)
 
 #include    <Arduino.h>
-#include    "DHT.h"
 #include    "Wire.h"
-#include    "OneWire.h" 
-#include    "DallasTemperature.h"
+// #include    "DHT.h"
+// #include    "OneWire.h" 
+// #include    "DallasTemperature.h"
 
-#include    "packetUtils.h"
+#include    "ipacket.h"
 
 #define     ERROR_BLINK_LONG    2000
 #define     ERROR_BLINK_SHORT   200
@@ -79,9 +79,9 @@ public:
     ~millisClock    ();
     void            begin       (void);
     void            loop        (void) { rtclock::loop(); };
-    void            set		(DateTime synctime);
+    void            set         (DateTime synctime);
     uint32_t        epoch       (void);
-    bool            status		(void){ return true;};
+    bool            status      (void){ return true;};
 
 protected:
     

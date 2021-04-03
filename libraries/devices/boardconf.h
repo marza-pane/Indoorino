@@ -9,17 +9,18 @@
 #define INDOORINOCONFIG_H_
 
 #include "staticspace.h"
-#if defined (INDOORINO_ESPSERVER)
-#include "../netmodule/netutils.h"
-#include "../netmodule/esputils.h"
-#endif
+
+// #if defined (INDOORINO_ROUTER)
+// #include "../netmodule/netutils.h"
+// #include "../netmodule/esputils.h"
+// #endif
 
 //  ___________________________________________________________________________________________
 //  |                              |            |      |               |      |               |
 //  |     project config           |   project  |      |     packet    |      |     packet    |
 //  |                       device | parameters | com  |               |  com |               |
 //  | name | type | board | number |            | dev1 |  dev 1  data  | dev2 |  dev 2  data  |
-//  |__16__|__16__|__1 6__|___8____|______x_____|__16__|_x_|_x_|_x_|_x_|__16__|_x_|_x_|_x_|_x_|
+//  |__16__|__16__|__1_6__|___1____|______x_____|___2__|_x_|_x_|_x_|_x_|___2__|_x_|_x_|_x_|_x_|
 //  |                              |            |                      |                      |
 //  |<---     STDCONF_SIZE     --->|         _dpos[0]               -dpos[1]                -dpos[end]                 
 
@@ -31,15 +32,30 @@
 //      |___________________________________________________________________|
 //
 
-    class   boardConfStd
+    class   Conf_Board
     {
+    protected:
+        
+//         const   __FSH   *   _id=nullptr;
+        StaticSpace         staticspace;        
+        virtual void        initdev         (iSize_t) {}
+        virtual uint8_t     validate        (packet::ipacket *) { return 0; }
+
     public:
-         boardConfStd   ()  {};
-        ~boardConfStd   ()  {};
+                 Conf_Board ();
+        virtual ~Conf_Board ();
         
         char    *           name            (void)  { return P2C(BOARD_NAME);     };
         char    *           type            (void)  { return P2C(INDOORINO_TYPE); };
-        char    *           board           (void)  { return P2C(BOARD_TYPE);     };    
+        char    *           board           (void)  { return P2C(BOARD_TYPE);     };
+        uint8_t             devnum          (void)  { return staticspace.read(3 * LEN_NAME); }
+       
+        void                begin           (void);
+        void                factory         (void);
+        
+        virtual packet::ipacket * device    (packet::ipacket *p, const char *m) { if(m) {}; return p; }
+        virtual packet::ipacket * device    (packet::ipacket *p, int8_t n)      { if(n) {}; return p; }
+
     };
     
 //      _____________________________________________________________________
@@ -48,78 +64,94 @@
 //      |___________________________________________________________________|
 //
 
-    class   ConfBase        : public boardConfStd
+    class   Conf_AVR      : public Conf_Board
     {
+        
     protected:
         
-        StaticSpace         staticspace;
-
-        const   __FSH   *   _id=nullptr;        
-        ibasize_t           _dpos[MAX_ATTACHED_DEVICES];
-        
-        void                initdev         (ibasize_t);
-        virtual uint8_t     validate        (ipacket *);
+        void                initdev         (iSize_t);
+        uint8_t             validate        (packet::ipacket *);
+        iSize_t             _dpos[MAX_ATTACHED_DEVICES] {0};
 
     public:
         
-                 ConfBase();
-        virtual ~ConfBase();
+         Conf_AVR():Conf_Board() { };
+        ~Conf_AVR()              { };
 
-        virtual void        begin           (void);
-        virtual void        factory         (void);
+//         void                begin           (void);
+//         void                factory         (void);
         
-        virtual bool        devAdd          (ipacket *);
-        virtual bool        devRem          (const char *);
-        virtual bool        devMod          (const char *, ipacket *);
-        virtual bool        devSetName      (const char *, const char *);
+        bool                devAdd          (packet::ipacket *);
+        bool                devRem          (const char *);
+        bool                devMod          (const char *, packet::ipacket *);
+        bool                devSetName      (const char *, const char *);
+        bool                devSetPin       (const char *, uint8_t);
+        packet::ipacket *   device          (packet::ipacket *, const char *);
+        packet::ipacket *   device          (packet::ipacket *, int8_t);
 
-        ipacket *           device          (ipacket *, const char *);
-        ipacket *           device          (ipacket *, uint8_t);
+        int8_t              indexFromName   (const char *);
+        int8_t              indexFromPin    (int8_t);
+        void                device_name     (char *, int8_t);
+        iCom_t              device_command  (int8_t);
+        iCom_t              device_command  (const char * name) { return device_command(indexFromName(name)); }
+        int8_t              device_pin      (int8_t);
+        int8_t              device_pin      (const char * name) { return device_pin(indexFromName(name)); }
 
-        uint8_t             devnum          (void);
-        uint8_t             devindex        (const char *);
-        ibacomm_t           comByindex      (uint8_t);
+//         iCom_t           index2command   (uint8_t);
+//         uint8_t             pin2index       (uint8_t);
     };
 
+
+    #if defined (ESP8266)
     
-    class   ConfBase_AVR        : public ConfBase
+    /*
+    *  ___________________________________________________________________________________________
+    *  |         | WiFi |  WiFi |  SSL  | remote | remote |  local | timeout | timeout | attemps |
+    *  | STDCONF | SSID |  PSK  |  KEY  |   IP   |  PORT  |  PORT  | client  | packet  | packet  |
+    *  |____49___|__32__|__64___|__16___|___4____|___2____|___2____|____4____|____4____|____1____|
+    *  
+    */
+
+    class   ConfRouter      : public Conf_Board
     {
+        char                _ssid[LEN_SSID] {0};
+        char                _psk[LEN_PSK]   {0};
+        IPAddress           _remote_address;
+        uint16_t            _remote_port=0;
+        
+        iEpoch_t            _timeout_packet=0;
+        iEpoch_t            _attemps_packet=0;
+
+        
     public:
-                    ConfBase_AVR()  {};
-        virtual    ~ConfBase_AVR()  {};
-        uint8_t     devindexBypin   (uint8_t);
-        bool        devSetPin       (const char *, uint8_t);
-        bool        devAdd          (ipacket *);
-        bool        devMod          (const char *, ipacket *);
-        bool        devSetName      (const char *, const char *);
-    };    
-    
-//      _____________________________________________________________________
-//      |                                                                   |
-//      |       ESP CONFIGURATION                                           |
-//      |___________________________________________________________________|
-//
 
-    class   ConfBase_ESP        : public ConfBase
-    {
-    protected:
-        netaddress          _address;
-        uint32_t            _address_num=0;
-   public:
-                 ConfBase_ESP() {};
-        virtual ~ConfBase_ESP() {};
+         ConfRouter():Conf_Board() { };
+        ~ConfRouter()              { };
         
-        virtual void        begin           (void);
-        virtual void        factory         (void);
-        bool                addAddress      (netaddress *);
-        bool                remAddress      (netaddress *);
-        bool                remAddress      (const char *);
-
-        netaddress      *   address         (const char *);
-        netaddress      *   address         (uint8_t);
-        uint32_t            address_num     (void)      { return _address_num; };
-
+        void                begin           (void);
+        void                factory         (void);        
+        bool                set_credential  (const char *, const char *);
+        
+        char    *           ssid            (void) { return _ssid; }
+        char    *           psk             (void) { return _psk;  }
+        
+        void                local_port      (const uint16_t);
+        void                remote_ip       (const IPAddress&);
+        void                remote_port     (const uint16_t);
+        
+        uint16_t            remote_port     (void) { return _remote_port;    }
+        IPAddress           remote_ip       (void) { return _remote_address; }
+        
+        void                timeout_packet  (const iEpoch_t);
+        void                attemps_packet  (const uint8_t);
+        
+        iEpoch_t            timeout_packet  (void) { return _timeout_packet; }
+        uint8_t             attemps_packet  (void) { return _attemps_packet; }
+        
     };
+
+    #endif /* ESP8266 */
+    
 
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -129,34 +161,27 @@
 
     #if defined (INDOORINO_SAMPLER)
     
-    class   ConfSampler     : public ConfBase_AVR
+    class   ConfSampler     : public Conf_AVR
     {
     public:
-        void                factory         (void);
         void                begin           (void);
+        void                factory         (void);
         
         void                step            (uint32_t);
         void                cool            (uint32_t);
         uint32_t            step            (void);
         uint32_t            cool            (void);
     };
-
-    #elif defined (INDOORINO_ESPSERVER)
-
-    class   ConfEspServer   : public ConfBase_ESP
-    { 
+    
+    #elif defined (INDOORINO_CONTROLLER)
+    
+    class   ConfController  : public Conf_AVR
+    {
     public:
-        void                factory         (void);
         void                begin           (void);
-        
-        void                localport       (uint32_t);
-        void                timeout         (uint32_t);
-        void                attempts        (uint8_t);
-
-        uint32_t            localport       (void);
-        uint32_t            timeout         (void);
-        uint8_t             attempts        (void);
+        void                factory         (void);        
     };
+    
     #endif /* PROJECTS */
 
 #endif /* INDOORINO */

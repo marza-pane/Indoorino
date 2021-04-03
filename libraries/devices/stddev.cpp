@@ -9,7 +9,7 @@
 
 #define FLASHEPOCH  DateTime(F(__DATE__), F(__TIME__)).unixtime()
 
-#if defined (ARDUINO) || defined (ESP8266)
+#if defined (ARDUINO)
 
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -73,6 +73,7 @@ void        blinkingLed::loop	 	    (void)
 	}
 }
 
+blinkingLed blinker;
 
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -100,13 +101,11 @@ millisClock::~millisClock()
 
 void        millisClock::begin            (void)
 {    
-    char buf[LEN_DATETIMESTR];
     _rtcmillis = new RTC_Millis;
     _rtcmillis->begin(DateTime(F(__DATE__), F(__TIME__)));
-    time_string(buf, FLASHEPOCH);
-    debug("\nclock:%s:begin at %s", F2C(_id));
-    time_string(buf, epoch());
-    debug("\nclock: current datetime: %s", buf);
+    
+    debug_dev("clock:%s:begin [%s]", F2C(_id), utils::time_string(FLASHEPOCH));
+    debug_dev("clock: current datetime: %s", utils::time_string(this->epoch()));
 }
 
 void        millisClock::set              (DateTime synctime)
@@ -140,9 +139,8 @@ ClockDS3231::~ClockDS3231()
 void            ClockDS3231::begin          (void)
 {
     _flag=false;
-    debug("\nclock:%s:begin", F2C(_id));
+    debug_dev("clock:%s:begin", F2C(_id));
     
-    char buf[LEN_DATETIMESTR];
     uint32_t startime=max(FLASHEPOCH, _current_time);
     startime = FLASHEPOCH;
     if ( _rtclock->begin())
@@ -150,32 +148,29 @@ void            ClockDS3231::begin          (void)
         if (_rtclock->lostPower())
         {
             _rtclock->adjust(startime);
-            sendReport(3, _id, F("begin: power loss. Please check clock battery"));
+//             sendReport(3, _id, F("begin: power loss. Please check clock battery"));
         }
         if (!_rtclock->now().isValid())
         {
             _rtclock->adjust(startime);
-            sendReport(3, _id, F("begin: invalid epoch. Please check connection"));
+//             sendReport(3, _id, F("begin: invalid epoch. Please check connection"));
         }
         else
         {
             _flag=true;
-            request_time();
-            
-            time_string(buf, _current_time);
-            debug("\nclock: current datetime: %s", buf);
+            request_time();            
+            debug_dev("clock: current datetime: %s", utils::time_string(_current_time));
             return;
         }
     }
     else
     {
-        sendReport(3, _id, F("begin: can not init DS3231 class"));
+//         sendReport(3, _id, F("begin: can not init DS3231"));
     }
     
-    time_string(buf, _current_time);
-    debug("\nclock: can not init DS3231");
-    debug("\nclock: MILLIS start:\nclock: current datetime: %s", buf);
-    _rtcmillis = new RTC_Millis;
+    error_dev("clock: can not init RTC DS3231");
+    debug_dev("clock: MILLIS start! current datetime: %s", utils::time_string(_current_time));
+    if (_rtcmillis == NULL) _rtcmillis = new RTC_Millis;
     _rtcmillis->begin(DateTime(_current_time));
     blinker.start(3);
 }
@@ -192,7 +187,7 @@ void            ClockDS3231::request_time   (void)
             if (_rtcmillis != NULL) { delete _rtcmillis; }
             _rtcmillis=NULL;
             blinker.stop();
-            sendReport(1,_id, F("epoch: RTC found!"));
+//             sendReport(1,_id, F("epoch: RTC found!"));
         }
     }
     else
@@ -203,7 +198,7 @@ void            ClockDS3231::request_time   (void)
             _rtcmillis = new RTC_Millis;
             _rtcmillis->begin(DateTime(_current_time));
             blinker.start(3);
-            sendReport(3,_id, F("epoch: RTC signal lost!"));
+//             sendReport(3,_id, F("epoch: RTC signal lost!"));
         }
         _current_time = _rtcmillis->now().unixtime();
     }
@@ -211,6 +206,7 @@ void            ClockDS3231::request_time   (void)
 
 void            ClockDS3231::loop           (void)
 {
+    rtclock::loop();
     if (millis() > _last_update + CLOCK_REFRESH_RATE)
     {
         _last_update = millis();
@@ -230,6 +226,12 @@ void            ClockDS3231::set            (DateTime synctime)
     else        { _rtcmillis->adjust(synctime); }
 }
 
+
+    ClockDS3231     rtc;
+
+#else
+    
+    millisClock     rtc;
 
 #endif // RTC MODULE
     

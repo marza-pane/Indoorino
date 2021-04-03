@@ -8,198 +8,184 @@
 #ifndef SDCONF_H_
 #define SDCONF_H_
 
+#if defined (ARDUINO)
+
 #include    "definitions.h"
 
-//  ___________________________________________________________________________________________
-//  |                              |            |      |               |      |               |
-//  |     project config           |   project  |      |     packet    |      |     packet    |
-//  |                       device | parameters | com  |               |  com |               |
-//  | name | type | board | number |            | dev1 |  dev 1  data  | dev2 |  dev 2  data  |
-//  |__16__|__16__|__1 6__|___8____|______x_____|__16__|_x_|_x_|_x_|_x_|__16__|_x_|_x_|_x_|_x_|
-//  |                              |            |                      |                      |
-//  |<---     STDCONF_SIZE     --->|         _dpos[0]               -dpos[1]                -dpos[end]                 
-
-
-class StaticSpaceTemplate
-{
-public:
-             StaticSpaceTemplate    () {};
-    virtual ~StaticSpaceTemplate    () {};
-    
-    virtual void        begin       (void) {};
-    
-    virtual uint8_t     read        (ibasize_t ) { return 0; };
-    virtual void        write       (ibasize_t, uint8_t) {};
-    virtual void        update      (int, uint8_t) {};
-    virtual void        update      (void) {};
-};
-
-#if defined (SD_MODULE)
-// #include    "sdConf.h"
-
-//      _____________________________________________________________________
-//      |                                                                   |
-//      |       SD card as static space                                     |
-//      |___________________________________________________________________|
-//
-
-    class StaticSpaceSD : public StaticSpaceTemplate
-    {
-    public:
-        StaticSpaceSD   () {};
-        ~StaticSpaceSD   () {};
-        
-        void        begin       (void) {};
-        
-        uint8_t     read        (ibasize_t ) { return 0; };
-        void        write       (ibasize_t, uint8_t) {};
-        void        update      (int, uint8_t) {};
-        void        update      (void) {};
-
-        template< typename T > T &get( int index, T &object )
-        {
-            /* HERE implement SD CONF get*/
-            return object;
-        }
-        
-        template< typename T > const T &put( int index, const T &object )
-        {
-            /* HERE implement SD CONF put*/
-            return object;
-        }
-    };
-#endif
-    
 #if defined(EEPROM_MODULE)
 #include    "EEPROM.h"
-
-//      _____________________________________________________________________
-//      |                                                                   |
-//      |       EEPROM as static space                                      |
-//      |___________________________________________________________________|
-//
-
-    class StaticSpaceEEPROM : public StaticSpaceTemplate
-    {
-/*    
-        #if defined (ESP8266)
-        bool        commit      (void)
-        {
-            bool a = EEPROM.commit();
-            if (a)  { debug("\nEEPORM COMMITTED"); }
-            else    error_mem("COMMITTED FAILED");
-            return a;
-        };
-        #endif
-        */
-    public:
-        StaticSpaceEEPROM ()  {};
-        
-        void        begin       (void)
-        {
-            #if defined (ESP8266)
-                EEPROM.begin(EEPROM_SIZE);    
-            #elif defined (ARDUINO)
-                EEPROM.begin();
-            #endif
-        };
-        
-        uint8_t     read        (uint32_t pos)
-        {
-            return EEPROM.read(pos);    
-        };
-        
-        void        write       (uint32_t pos, uint8_t val)
-        {
-            EEPROM.write(pos, val);    
-        };
-        
-        void        update      (uint32_t pos, uint8_t val)
-        {
-            #if defined (ESP8266)
-            if (EEPROM.read(pos) != val)
-            {
-                EEPROM.write(pos, val);
-            }
-            this->update();
-            #else
-            EEPROM.update(pos, val);    
-            #endif
-        };
-        
-        void        update      (void)
-        {
-            #if defined (ESP8266)
-            if (!EEPROM.commit())  error_mem("EEPROM:ERROR: commit() failed!");
-            #endif
-        }
-                
-        template< typename T > T &get( int index, T &object ){
-            return EEPROM.get(index, object);    
-        };
-        
-        template< typename T > const T &put( int index, const T &object ){
-            return EEPROM.put(index, object);    
-        };
-    };
-
 #endif
 
-//      _____________________________________________________________________
-//      |                                                                   |
-//      |       Programmable Flash memory as static space                   |
-//      |___________________________________________________________________|
-//
-
-    class   StaticSpacePGM : public StaticSpaceTemplate
+class StaticSpace
+{
+public:
+     StaticSpace                    () {};
+    ~StaticSpace                    () {};
+    
+    void                            begin       (void)
     {
-        public:
-        StaticSpacePGM   () {};
-        ~StaticSpacePGM   () {};
+        #if defined(EEPROM_MODULE)
         
-        uint8_t     read        (int ) {return 0;};
-        void        write       (int, uint8_t) {};
-        void        update      (int, uint8_t) {};
+            debug_io("EEPROM initialized");
+            #if defined (ESP8266)
+                EEPROM.begin(EEPROM_SIZE);    
+            #else
+                EEPROM.begin();
+            #endif
         
-        template< typename T > T &get( int index, T &object )
-        {
-            // HERE IMPLEMENT A REGULAR RAM ARRAY
-            return object;
-        }
-        
-        template< typename T > const T &put( int index, const T &object )
-        {
-            // HERE IMPLEMENT A REGULAR RAM ARRAY
-            return object;
-        }
+        #elif defined (SD_MODULE)
+                /* implement SD (will never be implemented) */
+            info_dev("SDCONF begin"); 
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+            info_dev("conf:FLASHCONF begin"); 
+        #endif        
+    };
+    
+    
+    uint8_t                         read        (iSize_t position)
+    {
+        #if defined(EEPROM_MODULE)
+            return EEPROM.read(position);    
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
     };
 
-
-
-#if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_MEGA2560)
+    void                            read        (iSize_t position, char * buffer, iSize_t size)
+    {
+        #if defined(EEPROM_MODULE)            
+            memset(buffer, 0, size);
+            for (iSize_t i=0; i<size; i++)
+            {
+                buffer[i] = EEPROM.read(position + i);
+            }
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
+    };
+        
     
-        typedef StaticSpaceEEPROM StaticSpace;
+    void                            write       (iSize_t position, uint8_t value)
+    {
+        #if defined(EEPROM_MODULE)
+            EEPROM.write(position, value);
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
+    };
 
-//     class StaticSpace : public StaticSpaceEEPROM
-//     {
-//         
-//     };
-
-#elif defined (ESP8266)
+    void                            write       (iSize_t position, const  char * buffer, iSize_t size)
+    {
+        #if defined(EEPROM_MODULE)
+            for (iSize_t i=0; i<size; i++)
+            {
+                EEPROM.write(position + i, buffer[i]);
+            }
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
+    };    
     
-        typedef StaticSpaceEEPROM StaticSpace;
     
-#else
+    void                            update      (iSize_t position, uint8_t value)
+    {
+        #if defined(EEPROM_MODULE)
+        
+        
+            #if defined (ESP8266)
+            if (EEPROM.read(position) != value)
+            {
+                EEPROM.write(position, value);
+            }
+            #else
+            EEPROM.update(position, value);    
+            #endif
+        
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
+    };
     
-    #if defined(SD_MODULE)
-        typedef StaticSpaceSD StaticSpace;
-//         #define StaticSpace StaticSpaceSD
-    #else
-        typedef StaticSpacePGM StaticSpace;
-//         #define StaticSpace StaticSpacePGM
-    #endif /* SD_MODULE */
+    void                            update      (iSize_t position, const  char * buffer, iSize_t size)
+    {
+        #if defined(EEPROM_MODULE)
+        
+        
+            #if defined (ESP8266)
+            for (iSize_t i=0; i<size; i++)
+            {
+                if (EEPROM.read(position + i) != buffer[i])
+                {
+                    EEPROM.write(position + i, buffer[i]);
+                }
+            }
+            #else
+            for (iSize_t i=0; i<size; i++)
+            {
+                EEPROM.update(position + i, buffer[i]);
+            }
+            #endif
+        
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
+    };
+    
+    void                            update      (void)
+    {
+        #if defined(EEPROM_MODULE)
 
-#endif /* EEPROM as STATIC */
+         #if defined (ESP8266)
+            if (!EEPROM.commit())  error_mem("EEPROM:ERROR: commit() failed!");
+        #endif
 
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
+    };
+    
+    
+    template <typename T> T&        get         (int index, T &object)
+    {
+        #if defined(EEPROM_MODULE)
+            return EEPROM.get(index, object);    
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
+            return object;
+    };
+    
+    template <typename T> const T&  put         (int index, const T &object )
+    {
+        #if defined(EEPROM_MODULE)
+            return EEPROM.put(index, object);    
+        #elif defined (SD_MODULE)
+                /* implement SD */
+        #else
+                /* implement SRAM array and read init valaues from PROGMEM */
+        #endif        
+            return object;
+    };   
+};
+
+
+#endif /* ARDUINO */
 
 #endif /* SDCONF_H_ */

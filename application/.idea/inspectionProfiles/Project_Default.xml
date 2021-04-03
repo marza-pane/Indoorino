@@ -11,6 +11,16 @@
           <option value="Indoorino" />
           <option value="ipsreader" />
           <option value="ipstools" />
+          <option value="utils.IndoorinoModule" />
+          <option value="tkinter.Menubutton.menu" />
+          <option value="gui.templates.GenericGuiTemplate.bind" />
+          <option value="gui.templates.GenericGuiTemplate.update" />
+          <option value="gui.templates.GenericGuiTemplate.winfo_width" />
+          <option value="gui.templates.GenericGuiTemplate.winfo_height" />
+          <option value="int.*" />
+          <option value="indoorino.parameter.ParameterTemplate.value" />
+          <option value="gui.template.GenericAppTemplate.*" />
+          <option value="tkinter.BaseWidget.*" />
         </list>
       </option>
     </inspection_tool>

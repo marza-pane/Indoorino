@@ -594,7 +594,7 @@ bool DateTime::operator==(const DateTime &right) const {
 
 void DateTime::timestamp(char * buffer, timestampOpt opt) {
   
-    memset(buffer, 22, 0);
+    memset(buffer, 0, 22);
 
     // Generate timestamp according to opt
     switch (opt) {
@@ -613,30 +613,7 @@ void DateTime::timestamp(char * buffer, timestampOpt opt) {
     }
     return;
 }
-
-
-// String DateTime::timestamp(timestampOpt opt) {
-//   char buffer[20];
-// 
-//   // Generate timestamp according to opt
-//   switch (opt) {
-//   case TIMESTAMP_TIME:
-//     // Only time
-//     sprintf(buffer, "%02d:%02d:%02d", hh, mm, ss);
-//     break;
-//   case TIMESTAMP_DATE:
-//     // Only date
-//     sprintf(buffer, "%d-%02d-%02d", 2000 + yOff, m, d);
-//     break;
-//   default:
-//     // Full
-//     sprintf(buffer, "%d-%02d-%02dT%02d:%02d:%02d", 2000 + yOff, m, d, hh, mm,
-//             ss);
-//   }
-//   return String(buffer);
-// }
-
-
+ 
 /*!
     @brief  Create a new TimeSpan object in seconds
     @param seconds Number of seconds

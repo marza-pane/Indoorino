@@ -1,0 +1,26 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPep8Inspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="indoorino_serial_reader.Indoorino" />
+          <option value="serial.tools" />
+          <option value="indoorino_gui_utils.Indoorino" />
+          <option value="Indoorino" />
+          <option value="ipsreader" />
+          <option value="ipstools" />
+          <option value="utils.IndoorinoModule" />
+          <option value="tkinter.Menubutton.menu" />
+          <option value="gui.templates.GenericGuiTemplate.bind" />
+          <option value="gui.templates.GenericGuiTemplate.update" />
+          <option value="gui.templates.GenericGuiTemplate.winfo_width" />
+          <option value="gui.templates.GenericGuiTemplate.winfo_height" />
+          <option value="int.*" />
+          <option value="indoorino.parameter.ParameterTemplate.value" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

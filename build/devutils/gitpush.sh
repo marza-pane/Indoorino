@@ -1,6 +1,6 @@
 #!/bin/bash
 
-clean.sh
+./clean.sh
 
 currentpath=$PWD
 cd ../..

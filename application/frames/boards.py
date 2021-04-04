@@ -4,7 +4,8 @@ from common.templates import *
 import tkinter.messagebox
 
 from indoorino.packet import IndoorinoPacket
-from frames.devices import TopDeviceEditor
+from frames.devices import TopBoardEditor, TopDeviceEditor
+
 """ Resources/Boards on GUI treeview"""
 
 class _LocalStatus:
@@ -403,15 +404,15 @@ class UiBoards(PanedTemplate):
                 self.on_update()
 
             def on_update(self, *args, **kwargs):
-                if not self.exist():
-                    return
-                board = self.get_board()
+
                 flag=False
-                for device in board.device.values():
-                    if not device.name in [widget.device for widget in self.widgetlist]:
-                        flag=True
-                        if device.devtype == 'RELAY':
-                            self.add(UiBoards.Devices.Header.Relay, board.name, device.name)
+                if self.exist():
+                    board = self.get_board()
+                    for device in board.device.values():
+                        if not device.name in [widget.device for widget in self.widgetlist]:
+                            flag=True
+                            if device.devtype == 'RELAY':
+                                self.add(UiBoards.Devices.Header.Relay, board.name, device.name)
 
                 super(UiBoards.Devices.DeviceList, self).on_update()
                 if flag:
@@ -1117,7 +1118,10 @@ class UiBoards(PanedTemplate):
                             System.io.send_server_request("UPDATE:{}".format(self.board))
                             System.io.send_server_request("SYNC:{}".format(self.board))
                         if command == 'configure':
-                            pass
+                            p=TopBoardEditor(self, self.board)
+                            p.show()
+                            self.master.master.master.on_update()
+
                     self.on_update()
 
                 def on_update(self, *args, **kwargs):

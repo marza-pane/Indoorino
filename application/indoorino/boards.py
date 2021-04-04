@@ -337,6 +337,6 @@ class IndoorinoBoard (BoardParameters):
         if not name in self._devs.keys():
             warning_boards('{}:remove-dev:could not find device {}'.format(self.name, name))
 
-        alert_boards('{}:Removed device {}'.format(self.name, self._devs.pop(name)))
+        alert_boards('{}:Removed device {}'.format(self.name, self._devs.pop(name).name))
 
 print('Loaded indoorino.boards')

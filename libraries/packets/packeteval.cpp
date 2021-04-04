@@ -322,12 +322,13 @@ namespace packet
                     if (conf.indexFromName(this->p_devname()) >= 0)
                     {
                         devices.setName(this->p_devname(), this->p_newname());
+                        devices[this->p_newname()]->send_dev_conf();
                     }
                     else
                     {
                         warning_os("parse: no device with name <%s>", this->p_devname());
+                        devices[this->p_devname()]->send_dev_conf();
                     }
-                    devices[this->p_devname()]->send_dev_conf();
 
                 #endif
             #else

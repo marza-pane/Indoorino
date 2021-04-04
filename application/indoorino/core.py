@@ -158,6 +158,12 @@ class IndoorinoCore:
         def clear(self):
             self._boards.clear()
 
+        def remove(self, name):
+            if name in self._boards.keys():
+                self._boards.pop(name)
+                return
+            warning_boards('remove board: {} is not in list'.format(name))
+
         def set_offline(self):
             for board in self._boards.values():
                 board.set_offline()

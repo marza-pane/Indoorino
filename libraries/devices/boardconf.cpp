@@ -495,6 +495,8 @@ bool        Conf_AVR::devSetName            (const char * name, const char *new_
         /* sendReport(2, _id, F("%sdevice %s"), F2C(constring), name); */
         return false;
     }
+    
+    info_dev("Changing <%s> name [%u] ==> [%u]", name, name, new_name);
     iSize_t ndx=_dpos[i] + sizeof(iCom_t) + LEN_NAME;
     for (iSize_t j=0; j<LEN_DEVNAME; j++)
     {

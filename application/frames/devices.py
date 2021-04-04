@@ -26,7 +26,7 @@ class DeviceTypeList(PanedTemplate):
 
     def clear(self):
         self._type=''
-        self._listbox.selection_clear(tk.FIRST, tk.END)
+        self._listbox.selection_clear(0, tk.END)
 
     def build(self):
         super(DeviceTypeList, self).build()
@@ -71,7 +71,7 @@ class TopAddDevice(TopLevelTemplate):
         self._buttons=dict()
         self._entries=dict()
         self._values=dict()
-        self_labels=dict
+        self._labels=dict()
 
     def build(self):
         super(TopAddDevice, self).build()
@@ -109,7 +109,7 @@ class TopAddDevice(TopLevelTemplate):
                     )
                 }
             )
-            self._last_child_ids.update(
+            self._labels.update(
                 {
                     key:LabelTemplate(
                         self,
@@ -134,26 +134,43 @@ class TopAddDevice(TopLevelTemplate):
     def on_resize(self):
         w,h=super(TopAddDevice, self).on_resize()
 
-        h_butt=30
-
+        h_butt=25
+        h_entry=25
+        h_list=h - (h_butt + 2 * h_entry + 40)
+        w_entry=0.6 * w
         self._frame.place(
             x=0,
             y=0,
-            heigh=h - (h_butt + 10),
-            width=w
+            width=w,
+            heigh=h_list,
         )
 
         self._frame.on_resize()
 
+        for count, key in enumerate(self._labels.keys()):
+            self._labels[key].place(
+                x=0,
+                y=h_list + count * h_entry,
+                width=w - w_entry,
+                heigh=h_entry,
+            )
+            self._entries[key].place(
+                x=w - w_entry,
+                y=h_list + count * h_entry,
+                width=w_entry,
+                heigh=h_entry,
+            )
+
+
         self._buttons['cancel'].place(
             x=5,
-            y=h - (h_butt + 5),
+            y=h_list + 2 * h_entry,
             heigh=h_butt,
             width= 0.5 * w - 8
         )
         self._buttons['apply'].place(
             x=0.5 * w + 3,
-            y=h - (h_butt + 5),
+            y=h_list + 2 * h_entry,
             heigh=h_butt,
             width= 0.5 * w - 8
         )

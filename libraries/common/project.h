@@ -16,7 +16,7 @@
 //      |___________________________________________________________________|
 //
 
-/*
+/*/
  * Following macros defines hardware target and specifications:
  * 
  * ARDUINO              : defined when compiling with Arduino IDE (ESP included)
@@ -37,10 +37,7 @@
  * 
  * Note: compile scripts are usually in build/setup.py
  * 
- * 
- * 
- * 
- */
+/*/
 
 /*-----------------------------------------*
  * Put custom build flags here:            *

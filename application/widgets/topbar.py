@@ -45,7 +45,7 @@ class TopDashboardBar(PanedTemplate):
                 tooltip=item[0].capitalize()
             )
 
-            self.buttons[item[0]].bind_default('motion')
+            self.buttons[item[0]].bind_mouse_motion()
 
     def on_resize(self, *args, **kwargs):
         w,h=super(TopDashboardBar, self).on_resize(*args, **kwargs)

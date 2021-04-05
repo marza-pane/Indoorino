@@ -18,7 +18,8 @@ class AnalogController(CanvasTemplate):
 
     def build(self, *args, **kwargs):
         super(AnalogController, self).build(*args)
-        self.bind_default('all')
+        self.bind_mouse_motion()
+        self.bind_mouse_buttons()
         labels = (
             ('max', self.clb_max),
             ('min', self.clb_min),

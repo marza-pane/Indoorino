@@ -55,7 +55,7 @@ class UiIOverview(PanedTemplate):
             self.build_dev()
             self.on_update()
 
-            self.bind_default('selection')
+            self.bind_mouse_buttons()
             for widget in self.labels.values():
                 widget.bind("<ButtonPress-1>", self.on_press)
                 widget.bind("<ButtonRelease-1>", self.on_release)
@@ -519,7 +519,7 @@ class UiIOverview(PanedTemplate):
             # self.current_board = ''
 
         def build(self, *args, **kwargs):
-            self.bind_default('motion')
+            self.bind_mouse_motion()
             self.configure(bg=Palette.generic.BLACK)
 
             for key in ('name', 'board', 'configuration', 'status'):

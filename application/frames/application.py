@@ -6,7 +6,8 @@ from indoorino.core import System
 
 from frames.ioverview import UiIOverview
 from frames.boards import UiBoards
-
+from frames.homemap import UiHomeMap
+from frames.homelights import UiHomeLights
 import tkinter.messagebox
 
 class ApplicationWindow(ApplicationWindowTemplate):
@@ -54,9 +55,12 @@ class ApplicationMainFrame(PanedTemplate):
     def __init__(self, parent, **kwargs):
         PanedTemplate.__init__(self, parent, **kwargs)
         self.frames = {
-            'overview'  : UiIOverview(self),
-            'boards'    : UiBoards(self)
+            'overview'          : UiIOverview(self),
+            'boards'            : UiBoards(self),
+            'map'               : UiHomeMap(self),
+            'resources:lights'  : UiHomeLights(self)
         }
+
         self.status_bar = StatusBar(self)
         self.tree_view = ResourceTreeView(self)
         self.top_bar = TopDashboardBar(self)
@@ -97,6 +101,9 @@ class ApplicationMainFrame(PanedTemplate):
                 self.tree_view.state(('disabled',))
                 self.top_bar.buttons['treeview'].replace_image(Icons.system.TREEVIEW_OFF())
                 self.on_resize()
+
+            return
+
         elif name in self.frames.keys():
             if self.current == name:
                 self.frames[self.current].on_update()
@@ -186,7 +193,7 @@ class ApplicationMainFrame(PanedTemplate):
 
 
 
-from frames.res_lights import CanvasBeamFrame
+from frames.homelights import CanvasBeamFrame
 
 
 class BackgroundFrame(CanvasTemplate):

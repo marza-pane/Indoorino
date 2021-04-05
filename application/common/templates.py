@@ -56,6 +56,10 @@ class   AppClassTemplate:
         debug_ui('RELEASE {}'.format(event))
         pass
 
+    def on_scroll(self, *event):
+        debug_ui('SCROLL {}'.format(event))
+        pass
+
     def on_closing(self):
         pass
 
@@ -77,29 +81,48 @@ class   GenericUiTemplate(AppClassTemplate):
         super(GenericUiTemplate, self).build(*args, **kwargs)
 
     def bind_keys(self):
+        if not isinstance(self, tk.BaseWidget):
+            error_os('Can not initialize <{}> as widget'.format(format_type(self)))
+            return
         self.bind("<Return>", lambda evt, key='ENTER': self.catch_keystroke(key))
         self.bind("<Delete>", lambda evt, key='DEL': self.catch_keystroke(key))
         self.bind("<Escape>", lambda evt, key='ESC': self.catch_keystroke(key))
         self.bind("<Cancel>", lambda evt, key='CANC': self.catch_keystroke(key))
         self.bind("<Key>",    lambda event: self.catch_keystroke(str(event.char).upper()))
 
-    def bind_default(self, context):
+    def bind_mouse_motion(self):
         if not isinstance(self, tk.BaseWidget):
             error_os('Can not initialize <{}> as widget'.format(format_type(self)))
             return
+        self.bind("<Enter>", self.on_enter)
+        self.bind("<Leave>", self.on_leave)
+        self.bind("<Motion>", self.on_motion)
 
-        if context == 'all':
-            self.bind_default('motion')
-            self.bind_default('selection')
-        elif context == 'motion':
-            self.bind("<Enter>", self.on_enter)
-            self.bind("<Leave>", self.on_leave)
-            self.bind('<Motion>', self.on_motion)
-        elif context == 'selection':
-            self.bind("<ButtonPress-1>", self.on_press)
-            self.bind("<ButtonRelease-1>", self.on_release)
-        else:
-            error_os('invalid bind {}: context can be motion, selection, all'.format(context))
+    def bind_mouse_buttons(self):
+        if not isinstance(self, tk.BaseWidget):
+            error_os('Can not initialize <{}> as widget'.format(format_type(self)))
+            return
+        self.bind("<ButtonPress-1>", self.on_press)
+        self.bind("<ButtonRelease-1>", self.on_release)
+        self.bind("<MouseWheel>", self.on_scroll)
+
+    # def bind_default(self, context):
+    #     if not isinstance(self, tk.BaseWidget):
+    #         error_os('Can not initialize <{}> as widget'.format(format_type(self)))
+    #         return
+    #
+    #     if context == 'all':
+    #         self.bind_default('motion')
+    #         self.bind_default('selection')
+    #     elif context == 'motion':
+    #         self.bind("<Enter>", self.on_enter)
+    #         self.bind("<Leave>", self.on_leave)
+    #         self.bind('<Motion>', self.on_motion)
+    #     elif context == 'selection':
+    #         self.bind("<ButtonPress-1>", self.on_press)
+    #         self.bind("<ButtonRelease-1>", self.on_release)
+    #     else:
+    #         error_os('invalid bind {}: context can be motion, selection, all'.format(context))
 
     def on_resize(self, *args, **kwargs):
         super(GenericUiTemplate, self).on_resize(*args, **kwargs)
@@ -136,6 +159,10 @@ class   GenericUiTemplate(AppClassTemplate):
 
     def on_release(self, *event):
         super(GenericUiTemplate, self).on_release(*event)
+        pass
+
+    def on_scroll(self, *event):
+        super(GenericUiTemplate, self).on_scroll(*event)
         pass
 
     def catch_keystroke(self, char):
@@ -187,7 +214,6 @@ class   DeviceLinkTemplate(BoardLinkTemplate):
         if self.exist():
             return System.boards()[self.board].device[self.device]
         return None
-
 
 
 """ Base Widget Templates """
@@ -742,8 +768,6 @@ class   ScrollableFrameTemplate(GenericUiTemplate, tk.PanedWindow):
             item.on_resize()
 
         return w,h
-
-
 
 
 class TransparentFrameTemplate(AppClassTemplate):

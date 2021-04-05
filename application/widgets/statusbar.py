@@ -248,7 +248,9 @@ class StatusBar(PanedTemplate):
                                         )
 
         self.message = self.MessageList()
-        self.lbl_status.bind_default('all')
+        self.lbl_status.bind_mouse_motion()
+        self.lbl_status.bind_mouse_buttons()
+
         if System.io.is_online():
             self.after(500, lambda: self.message.push('Connected to local network', Palette.generic.ONLINE))
 

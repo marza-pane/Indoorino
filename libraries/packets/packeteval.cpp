@@ -321,8 +321,8 @@ namespace packet
                 #if defined (INDOORINO_DEVS)
                     if (conf.indexFromName(this->p_devname()) >= 0)
                     {
-                        devices.setName(this->p_devname(), this->p_newname());
-                        devices[this->p_newname()]->send_dev_conf();
+                        if (devices.setName(this->p_devname(), this->p_newname()))
+                            devices[this->p_newname()]->send_dev_conf();
                     }
                     else
                     {

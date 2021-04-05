@@ -63,7 +63,7 @@ class UiHomeLights(CanvasTemplate):
         CanvasTemplate.__init__(self, parent, **kwargs)
         self.frame=self.Device(self, 'BOARD', 'DEVICE', 'LIGHT:BEAMS',)
         self.scheme=dict()
-        
+
     def build(self, *args, **kwargs):
         super(UiHomeLights, self).build()
         self.frame.build()

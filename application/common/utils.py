@@ -247,27 +247,82 @@ class AppConfig:
 
     """ This class is stuffed at start up and holds C some macros defined in Indoorino C part"""
 
-    class ConfMacros:
+    class Macros:
         def __init__(self, conf):
-            self.SERIAL_DEFAULT_BAUDRATE = conf['macros']['SERIAL_DEFAULT_BAUDRATE']
-            self.DEFAULT_SERVER_IP = conf['macros']['DEFAULT_SERVER_IP']
-            self.DEFAULT_SHELL_PORT = conf['macros']['DEFAULT_SHELL_PORT']
-            self.DEFAULT_BOARD_PORT = conf['macros']['DEFAULT_BOARD_PORT']
-            self.SHA_DIGEST_LENGTH = conf['macros']['SHA_DIGEST_LENGTH']
-            self.SIZEOF_PACKET_HEADER = conf['macros']['SIZEOF_PACKET_HEADER']
-            self.SIZEOF_NET_HEADER = conf['macros']['SIZEOF_NET_HEADER']
-            self.LEN_AES_MASTERKEY = conf['macros']['LEN_AES_MASTERKEY']
-            self.INET_ADDRSTRLEN = conf['macros']['INET_ADDRSTRLEN']
-            self.TIMEOUT_BOARD = int( 1e-3 * conf['macros']['TIMEOUT_BOARD'])
-            self.TIMEOUT_CLIENT = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT'])
-            self.TIMEOUT_CLIENT_SHELL = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT_SHELL'])
-            self.TIMEOUT_CLIENT_BOARD = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT_BOARD'])
+            self.SERIAL_DEFAULT_BAUDRATE    = conf['macros']['SERIAL_DEFAULT_BAUDRATE']
+            self.DEFAULT_SERVER_IP          = conf['macros']['DEFAULT_SERVER_IP']
+            self.DEFAULT_SHELL_PORT         = conf['macros']['DEFAULT_SHELL_PORT']
+            self.DEFAULT_BOARD_PORT         = conf['macros']['DEFAULT_BOARD_PORT']
+            self.SHA_DIGEST_LENGTH          = conf['macros']['SHA_DIGEST_LENGTH']
+            self.SIZEOF_PACKET_HEADER       = conf['macros']['SIZEOF_PACKET_HEADER']
+            self.SIZEOF_NET_HEADER          = conf['macros']['SIZEOF_NET_HEADER']
+            self.LEN_AES_MASTERKEY          = conf['macros']['LEN_AES_MASTERKEY']
+            self.INET_ADDRSTRLEN            = conf['macros']['INET_ADDRSTRLEN']
+            self.TIMEOUT_BOARD              = int( 1e-3 * conf['macros']['TIMEOUT_BOARD'])
+            self.TIMEOUT_CLIENT             = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT'])
+            self.TIMEOUT_CLIENT_SHELL       = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT_SHELL'])
+            self.TIMEOUT_CLIENT_BOARD       = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT_BOARD'])
             self.PREAMBLE = conf['macros']['PREAMBLE']
 
     class Options:
         def __init__(self):
             self.SAVE_ON_EXIT=False
             self.LOAD_ON_START=True
+
+    class Layout:
+
+        class Lights(dict):
+            """
+             [group-name]   [board-name1]    [device1] [ 'icon_type'
+            """
+            def __init__(self):
+                dict.__init__(self, {})
+                self.update(
+                    {
+                        'outer perimeter': {
+                            # """ Outer perimeter boards """
+                            'OUTER.BEAMS': {
+                                'BEAM1': ['beam-spot',],
+                                'BEAM2': ['beam-spot',],
+                                'BEAM3': ['beam-spot',],
+                                'BEAM4': ['beam-spot',],
+                            }
+                        },
+                        'inner perimeter': {
+                            # """ Inner perimeter boards """
+                            'HOUSE.BEAMS' : {
+                                'BEAM1': ['beam-spot',],
+                                'BEAM2': ['beam-spot',],
+                                'BEAM3': ['beam-spot',],
+                                'BEAM4': ['beam-spot',],
+                                'BEAM5': ['beam-spot',],
+                                'BEAM6': ['beam-spot',],
+                                'BEAM7': ['beam-spot',],
+                                'BEAM8': ['beam-spot',],
+                            },
+                            'HOME.LIGHTS': {
+                                'BULB1': ['lightbulb', ],
+                                'BULB2': ['lightbulb', ],
+                                'BULB3': ['lightbulb', ],
+                                'BULB4': ['lightbulb', ],
+                            }
+                        },
+                        'garden': {
+                            # """ Garden boards """
+                            'GARDEN.LIGHTS': {
+                                'LAMP1': ['fluorescent'],
+                                'LAMP2': ['fluorescent'],
+                                'LAMP3': ['fluorescent'],
+                                'LAMP4': ['fluorescent'],
+                            }
+                        },
+
+                    }
+                )
+
+        def __init__(self):
+            self.lights=self.Lights()
+
 
     class Flags:
 
@@ -341,9 +396,10 @@ class AppConfig:
 
         ### If you want to load some option/conf do it here
 
-        self.macros=self.ConfMacros(appconf)
+        self.macros=self.Macros(appconf)
         self.options=self.Options()
-        self.flags = self.Flags()
+        self.flags=self.Flags()
+        self.layout=self.Layout()
 
         self.username='ANNSATSU'
         self.password='ONAKAGASUITA'

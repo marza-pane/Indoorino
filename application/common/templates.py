@@ -577,7 +577,8 @@ class   PictureTemplate(CanvasTemplate):
 
     def build(self, *args, **kwargs):
         super(PictureTemplate, self).build(*args, **kwargs)
-        self.source = ImagePil.open(self.path)
+        if self.source is None:
+            self.source = ImagePil.open(self.path)
 
     def resize_image(self, off=2):
         w = self.winfo_width()
@@ -606,6 +607,8 @@ class   PictureTemplate(CanvasTemplate):
         w, h = super(PictureTemplate, self).on_resize()
         off=kwargs.pop('offset', 2)
         size = [max(1, w - 2 * off), max(1, h - 2 * off)]
+        if self.source is None:
+            self.build()
         if not size == self.current_size:
             self.current_size = size
             self.buffer = self.source.resize(tuple(self.current_size), ImagePil.ANTIALIAS)

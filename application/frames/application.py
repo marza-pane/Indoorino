@@ -66,6 +66,7 @@ class ApplicationMainFrame(PanedTemplate):
         self.top_bar = TopDashboardBar(self)
         self.current='overview'
         self.current='boards'
+        self.current='resources:lights'
 
     def build(self, *args, **kwargs):
         super(ApplicationMainFrame, self).build(*args)
@@ -85,7 +86,7 @@ class ApplicationMainFrame(PanedTemplate):
 
     def on_update(self, *args, **kwargs):
         if self.current in self.frames.keys():
-            self.frames[self.current].update()
+            self.frames[self.current].on_update()
         self.status_bar.on_update()
         self.tree_view.on_update()
 

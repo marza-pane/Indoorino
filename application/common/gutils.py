@@ -216,6 +216,34 @@ class IconPaths:
             else:
                 return self.default
 
+    class _Lights:
+
+        class _BeamSpot:
+
+            @staticmethod
+            def OFF():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/beam-spot-FF.png'))
+
+            @staticmethod
+            def ON_SENSOR():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/beam-spot-NF.png'))
+
+            @staticmethod
+            def ON():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/beam-spot-NN.png'))
+
+            @staticmethod
+            def ERROR():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/beam-spot-error.png'))
+
+            @staticmethod
+            def OFFLINE():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/beam-spot-offline.png'))
+
+        def __init__(self):
+            self.beamspot = self._BeamSpot()
+
+
     @staticmethod
     def BOARD_GREEN():
         return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/board-green.png'))
@@ -228,7 +256,7 @@ class IconPaths:
 
         self.system = self._System()
         self.devices = self._Devices()
-
+        self.lights = self._Lights()
     # class _IconHelper:
     #
     #     class Icon:

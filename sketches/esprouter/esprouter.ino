@@ -12,7 +12,7 @@ void setup()
     
     rtc.begin();
     conf.begin();
-    conf.factory();
+//     conf.factory();
     network.begin();
     
     /* client.begin() is run in loop */

@@ -59,8 +59,10 @@ namespace indoorino
 
         const packet::ipacket * config()  { return _config; }
         const packet::ipacket * status()  { return _status; }
-        DeviceList&             devices() { return _devices;}
         
+        DeviceList&             devices() { return _devices;}
+
+        std::deque<packet::netpacket>& rxpackets() { return _rxqueue; } 
         std::chrono::system_clock::time_point& boardtime (void);
         
         friend class BoardList;
@@ -97,7 +99,7 @@ namespace indoorino
         bool                save        (void);
         bool                load        (void);
     };
-
+    
 } /* namespace:indoorino */
 
 #endif /* INDOORINO_SERVER */

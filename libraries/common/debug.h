@@ -31,6 +31,12 @@
 
 #include "definitions.h"
 
+#if defined(DEBUG_PACKETDUMP)
+    #ifndef DEBUG_PACKET
+        #define DEBUG_PACKET
+    #endif
+#endif
+
 namespace debug
 {
     const char ERROR    [] PROGMEM = { "ERROR:"   };

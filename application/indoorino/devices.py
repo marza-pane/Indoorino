@@ -59,6 +59,16 @@ class DeviceParameters:
                 ),
             }
         )
+        # self.status.dev.update(
+        #     {
+        #         'status': ParameterInt(
+        #             name='status',
+        #             label='device status',
+        #             desc='device connection status',
+        #             value=0
+        #         ),
+        #     }
+        # )
 
     def update(self):
 
@@ -77,6 +87,7 @@ class DeviceParameters:
             try:
                 item.set(self.status.dev.packet.payload[item.name])
             except KeyError:
+                print(KeyError)
                 continue
 
 
@@ -87,6 +98,7 @@ class IndoorinoDevice(DeviceParameters):
     # 1 = invalid pin
     # 2 = offline
     # 3 = io error
+    # 4 = type error
 
     def __init__(self, boardname, name, pin):
         DeviceParameters.__init__(self, boardname, name, pin)
@@ -147,6 +159,46 @@ class IndoorinoDevice(DeviceParameters):
 
         elif packet.command == IBACOM_CONF_DHT22:
             self.config.std['devtype'].set('DHT22')
+            self.config.std.update(
+                {
+                    'coeffAT': ParameterInt(
+                        name='param1',
+                        label='alpha temp.',
+                        desc='temperature linear correction',
+                    ),
+                    'coeffAH': ParameterInt(
+                        name='param3',
+                        label='alpha humi.',
+                        desc='humidity linear correction',
+                    ),
+                    'coeffBT': ParameterInt(
+                        name='param2',
+                        label='beta temp.',
+                        desc='temperature correction',
+                    ),
+                    'coeffBH': ParameterInt(
+                        name='param2',
+                        label='beta humi.',
+                        desc='humidity correction',
+                    ),
+                }
+            )
+            self.status.dev.update(
+
+                {
+                    'temperature': ParameterTemperature(
+                        name='value1',
+                        label='temperature',
+                        desc='air temperature',
+                    ),
+                    'humidity': ParameterRHumidity(
+                        name='value2',
+                        label='humidity',
+                        desc='air humidity',
+                    ),
+                }
+            )
+
 
         elif packet.command == IBACOM_CONF_RELAY:
             self.config.std['devtype'].set('RELAY')
@@ -215,9 +267,12 @@ class IndoorinoDevice(DeviceParameters):
                             self.status.std['status'].set('ONLINE')
                         elif s == 1:
                             self.status.std['status'].set('INVALID PIN')
-                        # elif s == 2: is missing on purpose
-                        elif s == 3:
+                        elif s == 2:
                             self.status.std['status'].set('IO ERROR')
+                        elif s == 3:
+                            self.status.std['status'].set('CORRUPTED DATA')
+                        elif s == 4:
+                            self.status.std['status'].set('TYPE ERROR')
                         else:
                             self.status.std['status'].set('UNDEFINED')
                 return True

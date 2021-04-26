@@ -12,7 +12,11 @@ namespace indoorino
 
     void    system::begin           (void)
     {
+        layout.reset();
+        layout.check();
+        layout.show();
         
+        alarms.begin();
     }
        
     void    system::parse           (packet::netpacket * p)

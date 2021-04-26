@@ -327,6 +327,7 @@ class StatusBar(PanedTemplate):
 
     def clb_refresh(self, *evt):
         self.master.on_update()
+        self.master.on_resize()
 
     def clb_on_exit(self, *args):
         self.on_closing()

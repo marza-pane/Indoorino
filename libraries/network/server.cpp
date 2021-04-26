@@ -145,6 +145,7 @@ void        IndoorinoServer::on_packet              (packet::netpacket * incomin
             System.boards(incoming->source).parse(incoming);
         }
         
+//         if (incoming->command() != IBACOM_CONF_DHT22)
         shell.broadcast(incoming);        
     }
 
@@ -187,7 +188,11 @@ void        IndoorinoServer::on_packet              (packet::netpacket * incomin
         
     }
     
-    delete incoming;
+//     boost::asio::post(_asio_context,
+//         [incoming]()
+//         {
+//             delete incoming;
+//         });
     
 }
 

@@ -36,6 +36,13 @@
  * INDOORINO_NETWORK    : defined when compiling for SERVER/CLIENT in their own scripts or for ROUTER
  * 
  * Note: compile scripts are usually in build/setup.py
+ *
+ * How to: Map new sensor into the system
+ 
+    - add public virtualSensor/virtualActuator class into indoorino source (sensor.h and sensor.cpp)
+    - add class init into device list (sensor.h and sensor.cpp)
+    - add sensor status and config packet 
+    - 
  * 
 /*/
 
@@ -103,7 +110,7 @@
 //     #define DEBUG_CLIENT
 //     #define DEBUG_MODULE
 //     #define DEBUG_PACKET
-//     #define DEBUG_PACKETDUMP // TODO
+//     #define DEBUG_PACKETDUMP
 //     #define DEBUG_CHKSUM // TODO
     
     

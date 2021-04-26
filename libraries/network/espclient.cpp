@@ -109,6 +109,8 @@ IndoorinoEspClient::~IndoorinoEspClient()
                 /*      B E G I N      */
 bool            IndoorinoEspClient::begin           (void)
 {
+//     static bool=true;
+    
     if (network.status())
     {
         stop();
@@ -146,8 +148,14 @@ bool            IndoorinoEspClient::begin           (void)
             {
                 warning_client("Could not send new key!");
             }
-            utils::wait(500);
+            utils::wait(200);
+            
             utils::board::send_config();
+//             if (bootflag)
+//             {                utils::board::send_boot_signal();
+// 
+//                 bootflag=false
+//             }
 
             // Ask update to child board via serial 
             packet::netpacket p(IBACOM_REQUEST_CONFIG);
@@ -456,8 +464,16 @@ bool            IndoorinoEspClient::write_packet    (void)
                 /*       L O O P       */
 void            IndoorinoEspClient::loop            (void)
 {
-//     static ibasize_t failcount=0;
-//     static ibaepoch_t faillast=0;
+    if (utils::board::available_ram() < SRAM_LIMIT)
+    {
+        _unsent=_txqueue.count();
+
+        _rxqueue.clear();
+        _txqueue.clear();
+        
+        warning_mem("LOW SRAM:Freeing serial buffers");
+    }
+
     static iEpoch_t timeout=0;
 
     

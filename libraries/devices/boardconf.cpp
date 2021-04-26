@@ -723,6 +723,7 @@ void            ConfRouter::local_port          (const uint16_t)
     client.stop();
     utils::wait(500);
 }
+
 void            ConfRouter::remote_ip           (const IPAddress&)
 {
     

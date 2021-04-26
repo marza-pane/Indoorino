@@ -11,25 +11,17 @@ void setup()
     
     utils::board::debug_init();
     utils::board::io.begin();
-    
-//     packet::ipacket p(IBACOM_REPORT);
-//     strcpy(p.p_name(), "DOVAKIN");
-//     strcpy(p.p_message(), "ThIs Is A fUkInG tEsT");
-//     *p.p_level()=4;
-//     
-//     utils::board::io.send(&p);
-//     iEpoch_t timeout = millis() + 100;
-//     while (millis() < timeout)
-//         utils::board::io.loop();
-
-    
+        
     blinker.begin();
     
     rtc.begin();
-// // //     conf.factory();
+//     conf.factory();
     conf.begin(); /* must be run only once! */
     
 // // //     sendReport(1, FPSTR(BOARD_NAME), F("Board %s:%s booting"), P2C(BOARD_NAME), P2C(INDOORINO_TYPE));    
+        
+    
+    utils::board::send_boot_signal();
     
     utils::board::send_config();
 
@@ -41,6 +33,7 @@ void setup()
 void loop()
 {
     static iEpoch_t timeout_stat=0;
+    static iEpoch_t timeout_conf=millis() + RATE_BEACON;
 
     blinker.loop();
     rtc.loop();
@@ -64,6 +57,13 @@ void loop()
     {
         utils::board::send_status();
         timeout_stat = millis() + RATE_UPDATE;
+    }
+    
+    /* This send config every RATE_BEACON secs. */
+    if (millis() > timeout_conf)
+    {
+        utils::board::send_config();
+        timeout_conf = millis() + RATE_BEACON;
     }
 
     static iEpoch_t timeout_dot=0;

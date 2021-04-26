@@ -274,7 +274,7 @@ namespace packet
     
     void            ipacket::dump               (void)
     {
-    
+        #if defined(DEBUG_PACKETDUMP)
         debug_pack("%s", description());
 
         iSize_t i=0;
@@ -345,6 +345,8 @@ namespace packet
             }
             i += s.size;
         }
+
+    #endif
     }
 
     
@@ -403,7 +405,15 @@ namespace packet
 //
 
 #if defined(__linux__)
-        
+
+    bufpacket::~bufpacket()
+    { 
+        if (txdata != nullptr)
+        {
+            free(txdata);
+        }
+    }
+    
 #endif /* __linux__ */
 
 } /* namespace packet */

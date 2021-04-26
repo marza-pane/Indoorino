@@ -15,12 +15,14 @@ void setup()
 //     conf.factory();
     network.begin();
     
-    /* client.begin() is run in loop */
+    utils::board::send_boot_signal();
+
+    /* client.begin() and utils::board::send_boot_signal() are called in loop() */
 }
 void loop()
 {
-    static iEpoch_t timeout=0;
-    static iEpoch_t timeout_status=0;
+    static iEpoch_t timeout_stat=0;
+    static iEpoch_t timeout_conf=0;
     
     blinker.loop();
     rtc.loop();
@@ -29,6 +31,7 @@ void loop()
     client.loop();
     utils::board::io.loop();
     
+    static iEpoch_t timeout=0;
     if (millis() > timeout)
     {
         SerialDebug.print(".");
@@ -56,9 +59,17 @@ void loop()
         return;
     }
     
-    if (millis() > timeout_status)
+    /* This send status every RATE_UPDATE secs. */
+    if (millis() > timeout_stat)
     {
         utils::board::send_status();
-        timeout_status = millis() + RATE_UPDATE;
+        timeout_stat = millis() + RATE_UPDATE;
+    }
+    
+    /* This send config every RATE_BEACON secs. */
+    if (millis() > timeout_conf)
+    {
+        utils::board::send_config();
+        timeout_conf = millis() + RATE_BEACON;
     }
 }

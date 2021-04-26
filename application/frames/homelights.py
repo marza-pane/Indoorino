@@ -381,12 +381,14 @@ class UiHomeLights(CanvasTemplate):
         def __init__(self, parent, source, group, **kwargs):
             PanedTemplate.__init__(self, parent, **kwargs)
 
-            self.boards = dict()
+            self._visible=True
 
-            print('Adding {} : {}'.format(format_type(source), format_dict(source)))
+            self.boards = dict()
+            self.label = LabelTemplate(self, text=group.upper())
+            self.compact = PictureTemplate(self, Icons.system.COLLAPSE(), bg=Palette.generic.DISABLED)
 
             for key, item in source.items():
-                print('Adding {}:{}'.format(group, key, item))
+                debug_ui('Adding {}:{}'.format(group, key, item))
                 self.boards.update(
                     {
                         key: UiHomeLights.Board(self, item, key)
@@ -397,10 +399,42 @@ class UiHomeLights(CanvasTemplate):
             super(UiHomeLights.Group, self).build()
             self.configure(
                 relief=tk.RAISED,
-                bg=Palette.generic.BG_DEFAULT
+                bg=Palette.generic.DISABLED
             )
             for item in self.boards.values():
                 item.build()
+
+            self.label.configure(
+                anchor=tk.W,
+                font=Fonts.monobold(12),
+                padx=20,
+                bg=Palette.generic.DISABLED,
+                fg='yellow',
+                # fg=Palette.generic.BLACK,
+            )
+
+            self.compact.build()
+            self.compact.configure(
+                relief=tk.RAISED,
+            )
+            self.compact.bind("<ButtonPress-1>", self.on_press)
+            self.compact.bind("<ButtonRelease-1>", self.on_release)
+
+
+        def on_press(self, *event):
+            super(UiHomeLights.Group, self).on_press()
+            self.compact.configure( relief=tk.SUNKEN)
+
+        def on_release(self, *event):
+            super(UiHomeLights.Group, self).on_release(*event)
+            self.compact.configure( relief=tk.RAISED)
+            if self._visible:
+                self._visible=False
+                self.compact.replace_image(Icons.system.RESTORE())
+            else:
+                self._visible=True
+                self.compact.replace_image(Icons.system.COLLAPSE())
+            self.master.on_resize()
 
         def on_update(self, *args, **kwargs):
             for item in self.boards.values():
@@ -412,6 +446,23 @@ class UiHomeLights(CanvasTemplate):
 
         def on_resize(self, *args, **kwargs):
             w, h = super(UiHomeLights.Group, self).on_resize()
+            h_title = 30
+            w_butt = 30
+            self.label.place(
+                x=0,
+                y=0,
+                width=w,
+                heigh=h_title
+            )
+            self.compact.place(
+                x=w - w_butt,
+                y=0.5 * (h_title - w_butt),
+                width=w_butt,
+                heigh=w_butt
+            )
+            self.compact.on_resize()
+            if not self._visible:
+                return h_title
 
             bnum = len(self.boards)
 
@@ -433,14 +484,14 @@ class UiHomeLights(CanvasTemplate):
             for count, widget in enumerate(self.boards.values()):
                 widget.place(
                     x=offset,
-                    y=0,
+                    y=h_title,
                     width=wtable[count],
                     heigh=h
                 )
                 hboards.append(widget.on_resize())
                 offset += wtable[count]
 
-            return max(hboards)
+            return max(hboards) + h_title
 
         def resize_height(self):
             w, h = super(UiHomeLights.Group, self).on_resize()

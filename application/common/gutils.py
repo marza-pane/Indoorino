@@ -175,6 +175,14 @@ class IconPaths:
         def TREEVIEW_OFF():
             return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/treeview-off.png'))
 
+        @staticmethod
+        def COLLAPSE():
+            return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/collapse-close.png'))
+
+        @staticmethod
+        def RESTORE():
+            return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/collapse-open.png'))
+
     class _Devices:
 
         class _Default:
@@ -206,8 +214,21 @@ class IconPaths:
             def OFFLINE():
                 return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/diod-offline.png'))
 
+        class _Thermometer:
+            @staticmethod
+            def ERROR():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/thermometer-error.png'))
+            @staticmethod
+            def ONLINE():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/thermometer-online.png'))
+            @staticmethod
+            def OFFLINE():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/thermometer-offline.png'))
+
+
         def __init__(self):
             self.diodes = self._Diodes()
+            self.thermometer = self._Thermometer()
             self.default = self._Default()
 
         def __getitem__(self, item):

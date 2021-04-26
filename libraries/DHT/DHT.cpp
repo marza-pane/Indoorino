@@ -32,7 +32,6 @@ void DHT::init(uint8_t pin, uint8_t type, uint8_t count) {
     _port = digitalPinToPort(pin);
   #endif
   _maxcycles = microsecondsToClockCycles(1000);
-  this->begin();
 }
 
 void DHT::begin(void) {

@@ -536,6 +536,7 @@ PyObject    *   pyi_commit          (PyObject *self, PyObject *args)
     PyDict_SetItemString(macros, "TIMEOUT_CLIENT", PyLong_FromUnsignedLong(TIMEOUT_CLIENT));
     PyDict_SetItemString(macros, "TIMEOUT_CLIENT_SHELL", PyLong_FromUnsignedLong(TIMEOUT_CLIENT_SHELL));
     PyDict_SetItemString(macros, "TIMEOUT_CLIENT_BOARD", PyLong_FromUnsignedLong(TIMEOUT_CLIENT_BOARD));
+    PyDict_SetItemString(macros, "FLOAT2INT", PyLong_FromUnsignedLong(FLOAT2UINT_M));
     PyDict_SetItemString(macros, "PREAMBLE", PyBytes_FromStringAndSize((char * )PREAMBLE, SIZEOF_PREAMBLE));
     
     PyObject * constants = PyDict_New();

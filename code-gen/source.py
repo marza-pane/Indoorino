@@ -127,12 +127,13 @@ packet_source_standard = (
     ( 2,        'reset',            'reset command',        ()),
     ( 3,        'request_config',   'config request',       ()),
     ( 4,        'request_status',   'status request',       ()),
-    ( 5,        'command_string',   'command string',       ('command',)),
-    ( 6,        'factory_reset',    'factory reset',        ()),
-    ( 10,       'unix_epoch',       'timestamp',            ('epoch',)),
-    ( 14,       'ping',             'system ping',          ('epoch',)),
-    ( 15,       'report',           'generic report',       ('message','name','epoch','level',)),
-
+    ( 5,        'command_string',   'command string',                       ('command',)),
+    ( 6,        'factory_reset',    'factory reset',                        ()),
+    ( 10,       'unix_epoch',       'timestamp',                            ('epoch',)),
+    ( 14,       'ping',             'system ping',                          ('epoch',)),
+    ( 15,       'report',           'generic report',                       ('message','name','epoch','level',)),
+    ( 18,       'board_version',    'board firmware version',               ('param1','param2','freemem','pin1', 'pin2')),
+                                                                            # VERSION, FIRMWR,  TOT SRAM, TOT PINS, BUILTIN LED
 
     ( 301,      'set_sd',           'sd card setting',      ('command',)),
     ( 302,      'request_sddrop',   'drop request',         ()),
@@ -163,7 +164,7 @@ packet_source_standard = (
     ( 1301,     'conf_asensor',     'analog sensor conf',   ('name', 'devname','pin1','param1','param2',)),
     ( 1302,     'conf_switch',      'switch conf',          ('name', 'devname','pin1')),
     ( 1310,     'conf_ldr',         'ldr sensor conf',      ('name', 'devname','pin1','param1','param2',)),
-    ( 1522,     'conf_DHT22',       'DHT22 sensor conf',    ('name', 'devname','pin1','param1','param2','param3','param4',)),
+    ( 1522,     'conf_DHT22',       'DHT22 sensor conf',    ('name', 'devname','pin1','param1','param2','param3','param4','param5','param6','param7','param8',)),
     ( 1700,     'conf_relay',       'relay conf',           ('name', 'devname','pin1')),
     ( 2000,     'conf_devstd',      'device generic conf',  ('name', 'devname','pin1')),
 
@@ -190,15 +191,15 @@ packet_source_standard = (
 
     #---#    [03001   - 03200]   :   alarms
 
-    ( 3001,     'allarm',           'allarm',               ('message','board','type','epoch','level',)),
+    ( 3001,     'alarm',            'home alarm',           ('message','board','type','epoch','level',)),
     ( 3002,     'warnings',         'home warning',         ('message','board','type','epoch','level',)),
     ( 3003,     'inforep',          'home report',          ('message','board','type','epoch','level',)),
 
     #---#    [03201   - 03500]   :   requests
 
     ( 3205,     'req_probe',        'probe request',        ()),
-    ( 3210,     'req_dev_status',   'dev status request',   ( 'devname' )),
-    ( 3212,     'req_dev_reset',    'dev status reset',     ( 'devname' )),
+    ( 3210,     'req_dev_status',   'dev status request',   ( 'devname', )),
+    ( 3212,     'req_dev_reset',    'dev status reset',     ( 'devname', )),
 
     ( 3205,     'request_probe',    'probe request',        ()),
 

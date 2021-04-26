@@ -46,7 +46,7 @@ namespace utils
     iEpoch_t    epoch_now           (void);
     void        wait                (unsigned long msec);
     char    *   time_string         (const uint32_t epoch);
-    bool        is_devname          (const char * p, uint8_t min_size=1, uint8_t max_size=LEN_NAME);
+    bool        is_devname          (const char * p, uint8_t min_size=4, uint8_t max_size=LEN_NAME);
     bool        is_readable         (const char * p, uint8_t min_size=1, uint8_t max_size=SERIAL_TX_BUFFER_SIZE);
     void        debughelper         (const __FSH *, ...);
     void        dump_hex            (const char * buffer, iSize_t size, int mode=0);
@@ -70,13 +70,13 @@ namespace utils
         void        debug_init          (void);
         bool        can_alloc           (const iSize_t size);
         bool        can_alloc_p         (const iCom_t command);
-        void        on_lowram           (void); // TODO
         bool        is_pin              (const iPin_t pin);       
         
         class       BoardIo;
         extern      BoardIo io;
         void        send_config                 (void);
-        void        send_status                 (void);       
+        void        send_status                 (void);
+        void        send_boot_signal            (void);
         void        send_aes_setup              (const char * key);
 
     } /* namespace : board */
@@ -176,7 +176,27 @@ std::cerr << "Exception caught : " << e.what() << std::endl;
 
  
  
+std::vector<int> vec1;
+vec1.reserve(30);  // Allocate space for 30 items, but vec1 is still empty.
+
+std::vector<int> vec2;
+vec2.resize(30);  // Allocate space for 30 items, and vec2 now contains 30 items.
+
  
  
- 
- */
+#include <iostream>
+#include <chrono>
+
+int main()
+{
+    auto start = std::chrono::steady_clock::now( );
+    
+    for( int i = 0; i < 2000; i++ ){ std::cout << "i: " << i << '\n'; }  // make computer to do something so time would pass.
+    
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::steady_clock::now( ) - start );
+    
+    std::cout << "milliseconds since start: " << elapsed.count( ) << '\n';
+}
+
+
+*/

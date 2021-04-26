@@ -7,7 +7,7 @@
 #    |______________________________________________________________________|
 #
 
-TOTAL_IBACOM = 50
+TOTAL_IBACOM = 60
 
 
 
@@ -20,8 +20,11 @@ IBACOM_REQUEST_CONFIG               = 3
 IBACOM_REQUEST_STATUS               = 4
 IBACOM_COMMAND_STRING               = 5
 IBACOM_FACTORY_RESET                = 6
+IBACOM_BOARD_BOOT                   = 7
 IBACOM_UNIX_EPOCH                   = 10
+IBACOM_PING                         = 14
 IBACOM_REPORT                       = 15
+IBACOM_BOARD_VERSION                = 18
 IBACOM_SET_SD                       = 301
 IBACOM_REQUEST_SDDROP               = 302
 IBACOM_REQUEST_SDCLEAR              = 303
@@ -33,6 +36,8 @@ IBACOM_SET_DEVICE                   = 501
 IBACOM_SET_DEVNAME                  = 502
 IBACOM_SET_DEVPIN                   = 503
 IBACOM_REM_DEVICE                   = 504
+IBACOM_REQ_DEV_STATUS               = 505
+IBACOM_REQ_DEV_RESET                = 506
 
 	# --- # [ 01001 - 01300 ] : board config    # --- #
 
@@ -46,7 +51,7 @@ IBACOM_CONF_CAMERA                  = 1300
 IBACOM_CONF_ASENSOR                 = 1301
 IBACOM_CONF_SWITCH                  = 1302
 IBACOM_CONF_LDR                     = 1310
-IBACOM_CONF_DHT22                   = 1522
+IBACOM_CONF_DHT22                   = 1422
 IBACOM_CONF_RELAY                   = 1700
 IBACOM_CONF_DEVSTD                  = 2000
 
@@ -69,15 +74,20 @@ IBACOM_STATUS_DEVSTD                = 3000
 
 	# --- # [ 03001 - 03200 ] : alarms          # --- #
 
-IBACOM_ALLARM                       = 3001
-IBACOM_WARNINGS                     = 3002
-IBACOM_INFOREP                      = 3003
+IBACOM_HEAT_ALARM                   = 3001
+IBACOM_OVERH_ALARM                  = 3002
+IBACOM_FIRE_ALARM                   = 3003
+IBACOM_FLOOD_ALARM                  = 3004
+IBACOM_MOIST_ALARM                  = 3005
+IBACOM_SMOG_ALARM                   = 3006
+IBACOM_HAZARD_ALARM                 = 3007
+IBACOM_SMOKE_ALARM                  = 3008
+IBACOM_GRID_ALARM                   = 3009
+IBACOM_GENERIC_ALARM                = 3050
 
 	# --- # [ 03201 - 03500 ] : requests        # --- #
 
 IBACOM_REQ_PROBE                    = 3205
-IBACOM_REQ_DEV_STATUS               = 3210
-IBACOM_REQ_DEV_RESET                = 3212
 IBACOM_REQUEST_PROBE                = 3205
 
 	# --- # [ 03501 - 04000 ] : payloads        # --- #
@@ -100,3 +110,10 @@ IBACOM_SRV_REQ                      = 7010
 IBACOM_SRV_CONF                     = 7012
 IBACOM_SRV_BOARD                    = 7021
 IBACOM_SRV_BOARD_CONN               = 7022
+IBACOM_SET_ENV_ALARM                = 7701
+IBACOM_ACK_ENV_ALARM                = 7702
+IBACOM_ENV_ALARM                    = 7703
+IBACOM_LYT_BOARD                    = 8010
+IBACOM_LYT_DEVICE                   = 8012
+IBACOM_LYT_LIGHTS                   = 8020
+IBACOM_LYT_ALARMS                   = 8050

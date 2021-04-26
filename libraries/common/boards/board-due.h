@@ -13,6 +13,7 @@
 
     #define RAMEND 96000
     #define SRAM_LIMIT 4000
+    #define SRAM_FATAL 400
     extern "C" char* sbrk(int incr);
 
 //      ________________________________

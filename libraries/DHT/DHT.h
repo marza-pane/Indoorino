@@ -6,6 +6,8 @@ written by Adafruit Industries
 #ifndef DHT_H
 #define DHT_H
 
+#include "definitions.h"
+
 #if ARDUINO >= 100
  #include "Arduino.h"
 #else
@@ -17,7 +19,7 @@ written by Adafruit Industries
 // #define DHT_DEBUG
 
 // Define where debug output will be printed.
-#define DEBUG_PRINTER Serial
+#define DEBUG_PRINTER SerialDebug
 
 // Setup debug printing macros.
 #ifdef DHT_DEBUG
@@ -49,10 +51,12 @@ class DHT {
    float computeHeatIndex(float temperature, float percentHumidity, bool isFahrenheit=true);
    float readHumidity(bool force=false);
    bool read(bool force=false);
+   uint8_t pin () { return _pin; }
 
  private:
   uint8_t data[5];
-  uint8_t _pin, _type;
+  uint8_t _pin=0;
+  uint8_t _type;
   #ifdef __AVR
     // Use direct GPIO access on an 8-bit AVR so keep track of the port and bitmask
     // for the digital pin connected to the DHT.  Other platforms will use digitalRead.

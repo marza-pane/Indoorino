@@ -104,6 +104,7 @@ class IndoorinoCore:
 
         def send_server_request(self, command):
             Client.serverequest(command)
+            pass
 
         def ready(self):
             return len(self._buffer) > 0
@@ -198,8 +199,8 @@ class IndoorinoCore:
         self.boards = self.Boards()
         self.session = self.Session()
 
-        # if Config.options.LOAD_ON_START:
-        #     self.load_session()
+        if Config.options.LOAD_ON_START:
+            self.load_session()
 
     def begin(self):
 
@@ -239,10 +240,9 @@ class IndoorinoCore:
         if len( self.io.rx_packets() ) > 0:
             alert_os('Saving boards to {}'.format(filepath))
             try:
-                pass
-                # handler = open(filepath, 'wb')
-                # pickle.dump(self.boards, handler, pickle.HIGHEST_PROTOCOL)
-                # handler.close()
+                handler = open(filepath, 'wb')
+                pickle.dump(self.boards, handler, pickle.HIGHEST_PROTOCOL)
+                handler.close()
             except (FileNotFoundError, FileExistsError, IOError) as error:
                 error_os('Can not save! error:{}'.format(error))
 
@@ -265,7 +265,7 @@ class IndoorinoCore:
         # nel repo di github trovi la cartella <saved> con dentro <boards.ndo>
         # che contiene dati-esempio e viene letto qui sotto. Correggi la variabile filepath:
         # filepath = '/home/n00b/Code/boards.ndo'
-        filepath = os.path.join(PATH_WS, 'session/borads.ndo')
+        filepath = os.path.join(PATH_WS, 'session/boards.ndo')
         if os.path.isfile(filepath):
             alert_os('Loading boards')
             try:
@@ -274,10 +274,12 @@ class IndoorinoCore:
                 Config.flags.update.BOARD = True
                 handler.close()
             except ModuleNotFoundError:
-                error_os('Invalid file {}!'.format(filepath))
+                error_os('invalid file: {} could not read!'.format(filepath))
         else:
-            warning_os('No file {} found!'.format(filepath))
+            warning_os('invalid file: {} does not exist!'.format(filepath))
 
 System = IndoorinoCore()
 
 print('Loaded indoorino.core')
+
+# /home/n00b/.indoorino/session/borads.ndo found!

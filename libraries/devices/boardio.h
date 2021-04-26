@@ -46,6 +46,7 @@ namespace utils
             void    loop        (void);
             void    send        (packet::ipacket   * p, bool d=false);
             void    send        (packet::netpacket * p, bool d=false);
+            void    clear       (void);
             
             void    sendSerial  (packet::netpacket * p, bool d=false);
             void    sendTcp     (packet::netpacket * p, bool d=false);

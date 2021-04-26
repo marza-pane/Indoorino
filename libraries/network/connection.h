@@ -57,7 +57,9 @@ namespace net
         boost::asio::ip::tcp::socket    _socket;
 
         utils::ObjectQueue<packet::bufpacket>       _txqueue;
+//         utils::Queue<std::vector<char>>             _txqueue;
         utils::ObjectQueue<packet::netpacket>   &   _rxqueue;
+        
         std::vector<uint8_t>                        _readbuffer;
 
         std::mutex              _io_mutex;
@@ -66,6 +68,7 @@ namespace net
         iSize_t                 _size=0;
         char                    _iv [N_BLOCK] {0};
         Safe                    _aes;
+        std::vector<double>     _ping_time;
         
     public:
 
@@ -77,11 +80,14 @@ namespace net
         virtual ~connection();
         
         void            stop                (void);
-        void            send                (packet::netpacket *p, bool direct=false);
+        bool            send                (packet::netpacket *p, bool direct=false);
         iPid_t          id                  () const { return _pid; }
         bool            is_connected        () const { return _socket.is_open(); }
         void            set_aeskey          (const char * b) { _aes.set_key(b); }
         char    *       ipstring            (void);
+        void            ping                (void);
+        
+        const std::vector<double>& ping_time() { return _ping_time; }
     protected:
         
         void            read_header         (void);
@@ -199,6 +205,8 @@ namespace net
 
     class serverBoards : public serverTemplate
     {
+    private:
+        std::thread _thread_ping;
     public:
          serverBoards(utils::ObjectQueue<packet::netpacket>&, uint16_t);
         ~serverBoards();

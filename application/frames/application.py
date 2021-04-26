@@ -8,6 +8,9 @@ from frames.ioverview import UiIOverview
 from frames.boards import UiBoards
 from frames.homemap import UiHomeMap
 from frames.homelights import UiHomeLights
+from frames.weather import UiWeather
+from frames.alarms import UiAlarms
+
 import tkinter.messagebox
 
 class ApplicationWindow(ApplicationWindowTemplate):
@@ -44,11 +47,16 @@ class ApplicationWindow(ApplicationWindowTemplate):
         self.main_frame.on_resize()
 
     def on_closing(self, *evt):
-        if True: #tkinter.messagebox.askquestion('Exit Application', 'Do you really want to quit?') == 'yes':
-            """Here close connection"""
+        Config.options.SAVE_ON_EXIT = False
+        if len(System.boards()):
+            r = tk.messagebox.askyesnocancel('Exit Application', 'Do you want to save session?')
+            if r is None:
+                return
+            elif r:
+                Config.options.SAVE_ON_EXIT = True
 
-            System.on_exit()
-            super(ApplicationWindow, self).on_closing(*evt)
+        System.on_exit()
+        super(ApplicationWindow, self).on_closing(*evt)
 
 class ApplicationMainFrame(PanedTemplate):
 
@@ -57,16 +65,19 @@ class ApplicationMainFrame(PanedTemplate):
         self.frames = {
             'overview'          : UiIOverview(self),
             'boards'            : UiBoards(self),
+            'alarms'            : UiAlarms(self),
             'map'               : UiHomeMap(self),
-            'resources:lights'  : UiHomeLights(self)
+            'resources:lights'  : UiHomeLights(self),
+            'resources:weather' : UiWeather(self),
         }
 
         self.status_bar = StatusBar(self)
         self.tree_view = ResourceTreeView(self)
         self.top_bar = TopDashboardBar(self)
         self.current='overview'
-        self.current='boards'
         self.current='resources:lights'
+        self.current='boards'
+        self.current='alarms'
 
     def build(self, *args, **kwargs):
         super(ApplicationMainFrame, self).build(*args)

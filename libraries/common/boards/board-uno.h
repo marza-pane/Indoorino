@@ -12,6 +12,7 @@
     #pragma message "Compiling for ARDUINO UNO"
     #define EEPROM_MODULE
     #define SRAM_LIMIT RAMEND - 512
+    #define SRAM_FATAL RAMEND - 128
     extern char * __brkval;
 
 //      ________________________________

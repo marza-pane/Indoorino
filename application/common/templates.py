@@ -666,11 +666,12 @@ class   ScrollableFrameTemplate(GenericUiTemplate, tk.PanedWindow):
         self.widgetlist = list()
 
         self._layer  = tk.Frame(self, bg=bg)
-        self._scroll = tk.Scrollbar(self._layer, orient=tk.VERTICAL)
+        self._scroll = tk.Scrollbar(self._layer)
         self._canvas = tk.Canvas(self._layer, bg=bg)
 
         self.frame   = tk.Frame(self._canvas, bg=bg)
         self._frameid = self._canvas.create_window(0, 0, anchor=tk.NW, window=self.frame)
+        self._scroll_width = 15
 
     @property
     def scroll(self):
@@ -707,7 +708,11 @@ class   ScrollableFrameTemplate(GenericUiTemplate, tk.PanedWindow):
             highlightthickness=0,
             yscrollcommand=self._scroll.set)
 
-        self._scroll.config(command=self._canvas.yview)
+        self._scroll.configure(
+            command=self._canvas.yview,
+            width=self._scroll_width,
+            orient=tk.VERTICAL
+        )
         self._canvas.xview_moveto(0)
         self._canvas.yview_moveto(0)
 
@@ -749,10 +754,15 @@ class   ScrollableFrameTemplate(GenericUiTemplate, tk.PanedWindow):
             try:
                 for count, item in enumerate(self.widgetlist):
                     item.configure(
-                        width=w,
+                        width=w - 1.5 * self._scroll_width,
                         heigh=wigh[count],
                     )
-                    item.grid(row=count, column=0)
+                    item.grid(
+                        row=count,
+                        column=0,
+                        # columnspan=1 - w/self._scroll_width
+                        # ipadx=-self._scroll_width
+                    )
                     count += 1
             except tk.TclError:
                 pass
@@ -766,6 +776,7 @@ class   ScrollableFrameTemplate(GenericUiTemplate, tk.PanedWindow):
         self._layer.pack(fill=tk.BOTH, expand=tk.TRUE)
         self._scroll.pack(fill=tk.Y, side=tk.RIGHT, expand=tk.FALSE)
         self._canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
+
 
         for item in self.widgetlist:
             item.on_resize()

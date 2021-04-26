@@ -68,7 +68,13 @@ namespace net
             warning_net("connection ended with unsent [%u] packet(s)", _txqueue.count());
             while (_txqueue.count())
             {
-                packet::ipacket * p = _txqueue.pop_front();
+//                 std::vector<char> p = _txqueue.pop_front();
+//                 if (p.size() == 0)
+//                     std::cout << "(empty)" << std::endl;
+//                 else
+//                     p.clear();
+                
+                packet::bufpacket * p = _txqueue.pop_front();
                 if (p)
                 {
                     std::cout << p->description() << std::endl;
@@ -199,26 +205,26 @@ namespace net
     }
     
                     /*   S E N D   */
-    void            connection::send                        (packet::netpacket * p, bool direct)
+    bool            connection::send                        (packet::netpacket * p, bool direct)
     {
         if (p==nullptr || p->command() == 0)
         {
             if (p->command() == 0)  error_net("send: empty packet!");
             else                    error_net("send: nullptr!");
-            return;
+            return false;
         }
         debug_tcp("Appending %s to connection send list", p->description());
         
-        packet::bufpacket * q = new packet::bufpacket(p);
+        packet::bufpacket * entry = new packet::bufpacket(p);
         
         boost::asio::post(_asio_context,
-        [this, q, direct]()
+        [this, entry, direct]()
         {
             bool flag = _txqueue.is_empty();
                         
-            if (direct) { _txqueue.push_front(q); }
+            if (direct) { _txqueue.push_front(entry); }
 
-            else        { _txqueue.push_back(q); }
+            else        { _txqueue.push_back(entry); }
 
             if (flag)
             {
@@ -226,6 +232,26 @@ namespace net
                 write_packet();
             }
         });
+        
+/*        
+        
+        boost::asio::post(_asio_context,
+        [this, packetdata, direct]()
+        {
+            bool flag = _txqueue.is_empty();
+                        
+            if (direct) { _txqueue.push_front( std::vector<char>(packetdata) ); }
+
+            else        { _txqueue.push_back(  std::vector<char>(packetdata) ); }
+
+            if (flag)
+            {
+                debug_tcp("Ready to write!");
+                write_packet();
+            }
+        });*/
+        
+        return true;
     }
     
                     /* W R I T E P A C K E T */
@@ -235,112 +261,82 @@ namespace net
         
 //         std::cout << " * 1" << std::flush;
         
-        if (!is_connected())        { error_net("WP:reading offline"); return; }
+        if (!is_connected())        { error_net("write_packet:reading offline"); return; }
         
-        if (_txqueue.is_empty())    { error_net("WP:empty queue"); return; }
+        if (_txqueue.is_empty())    { error_net("write_packet:empty queue"); return; }
         
-
+        
         packet::bufpacket * p = _txqueue.pop_front();
-
-        std::unique_lock<std::mutex> lock (_io_mutex, std::defer_lock);
+                       
+        iSize_t s_full = p->full_size();
+        iSize_t s_pred = _aes.cipherlen(s_full);
         
-//         std::cout << " 2" << std::flush;
-        
-        if ( p==nullptr || p->command()==0)
+        if (s_pred > MAX_SIZE_PACKET)
         {
-            error_net("WP: nullptr packet found!");
-            if (!_txqueue.is_empty())
-            {
-                write_packet();
-            }
-            return;            
-        }
-        
-        debug_io("tcp:write: [%u] writing <%s>",_pid, p->label());
-                
-
-//         std::cout << " 3" << std::flush;
-        
-        char    b_iv[N_BLOCK] {0};
-        iSize_t s_cipher=0;
-        iSize_t size=p->full_size();
-        iSize_t csize=_aes.cipherlen(size);
-        
-        if (csize > MAX_SIZE_PACKET)
-        {
-            warning_net("packet <%s> size [%u] exceed max size [%u]", p->label(), csize, MAX_SIZE_PACKET);
-            delete p;
-            if (!_txqueue.is_empty())
-            {
-                write_packet();
-            }
+            warning_net("packet <%s> size [%u] exceed max size [%u]", p->label(), s_pred, MAX_SIZE_PACKET);
             return;
         }
-        debug_tcp("write: allocating cipher [%u] clear [%u]", csize, size);
-
-        std::vector<uint8_t> cleardata;
-        std::vector<uint8_t> cipher;
         
-//         std::cout << " 4" << std::flush;
+        debug_tcp("write: allocating cipher [%u] clear [%u]", s_pred, s_full);
 
-        cleardata.resize(size);
-        cipher.resize(csize);
-//         std::cout << " 5" << std::flush;
-
-        p->header((char *) cleardata.data());
-        if (p->data_size() > 0)
+        char    iv[N_BLOCK] {0};
+        
+        std::vector<char> cleardata;
+        std::vector<char> cipherdata;
+        std::vector<char> packetdata;
+        
+        cleardata.resize(s_full);
+        cipherdata.resize(s_pred); 
+        
+        /** F O R G E **/
+        p->forge( cleardata.data() );
+        
+        /** E N C R Y P T **/
+        iSize_t s_cipher = _aes.encrypt((char *)cipherdata.data(), iv,(char *) cleardata.data(), s_full);
+        
+        if (s_cipher > s_pred)
         {
-            memcpy(cleardata.data() + SIZEOF_PACKET_HEADER, p->payload(), p->data_size());
+            warning_net("enctryption size function returnd [%u]. Encrypted data size [%u]", s_pred, s_cipher);
+            cipherdata.resize(s_cipher);       
+            s_cipher = _aes.encrypt((char *)cipherdata.data(), iv,(char *) cleardata.data(), s_full);
         }
-
-//         std::cout << " 6" << std::flush;
-
-        s_cipher = _aes.encrypt((char *)cipher.data(), b_iv,(char *) cleardata.data(), size);
-        debug_tcp("writing: cipher SIZE [%u]", s_cipher);
-
-//         std::cout << " 7" << std::flush;
-        
-        p->data.resize(SIZEOF_NET_HEADER + s_cipher);
-//         buffer.clear();
-//         buffer.resize(SIZEOF_NET_HEADER + s_cipher);
-        
-//         std::cout << " 8" << std::flush;
-
-        memcpy(p->data.data(), PREAMBLE, SIZEOF_PREAMBLE);
-        memcpy(p->data.data() + SIZEOF_PREAMBLE, &s_cipher, sizeof(iSize_t));
-        memcpy(p->data.data() + SIZEOF_PREAMBLE + sizeof(iSize_t), b_iv, N_BLOCK);
-        memcpy(p->data.data() + SIZEOF_NET_HEADER, cipher.data(), s_cipher);
-        
-//         std::cout << " 9" << std::flush;
-        #if defined(DEBUG_TCP)
-        debug_tcp("write: dump raw <%s> packet:", p->label());
-        utils::dump_hex((const char *)cleardata.data(), p->full_size());
-        debug_tcp("write: dump encrypted packet:");
-        utils::dump_hex((const char *)p->data.data(), p->data.size());
-        debug_tcp("** CIPHER ENCRYPT KEY **");
-        utils::dump_hex(_aes.masterkey(), LEN_AES_MASTERKEY);
-        #endif
-        
-//         if (p->command() == IBACOM_RESET)
+//         else
 //         {
-//             error_net("PARSING %s", p->description());
-//             delete p;
-//             return;
+//             s_cipher = s_pre;
 //         }
         
+        debug_tcp("writing: cipher SIZE [%u]", s_cipher);
+
+        /** W R I T E **/
+
+        s_full = SIZEOF_NET_HEADER + s_cipher; /* recycle */
+        p->txdata = (char *)calloc(s_full, sizeof(char));
+        
+        memcpy(p->txdata, PREAMBLE, SIZEOF_PREAMBLE);
+        memcpy(p->txdata + SIZEOF_PREAMBLE, &s_cipher, sizeof(iSize_t));
+        memcpy(p->txdata + SIZEOF_PREAMBLE + sizeof(iSize_t), iv, N_BLOCK);
+        memcpy(p->txdata + SIZEOF_NET_HEADER, cipherdata.data(), s_cipher);
+        
+// //         #if defined(DEBUG_TCP)
+// //         debug_tcp("write: dump raw <%s> packet:", p->label());
+// //         utils::dump_hex((const char *)cleardata.data(), p->full_size());
+// //         debug_tcp("write: dump encrypted packet:");
+// //         utils::dump_hex((const char *)packetdata.data(), packetdata.size());
+// //         debug_tcp("** CIPHER ENCRYPT KEY **");
+// //         utils::dump_hex(_aes.masterkey(), LEN_AES_MASTERKEY);
+// //         #endif
         
 
-//         std::cout << " 10" << std::flush;
         
         boost::asio::async_write(_socket,
-            boost::asio::const_buffer(p->data.data(), p->data.size()),
+            boost::asio::const_buffer(p->txdata, s_full),
                 [this, p](std::error_code errorcode, std::size_t length)
         {
+//             std::cout << "Async write executed with legth = " << length << std::endl;
             if (!errorcode)
             {
-//                 std::cout << " 11 * " << std::flush;
-//                 _txqueue.pop_front();
-                delete p;
+                
+//                 std::cout << " Wrote! " << std::flush;
                 if (!_txqueue.is_empty())
                 {
                     write_packet();
@@ -348,11 +344,11 @@ namespace net
             }
             else
             {
-                delete p;
                 error_net("ASIO write error");
                 std::cout << errorcode.message() << std::endl;
                 _socket.close();
             }
+            delete p;
         });
     }
                     
@@ -361,12 +357,26 @@ namespace net
     {
         uint8_t hash[SHA_DIGEST_LENGTH];
         p->checksum(hash);
-
         packet::netpacket ack(IBACOM_ACK);
         memcpy(ack.p_hash1(), hash, SHA_DIGEST_LENGTH);
         strcpy(ack.target, p->source);
         strcpy(ack.source, p->target);
         this->send(&ack, true);
+    }
+    
+                    /*   P I N G   */
+    void            connection::ping                        (void)
+    {
+//         auto now = std::chrono::system_clock::now();
+//         auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+//         auto epoch = now_ms.time_since_epoch();
+//         auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+//         long d = value.count();
+//         long f = d - SECONDS_FROM_1970_TO_2010 *;
+//         uint32_t u = uint32_t(f);
+//         printf("\n ************* milliseconds from 1970 PING is [%ld]", d);
+//         printf("\n ************* milliseconds from 2010 is [%ld]", f);
+//         printf("\n ************* milliseconds for PING is [%d]", u);
     }
 
         
@@ -753,3 +763,154 @@ namespace net
 
 
 #endif /* (__linux__) */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
+//         std::unique_lock<std::mutex> lock (_io_mutex, std::defer_lock);
+        
+//         std::cout << " 2" << std::flush;
+        
+//         if ( p==nullptr || p->command()==0)
+//         {
+//             error_net("write_packet: nullptr packet found!");
+//             if (!_txqueue.is_empty())
+//             {
+//                 write_packet();
+//             }
+//             return;            
+//         }
+        
+//         debug_io("tcp:write: [%u] writing <%s>",_pid, p->label());
+                
+
+//         std::cout << " 3" << std::flush;
+        
+//         char    b_iv[N_BLOCK] {0};
+//         iSize_t s_cipher=0;
+//         iSize_t size=p->full_size();
+//         iSize_t csize=_aes.cipherlen(size);
+//         
+//         if (csize > MAX_SIZE_PACKET)
+//         {
+//             warning_net("packet <%s> size [%u] exceed max size [%u]", p->label(), csize, MAX_SIZE_PACKET);
+//             delete p;
+//             if (!_txqueue.is_empty())
+//             {
+//                 write_packet();
+//             }
+//             return;
+//         }
+//         debug_tcp("write: allocating cipher [%u] clear [%u]", csize, size);
+
+//         std::vector<uint8_t> cleardata;
+//         std::vector<uint8_t> cipher;
+        
+//         std::cout << " 4" << std::flush;
+
+//         cleardata.resize(size);
+//         cipher.resize(csize);
+//         std::cout << " 5" << std::flush;
+
+//         p->header((char *) cleardata.data());
+//         if (p->data_size() > 0)
+//         {
+//             memcpy(cleardata.data() + SIZEOF_PACKET_HEADER, p->payload(), p->data_size());
+//         }
+
+//         std::cout << " 6" << std::flush;
+
+//         s_cipher = _aes.encrypt((char *)cipher.data(), b_iv,(char *) cleardata.data(), size);
+//         debug_tcp("writing: cipher SIZE [%u]", s_cipher);
+
+//         std::cout << " 7" << std::flush;
+        
+//         p->data.resize(SIZEOF_NET_HEADER + s_cipher);
+//         buffer.clear();
+//         buffer.resize(SIZEOF_NET_HEADER + s_cipher);
+        
+//         std::cout << " 8" << std::flush;
+
+//         memcpy(p->data.data(), PREAMBLE, SIZEOF_PREAMBLE);
+//         memcpy(p->data.data() + SIZEOF_PREAMBLE, &s_cipher, sizeof(iSize_t));
+//         memcpy(p->data.data() + SIZEOF_PREAMBLE + sizeof(iSize_t), b_iv, N_BLOCK);
+//         memcpy(p->data.data() + SIZEOF_NET_HEADER, cipher.data(), s_cipher);
+        
+//         std::cout << " 9" << std::flush;
+//         #if defined(DEBUG_TCP)
+//         debug_tcp("write: dump raw <%s> packet:", p->label());
+//         utils::dump_hex((const char *)cleardata.data(), p->full_size());
+//         debug_tcp("write: dump encrypted packet:");
+//         utils::dump_hex((const char *)p->data.data(), p->data.size());
+//         debug_tcp("** CIPHER ENCRYPT KEY **");
+//         utils::dump_hex(_aes.masterkey(), LEN_AES_MASTERKEY);
+//         #endif
+        
+//         if (p->command() == IBACOM_RESET)
+//         {
+//             error_net("PARSING %s", p->description());
+//             delete p;
+//             return;
+//         }
+        
+        
+
+//         std::cout << " 10" << std::flush;
+        
+//         std::vector<char> p = _txqueue.front();

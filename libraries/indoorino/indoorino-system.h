@@ -15,6 +15,8 @@
 #include "../common/utils.h"
 #include "paths.h"
 #include "boards.h"
+#include "layout.h"
+#include "alarms.h"
 
 namespace indoorino 
 {
@@ -23,17 +25,21 @@ namespace indoorino
     {
     public:
         
-         system()   {};
-        ~system()   { boards.clear(); }
+         system()       {};
+        ~system()       { boards.clear(); }
         
-        BoardList   boards;
+        layout::Layout  layout;
         
-        void        begin           (void);
-        void        loop            (void);
-        void        parse           (packet::netpacket *);
+        BoardList       boards;
+        AlarmList       alarms;
         
-        bool        save_state      (void);
-        bool        load_state      (void);
+        
+        void            begin           (void);
+        void            loop            (void);
+        void            parse           (packet::netpacket *);
+        
+        bool            save_state      (void);
+        bool            load_state      (void);
     };
     
 } /* namespace:indoorino */

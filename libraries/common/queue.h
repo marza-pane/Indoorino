@@ -84,7 +84,7 @@ namespace utils
             if (is_empty())
             {
                 throw_queue_error("front");
-                if (!is_pointer<OBJ>::value) return nullptr;
+//                 if (is_pointer<OBJ>::value) return nullptr;
                 return OBJ();
             }
             #if defined(ARDUINO)
@@ -103,6 +103,7 @@ namespace utils
             if (is_empty())
             {
                 throw_queue_error("back");
+//                 if (is_pointer<OBJ>::value) return nullptr;
                 return OBJ();
             }
             #if defined(ARDUINO)

@@ -42,7 +42,7 @@ class ParameterInt(ParameterTemplate):
         self.value = self.__str__()
 
     def __str__(self):
-        return '{0:<8}'.format('%u' % self.data)
+        return '{0:<8}'.format('%u' % self.data )
 
     def set(self, value):
         try:
@@ -192,6 +192,27 @@ class ParameterBytes(ParameterTemplate):
         except Exception as error:
             warning_os('Error setting BYTES value with [{}]:{}'.format(format_type(value), value))
             print(error)
+
+class ParameterTemperature(ParameterFloat):
+
+    def __init__(self, **kwargs):
+        limits=kwargs.pop('limits', (373.15, 273.15))
+        unit=kwargs.pop('unit', '°C')
+        ParameterFloat.__init__(self, limits=limits, unit=unit, **kwargs)
+
+    def __str__(self):
+        return '{0:<8}'.format('%3.3f' % (self.data / Config.macros.FLOAT2INT) )
+
+class ParameterRHumidity(ParameterFloat):
+
+    def __init__(self, **kwargs):
+        limits=kwargs.pop('limits', (100, 0))
+        unit=kwargs.pop('unit', 'RH')
+        ParameterFloat.__init__(self, limits=limits, unit=unit, **kwargs)
+
+    def __str__(self):
+        return '{0:<8}'.format('%3.3f' % (self.data / Config.macros.FLOAT2INT) )
+
 
 
 print('Loaded server.parameters [available keywords are : name, label, desc, unit, value, tags, limits]')

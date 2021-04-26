@@ -26,9 +26,7 @@ namespace packet
 
             case IBACOM_NONE:
             {
-            #if defined (ARDUINO)
-            #else
-            #endif
+                error_pack("evaluating NULL packet!");
                 break;
             }
 
@@ -42,6 +40,7 @@ namespace packet
             case IBACOM_INIT:
             {
             #if defined (ARDUINO)
+                error_pack("evaluating INIT packet!");
             #else
             #endif
                 break;
@@ -139,6 +138,20 @@ namespace packet
                 break;
             }
 
+    //    ________________________________________________________________________
+    //    |                                                                      |
+    //    |    EVAL: 007 - IBACOM_BOARD_BOOT - board boot signal                 |
+    //    |______________________________________________________________________|
+    //
+
+            case IBACOM_BOARD_BOOT:
+            {
+            #if defined (ARDUINO)
+            #else
+            #endif
+                break;
+            }
+
 
     //    ________________________________________________________________________
     //    |                                                                      |
@@ -159,7 +172,23 @@ namespace packet
             #endif
                 break;
             }
+            
+    //    ________________________________________________________________________
+    //    |                                                                      |
+    //    |    EVAL: 014 - IBACOM_PING - system ping                             |
+    //    |______________________________________________________________________|
+    //
 
+            case IBACOM_PING:
+            {
+            #if defined (ARDUINO)
+                #if defined(ESP8266)
+                    utils::board::io.send(this);
+                #endif
+            #else
+            #endif
+                break;
+            }
 
     //    ________________________________________________________________________
     //    |                                                                      |
@@ -195,6 +224,19 @@ namespace packet
                 break;
             }
 
+    //    ________________________________________________________________________
+    //    |                                                                      |
+    //    |    EVAL: 018 - IBACOM_BOARD_VERSION - board firmware version         |
+    //    |______________________________________________________________________|
+    //
+
+            case IBACOM_BOARD_VERSION:
+            {
+            #if defined (ARDUINO)
+            #else
+            #endif
+                break;
+            }
 
     //    ________________________________________________________________________
     //    |                                                                      |
@@ -305,7 +347,7 @@ namespace packet
                 }
                 else
                 {
-                    warning_os("parse: no device with name <%s>", this->p_devname());
+                    goto no_device_found;
                 }
                 #endif
             #else
@@ -331,8 +373,7 @@ namespace packet
                     }
                     else
                     {
-                        warning_os("parse: no device with name <%s>", this->p_devname());
-                        devices[this->p_devname()]->send_dev_conf();
+                        goto no_device_found;
                     }
 
                 #endif
@@ -355,12 +396,12 @@ namespace packet
                     if (conf.indexFromName(this->p_devname()) >= 0)
                     {
                         devices.setPin(this->p_devname(), *this->p_pin1());
+                        devices[this->p_devname()]->send_dev_conf();
                     }
                     else
                     {
-                        warning_os("parse: no device with name <%s>", this->p_devname());
+                        goto no_device_found;
                     }
-                    devices[this->p_devname()]->send_dev_conf();
                 #endif
             #else
             #endif
@@ -386,7 +427,7 @@ namespace packet
                     }
                     else
                     {
-                        warning_os("parse: no device with name <%s>", this->p_devname());
+                        goto no_device_found;
                     }
                 #endif
             #else
@@ -394,6 +435,53 @@ namespace packet
                 break;
             }
 
+    //    ________________________________________________________________________
+    //    |                                                                      |
+    //    |    EVAL: 505 - IBACOM_REQ_DEV_STATUS - dev status request            |
+    //    |______________________________________________________________________|
+    //
+
+            case IBACOM_REQ_DEV_STATUS:
+            {
+            #if defined (ARDUINO)
+                #if defined (INDOORINO_DEVS)
+                    if (conf.indexFromName(this->p_devname()) >= 0)
+                    {
+                        devices[this->p_devname()]->send_dev_stat();
+                    }
+                    else
+                    {
+                        goto no_device_found;
+                    }
+                #endif
+            #else
+            #endif
+                break;
+            }
+            
+    //    ________________________________________________________________________
+    //    |                                                                      |
+    //    |    EVAL: 506 - IBACOM_REQ_DEV_RESET - dev reset                      |
+    //    |______________________________________________________________________|
+    //
+
+            case IBACOM_REQ_DEV_RESET:
+            {
+            #if defined (ARDUINO)
+                #if defined (INDOORINO_DEVS)
+                    if (conf.indexFromName(this->p_devname()) >= 0)
+                    {
+                        devices[this->p_devname()]->reset();
+                    }
+                    else
+                    {
+                        goto no_device_found;
+                    }
+                #endif
+            #else
+            #endif
+                break;
+            }
 
     //    ________________________________________________________________________
     //    |                                                                      |
@@ -423,7 +511,20 @@ namespace packet
             #endif
                 break;
             }
+    
+    //    ________________________________________________________________________
+    //    |                                                                      |
+    //    |    EVAL: 1100 - IBACOM_CONF_ESP - esp conf                           |
+    //    |______________________________________________________________________|
+    //
 
+            case IBACOM_CONF_ESP:
+            {
+            #if defined (ARDUINO)
+            #else
+            #endif
+                break;
+            }
 
     //    ________________________________________________________________________
     //    |                                                                      |
@@ -693,36 +794,6 @@ namespace packet
 
     //    ________________________________________________________________________
     //    |                                                                      |
-    //    |    EVAL: 3001 - IBACOM_ALLARM - allarm                               |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_ALLARM:
-            {
-            #if defined (ARDUINO)
-            #else
-            #endif
-                break;
-            }
-
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 3002 - IBACOM_WARNINGS - general warning                    |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_WARNINGS:
-            {
-            #if defined (ARDUINO)
-            #else
-            #endif
-                break;
-            }
-
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
     //    |    EVAL: 3205 - IBACOM_REQUEST_PROBE - probe request                 |
     //    |______________________________________________________________________|
     //
@@ -751,21 +822,6 @@ namespace packet
             }
 
     #if defined (INDOORINO_NETWORK)
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 5001 - IBACOM_CONF_ESP - esp conf                           |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_CONF_ESP:
-            {
-            #if defined (ARDUINO)
-            #else
-            #endif
-                break;
-            }
-
 
     //    ________________________________________________________________________
     //    |                                                                      |
@@ -843,93 +899,6 @@ namespace packet
 
     #endif /* INDOORINO_NETWORK */
     
-    #if defined (__linux__)
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 7001 - IBACOM_REQ_LOGIN - login request                     |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_REQ_LOGIN:
-            {
-                break;
-            }
-
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 7002 - IBACOM_SESSION_STAT - session status                 |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_SESSION_STAT:
-            {
-                break;
-            }
-
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 7003 - IBACOM_SESSION_END - session end                     |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_SESSION_END:
-            {
-                break;
-            }
-
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 7010 - IBACOM_SRV_REQ - server request                      |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_SRV_REQ:
-            {
-                break;
-            }
-
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 7012 - IBACOM_SRV_CONF - server config                      |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_SRV_CONF:
-            {
-                break;
-            }
-
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 7021 - IBACOM_SRV_BOARD - board data                        |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_SRV_BOARD:
-            {
-                break;
-            }
-
-
-    //    ________________________________________________________________________
-    //    |                                                                      |
-    //    |    EVAL: 7022 - IBACOM_SRV_BOARD_CONN - board connection             |
-    //    |______________________________________________________________________|
-    //
-
-            case IBACOM_SRV_BOARD_CONN:
-            {
-                break;
-            }
-
-    #endif /* __linux__ */
-
     //    ________________________________________________________________________
     //    |                                                                      |
     //    |    EVAL: DEFAULT                                                     |
@@ -938,6 +907,13 @@ namespace packet
 
             default:
             {
+                return;
+            }
+            
+            
+            no_device_found:
+            {
+                warning_pack("eval:%s no device with name <%s>", this->label(), this->p_devname());
                 return;
             }
         }

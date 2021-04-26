@@ -180,6 +180,8 @@ typedef     uint32_t    iPid_t;
 #define     LEN_AES_MASTERKEY       N_BLOCK
 #define     LEN_NETADDRESS          INET_ADDRSTRLEN + 8
 #define     LEN_SERVER_PATH         256
+#define     LEN_BOARDPATH           LEN_NAME + LEN_DEVNAME + 2
+#define     LEN_LOCATIONAME         32
 #define     F2C_BUFFER_SIZE         SERIAL_TX_BUFFER_SIZE
 // #define     CLIENT_BUFFER_SIZE      2048
 #define     FLOAT2UINT_M            100
@@ -214,7 +216,8 @@ typedef     uint32_t    iPid_t;
 #define     MAX_QUEUED_PACKETS      300
 // #define     MAX_ADM_DELAY           10
 
-#define     RATE_UPDATE             15000L
+#define     RATE_UPDATE             32500L
+#define     RATE_BEACON             77200L
 #define     BUSY_SERIAL             100
 #define     BUSY_SYSTEM             50
 #define     BUSY_NETWORK            500
@@ -287,10 +290,11 @@ typedef struct {
         *  Table parameters are: <device name>, <pin>, <device type>
         */
 
-        #define DEFAULT_DEVNUM      8
+        #define DEFAULT_DEVNUM      9
 
         const device_conf_template DEFAULT_DEVCONF[DEFAULT_DEVNUM] PROGMEM = 
         {
+            "HEAT1",  7, IBACOM_CONF_DHT22,
             "BEAM1", 28, IBACOM_CONF_RELAY,
             "BEAM2", 30, IBACOM_CONF_RELAY,
             "BEAM3", 32, IBACOM_CONF_RELAY,

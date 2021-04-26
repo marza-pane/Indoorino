@@ -1329,7 +1329,7 @@ class UiBoards(PanedTemplate):
                 def on_update(self, *args, **kwargs):
                     super(UiBoards.Devices.Header.Relay, self).on_update()
                     if not self.exist():
-                        self.icon.replace_image(Icons.devices.diodes.ERROR())
+                        self.icon.replace_image(Icons.system.NOT_FOUND())
                         return
 
                     device = System.boards()[self.board].device[self.device]
@@ -1342,6 +1342,28 @@ class UiBoards(PanedTemplate):
                         self.icon.replace_image(Icons.devices.diodes.ON())
                     else:
                         self.icon.replace_image(Icons.devices.diodes.OFF())
+
+            class DHT22(Template):
+                def __init__(self, parent, board, sensor, **kwargs):
+                    UiBoards.Devices.Header.Template.__init__(self, parent, board, sensor, **kwargs)
+                    self.icon = PictureTemplate(self, Icons.devices.thermometer.OFFLINE())
+
+                def on_update(self, *args, **kwargs):
+                    super(UiBoards.Devices.Header.DHT22, self).on_update()
+                    if not self.exist():
+                        self.icon.replace_image(Icons.system.NOT_FOUND())
+                        return
+
+                    device = System.boards()[self.board].device[self.device]
+
+                    if not System.io.is_connected() or not device.is_connected():
+                        self.icon.replace_image(Icons.devices.thermometer.OFFLINE())
+                        return
+
+                    if device.status.std['status'].data == 'ONLINE':
+                        self.icon.replace_image(Icons.devices.thermometer.ONLINE())
+                    else:
+                        self.icon.replace_image(Icons.devices.thermometer.ERROR())
 
         class DeviceList(ScrollableFrameTemplate, BoardLinkTemplate):
 
@@ -1363,6 +1385,11 @@ class UiBoards(PanedTemplate):
                             flag=True
                             if device.devtype == 'RELAY':
                                 self.add(UiBoards.Devices.Header.Relay, board.name, device.name)
+                            elif device.devtype == 'DHT22':
+                                self.add(UiBoards.Devices.Header.DHT22, board.name, device.name)
+                            else:
+                                error_ui('No valid class for <{}>'.format(device.devtype))
+                                self.add(UiBoards.Devices.Header.Template, board.name, device.name)
 
                 super(UiBoards.Devices.DeviceList, self).on_update()
                 if flag:
@@ -1380,14 +1407,69 @@ class UiBoards(PanedTemplate):
 
             class Widgets:
 
-                class Relay(CanvasTemplate, DeviceLinkTemplate):
-
+                class Template(CanvasTemplate, DeviceLinkTemplate):
                     def __init__(self, parent, board, sensor, **kwargs):
                         CanvasTemplate.__init__(self, parent, **kwargs)
                         DeviceLinkTemplate.__init__(self, board, sensor)
+                        self.buttons=dict()
+
+                    def build(self, *args, **kwargs):
+                        super(UiBoards.Devices.DeviceDisplay.Widgets.Template, self).build()
+                        for key in ('Reset', 'Update', 'Configure'):
+                            self.buttons.update(
+                                {
+                                    key:ButtonTemplate(
+                                        self,
+                                        font=Fonts.mono(8),
+                                        text=key,
+                                        command=lambda c=key: self.callback(c)
+                                    )
+                                }
+                            )
+
+                    def loop(self):
+                        if Config.flags.update.DEVICES:
+                            self.on_update()
+
+                    def callback(self, command):
+                        print('Callback : {}'.format(command))
+                        if command == 'Update':
+                            self.on_update()
+                            self.on_resize()
+                            p = IndoorinoPacket()
+                            p.build(IBACOM_SET_DEVICE, self.board, {
+                                'devname': self.device,
+                                'command': 'UPDATE',
+                            })
+                            System.io.send(p)
+                            return True
+
+                        elif command == 'Reset':
+                            p = IndoorinoPacket()
+                            p.build(IBACOM_SET_DEVICE, self.board, {
+                                'devname': self.device,
+                                'command': 'RESET',
+                            })
+                            System.io.send(p)
+                            return True
+
+                        elif command == 'Configure':
+                            UiBoards.TopDeviceEditor(self, self.board, self.device).show()
+                            self.master.master.master.master.on_update()
+                            self.on_resize()
+                            return True
+
+                        return False
+
+
+                class Relay(Template):
+
+                    def __init__(self, parent, board, sensor, **kwargs):
+                        UiBoards.Devices.DeviceDisplay.Widgets.Template.__init__(self, parent, board, sensor, **kwargs)
+                        # CanvasTemplate.__init__(self, parent, **kwargs)
+                        # DeviceLinkTemplate.__init__(self, board, sensor)
 
                         self.lines=dict()
-                        self.buttons=dict()
                         self.label = LabelTemplate(self)
 
                         self._waitfor=None  # status change needed to exit <waiting>
@@ -1420,7 +1502,7 @@ class UiBoards(PanedTemplate):
                                 }
                             )
 
-                        for key in ('Reset', 'Update', 'Configure', 'Switch ON', 'Switch OFF'):
+                        for key in ('Switch ON', 'Switch OFF'):
                             self.buttons.update(
                                 {
                                     key:ButtonTemplate(
@@ -1438,10 +1520,6 @@ class UiBoards(PanedTemplate):
                             relief=tk.FLAT,
                         )
                         self.on_update()
-
-                    def loop(self):
-                        if Config.flags.update.DEVICES:
-                            self.on_update()
 
                     def on_update(self, *args, **kwargs):
 
@@ -1536,31 +1614,10 @@ class UiBoards(PanedTemplate):
                             self.on_motion(0)
 
                     def callback(self, command):
-                        print('Callback : {}'.format(command))
-                        if command == 'Update':
-                            self.on_update()
-                            self.on_resize()
-                            p = IndoorinoPacket()
-                            p.build(IBACOM_SET_DEVICE, self.board, {
-                                'devname': self.device,
-                                'command': 'UPDATE',
-                            })
-                            System.io.send(p)
-                        elif command == 'Reset':
-                            p = IndoorinoPacket()
-                            p.build(IBACOM_SET_DEVICE, self.board, {
-                                'devname': self.device,
-                                'command': 'RESET',
-                            })
-                            System.io.send(p)
+                        if super(UiBoards.Devices.DeviceDisplay.Widgets.Relay, self).callback(command):
+                            return
 
-                        elif command == 'Configure':
-
-                            UiBoards.TopDeviceEditor(self, self.board, self.device).show()
-                            self.master.master.master.master.on_update()
-                            self.on_resize()
-
-                        elif command == 'Switch ON':
+                        if command == 'Switch ON':
                             p = IndoorinoPacket()
                             p.build(IBACOM_SET_DEVICE, self.board, {
                                 'devname': self.device,
@@ -1682,6 +1739,38 @@ class UiBoards(PanedTemplate):
                                 heigh=h_butt
                             )
 
+                class DHT22(Template):
+
+                    def __init__(self, parent, board, sensor, **kwargs):
+                        UiBoards.Devices.DeviceDisplay.Widgets.Template.__init__(self, parent, board, sensor, **kwargs)
+
+                    def on_update(self):
+                        if self.exist():
+                            if System.io.is_connected():
+                                for entry in self.buttons.values():
+                                    entry.configure(
+                                        state=tk.NORMAL
+                                    )
+                                    return
+
+                        for entry in self.buttons.values():
+                            entry.configure(
+                                state=tk.DISABLED
+                            )
+
+                    def on_resize(self):
+                        w,h = super(UiBoards.Devices.DeviceDisplay.Widgets.DHT22, self).on_resize()
+                        w_butt = int(0.75 * w / len(self.buttons))
+                        h_butt = 28
+                        for count, widget in enumerate(self.buttons.values()):
+                            widget.place(
+                                x=10 + count * w_butt,
+                                y=h - (h_butt + 5),
+                                width= w_butt,
+                                heigh=h_butt
+                            )
+
+
             class Header(CanvasTemplate, DeviceLinkTemplate):
 
                 class Template(CanvasTemplate, DeviceLinkTemplate):
@@ -1772,7 +1861,30 @@ class UiBoards(PanedTemplate):
                             else:
                                 self.icon.replace_image(Icons.devices.diodes.OFFLINE())
                         else:
-                            self.icon.replace_image(Icons.devices.diodes.ERROR())
+                            self.icon.replace_image(Icons.system.NOT_FOUND())
+
+                class DHT22(Template):
+                    def __init__(self, parent, board, sensor, **kwargs):
+                        UiBoards.Devices.DeviceDisplay.Header.Template.__init__(self, parent, board, sensor, **kwargs)
+                        self.icon = PictureTemplate(self, Icons.devices.thermometer.OFFLINE())
+
+                    def on_update(self):
+                        super(UiBoards.Devices.DeviceDisplay.Header.DHT22, self).on_update()
+                        if self.exist():
+                            device = self.get_device()
+
+                            if device.is_connected() and System.io.is_connected():
+
+                                if device.status.std['status'].data == 'ONLINE':
+                                    self.icon.replace_image(Icons.devices.thermometer.ONLINE())
+                                else:
+                                    self.icon.replace_image(Icons.devices.thermometer.ERROR())
+
+                            else:
+                                self.icon.replace_image(Icons.devices.thermometer.OFFLINE())
+                        else:
+                            self.icon.replace_image(Icons.system.NOT_FOUND())
+
 
             class Container(PanedTemplate, DeviceLinkTemplate):
 
@@ -1790,8 +1902,8 @@ class UiBoards(PanedTemplate):
 
                     c = self._context.split(':')
                     p = device.__getattribute__(c[0]).__getattribute__(c[1])
-
                     for key, entry in p.items():
+
                         self.labels.update(
                             {
                                 key: LabelTemplate(
@@ -1880,7 +1992,7 @@ class UiBoards(PanedTemplate):
                 self.body = {
                     'cs':   self.Container(self, board, sensor, 'config:std'),
                     'ss':   self.Container(self, board, sensor, 'status:std'),
-                    'cd': self.Container(self, board, sensor, 'config:dev'),
+                    # 'cd': self.Container(self, board, sensor, 'config:dev'),
                     'sd': self.Container(self, board, sensor, 'status:dev'),
                 }
 
@@ -1888,6 +2000,9 @@ class UiBoards(PanedTemplate):
                 if dev.devtype == 'RELAY':
                     self.devwidget=self.Widgets.Relay(self, board, sensor)
                     self.header = self.Header.Relay(self, board, sensor)
+                elif dev.devtype == 'DHT22':
+                    self.devwidget=self.Widgets.DHT22(self, board, sensor)
+                    self.header = self.Header.DHT22(self, board, sensor)
                 else:
                     self.devwidget = PanedTemplate(self, bg=Palette.generic.ERROR_GUI)
                     self.header = self.Header.Template(self, board, sensor)
@@ -2171,10 +2286,15 @@ class UiBoards(PanedTemplate):
                         c = self._context.split(':')
                         p = board.__getattribute__(c[0]).__getattribute__(c[1])
                         for key, entry in p.items():
-                            self.values[key].configure(
-                                text=entry.value,
-                                fg=Palette.generic.FG_DEFAULT
-                            )
+                            try:
+                                self.values[key].configure(
+                                    text=entry.value,
+                                    fg=Palette.generic.FG_DEFAULT
+                                )
+                            except KeyError:
+                                if len(self.values.keys()) == 0:
+                                    self.build()
+                                error_ui('Could not update value {} on dict {}'.format(key, self.values.keys()))
                     else:
                         for entry in self.values.values():
                             entry.configure(

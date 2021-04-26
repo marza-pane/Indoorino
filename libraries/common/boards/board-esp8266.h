@@ -149,6 +149,7 @@
     #endif /* ESP BOARD TYPES */
 
     #define SRAM_LIMIT 5000
+    #define SRAM_FATAL 5000
 
 //      _____________________________________________________________________
 //      |                                                                   |

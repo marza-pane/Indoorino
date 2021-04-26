@@ -30,16 +30,19 @@ class ResourceTreeView(TreeViewTemplate):
         self.heading("#0", text="Indoorino", anchor=tk.W)
         self.heading("prop", text="Status", anchor=tk.W)
 
-        self._structure['boards'] = self.insert("", 1, text="Boards", values=('',))
-        self._structure['signals'] = self.insert("", 2, text="Signals", values=('',))
-        self._structure['resources'] = self.insert("", 3, text="Resources", values=('',))
-        self._structure['map'] = self.insert("", 4, text="Map", values=('',))
+        self._structure['home'] = self.insert("", 1, text="Home", values=('',))
+        self._structure['boards'] = self.insert("", 2, text="Boards", values=('',))
+        self._structure['alarms'] = self.insert("", 3, text="Alarms", values=('',))
+        self._structure['reports'] = self.insert("", 4, text="Reports", values=('',))
+        self._structure['resources'] = self.insert("", 5, text="Resources", values=('',))
+        self._structure['map'] = self.insert("", 6, text="Map", values=('',))
 
-        self._structure['reports'] = self.insert(self._structure['signals'], 1, text="Reports", values=('',))
-        self._structure['warnings'] = self.insert(self._structure['signals'], 2, text="Warnings", values=('',))
-        self._structure['alarms'] = self.insert(self._structure['signals'], 3, text="Alarms", values=('',))
+        # self._structure['reports'] = self.insert(self._structure['signals'], 1, text="Reports", values=('',))
+        # self._structure['warnings'] = self.insert(self._structure['signals'], 2, text="Warnings", values=('',))
+        # self._structure['alarms'] = self.insert(self._structure['signals'], 3, text="Alarms", values=('',))
 
         self._structure['lights'] = self.insert(self._structure['resources'], 1, text="Lights", values=('',))
+        self._structure['weather'] = self.insert(self._structure['resources'], 2, text="Weather", values=('',))
 
         self.on_update()
         self.selection_set(self._structure['boards'])

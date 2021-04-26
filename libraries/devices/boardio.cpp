@@ -35,11 +35,47 @@ namespace utils
         
         void        BoardIo::loop                   (void)
         {
+            iSize_t current_ram = utils::board::available_ram();
+            
+//             static iSize_t last_ram = 0;
+//             if (current_ram != last_ram)
+//             {
+//                 char sign='-';
+//                 if (current_ram > last_ram) { sign='+'; }
+//                 alert_mem("SRAM [%c] change [%u] ==> [%u] delta = [%d]",
+//                           sign, last_ram, current_ram, abs(current_ram - last_ram));
+//                 last_ram = current_ram;
+//             }
+            
+            if (current_ram < SRAM_FATAL)
+            {
+                utils::board::reset();
+            }
+
+            if (current_ram < SRAM_LIMIT)
+            {
+                if (!_txqueue.is_empty() || !_rxqueue.is_empty())
+                {
+                    warning_mem("LOW SRAM:Freeing serial buffers");
+                    this->clear();
+                }
+            }
+            
+            
             read_packet_serial();           
             
             write_head_serial();
         }
         
+        void        BoardIo::clear                  (void)
+        { 
+            _unsent=_txqueue.count();
+
+            _rxqueue.clear();
+            _txqueue.clear();
+            
+        }
+            
         void        BoardIo::send                   (packet::ipacket * p, bool direct)
         {
             char src[LEN_NAME] {0};
@@ -410,7 +446,7 @@ namespace utils
 
             uint32_t buf {0};
             p.init(IBACOM_STATUS_ESP);
-            strcpy(p.p_name(), P2C(BOARD_NAME));
+            strcpy_P(p.p_name(), BOARD_NAME);
 
             *p.p_errors1()     =   (uint32_t)client.missing();
             *p.p_errors2()     =   (uint32_t)client.unsent();
@@ -440,6 +476,20 @@ namespace utils
             }
             #endif /* INDOORINO_DEVS */
         }
+
+
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       Send boot signal                                            |
+//      |___________________________________________________________________|
+//        
+        void        send_boot_signal            (void)
+        {
+            packet::ipacket p(IBACOM_BOARD_BOOT);
+            strcpy_P(p.p_name(), BOARD_NAME);
+            io.send(&p);
+        }
+        
 
 //      _____________________________________________________________________
 //      |                                                                   |

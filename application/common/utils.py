@@ -262,18 +262,19 @@ class AppConfig:
             self.TIMEOUT_CLIENT             = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT'])
             self.TIMEOUT_CLIENT_SHELL       = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT_SHELL'])
             self.TIMEOUT_CLIENT_BOARD       = int( 1e-3 * conf['macros']['TIMEOUT_CLIENT_BOARD'])
-            self.PREAMBLE = conf['macros']['PREAMBLE']
+            self.PREAMBLE                   = conf['macros']['PREAMBLE']
+            self.FLOAT2INT                  = conf['macros']['FLOAT2INT']
 
     class Options:
         def __init__(self):
             self.SAVE_ON_EXIT=False
-            self.LOAD_ON_START=True
+            self.LOAD_ON_START=False
 
     class Layout:
 
         class Lights(dict):
             """
-             [group-name]   [board-name1]    [device1] [ 'icon_type'
+             [group-name]   [board-name1]    [device1]      [ 'icon_type ]'
             """
             def __init__(self):
                 dict.__init__(self, {})
@@ -320,8 +321,90 @@ class AppConfig:
                     }
                 )
 
+        class Sensors(dict):
+            """
+             [group-name]   [board-name1]    [device1]      [ 'icon_type ]'
+            """
+
+            def __init__(self):
+                dict.__init__(self, {})
+                self.update(
+                    {
+                        'weather': {
+                            # """ Outer perimeter boards """
+                            'WEATHER.GARDEN': {
+                                'DHT1': ['termometer', ],
+                                'DHT2': ['termometer', ],
+                                'DHT3': ['termometer', ],
+                                'RAIN1': ['beam-spot', ],
+                                'WIND1': ['beam-spot', ],
+                                'LDR1': ['beam-spot', ],
+                                'LDR2': ['beam-spot', ],
+                            }
+                        },
+                        'home climate': {
+                            # """ Inner perimeter boards """
+                            'KITCHEN.WEATHER': {
+                                'DHT1': ['termometer', ],
+                                'DHT2': ['termometer', ],
+                                'DHT3': ['termometer', ],
+                            },
+                            'BEDROOM.WEATHER': {
+                                'DHT1': ['termometer', ],
+                                'DHT2': ['termometer', ],
+                                'DHT3': ['termometer', ],
+                            }
+                        },
+                        'heat sensors': {
+                            # """ Garden boards """
+                            'HOUSE.BEAMS': {
+                                'HEAT1': ['termometer', 'HEAT', ],
+                            },
+                            'BEDROOM.WEATHER': {
+                                'HEAT1': ['termometer', 'HEAT', ],
+                                'HEAT2': ['termometer', 'HEAT', ],
+                                'HEAT3': ['termometer', 'HEAT', ],
+                            },
+                            'KITCHEN.WEATHER': {
+                                'HEAT1': ['termometer', 'HEAT', ],
+                                'HEAT2': ['termometer', 'HEAT', ],
+                                'HEAT3': ['termometer', 'HEAT', ],
+                            },
+                            'WEATHER.GARDEN': {
+                                'HEAT1': ['termometer', 'HEAT', ],
+                                'HEAT2': ['termometer', 'HEAT', ],
+                                'HEAT3': ['termometer', 'HEAT', ],
+                            },
+                            'HOME.LIGHTS': {
+                                'HEAT1': ['termometer', 'HEAT', ],
+                            },
+                            'GARDEN.LIGHTS': {
+                                'HEAT1': ['termometer', 'HEAT', ],
+                            },
+                        },
+
+                    }
+                )
+
+        class Alarms(dict):
+            """
+             [group-name]   [board-name1]    [device1]      [ 'icon_type ]'
+            """
+
+            def __init__(self):
+                dict.__init__(self, {})
+                self.update(
+                    {
+                        'fire'  : 'heat sensors',
+                        'flood' : 'flood sensors',
+                        'smoke' : 'gas sensors'
+                    }
+                )
+
         def __init__(self):
             self.lights=self.Lights()
+            self.sensors=self.Sensors()
+            self.alarmgroups=self.Alarms()
 
 
     class Flags:
@@ -375,7 +458,7 @@ class AppConfig:
         def __init__(self, client_version):
             local_version = _version()
             if local_version != client_version:
-                warning_os('Mismatching wersions:\n\tclient version <{}>\n\tlocal version <{}>'.format(
+                warning_os('Mismatching versions:\n\tclient version <{}>\n\tlocal version <{}>'.format(
                     client_version, local_version
                 ))
             self.___version = client_version

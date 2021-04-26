@@ -91,11 +91,16 @@ namespace packet
         friend class netpacket;
 
 #if defined SOURCE_IPACKET_H_
+        
 		char       *    p_message       (void);
 		char       *    p_command       (void);
 		char       *    p_name          (void);
 		char       *    p_type          (void);
 		char       *    p_board         (void);
+		char       *    p_label1        (void);
+		char       *    p_label2        (void);
+		char       *    p_label3        (void);
+		char       *    p_label4        (void);
 		uint8_t    *    p_devnum        (void);
 		char       *    p_devname       (void);
 		char       *    p_newname       (void);
@@ -186,6 +191,7 @@ namespace packet
 		char       *    p_table4        (void);
 
 #endif // __linux__
+
         
 #endif /* This simply make te code collapsable in Kate */
     
@@ -260,9 +266,9 @@ namespace packet
     class bufpacket : public netpacket 
     {
     public:
+         char   *   txdata;
          bufpacket(netpacket * p):netpacket(p)  {};
-        ~bufpacket()                            { data.clear(); }
-        std::vector<char>   data;
+        ~bufpacket();
     };
 #endif /* __linux__ */
 

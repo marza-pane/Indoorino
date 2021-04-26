@@ -7,6 +7,295 @@
  *      Author: n00b
  */
 
+#if defined(ARDUINO)
+#include "common.h"
+#if defined(INDOORINO_DEVS)
+
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       VIRTUAL DEVICE                                              |
+//      |___________________________________________________________________|
+//
+
+virtualDevice::virtualDevice(uint8_t index)
+{
+    _confindex = index;
+    
+    int p = conf.device_pin(_confindex);
+    if (!utils::board::is_pin(p))
+    {
+        error_dev("init:invalid pin [%u] for device [%u]!", p, _confindex);
+        _status=1;
+    }
+    else
+    {
+        _status=0;
+        _pin=conf.device_pin(_confindex);
+        conf.device_name(_name, _confindex);
+    }
+}
+
+virtualDevice::~virtualDevice()
+{
+    debug_dev("deleting [%u]: pin [%u]", _confindex, _pin);
+}
+
+packet::ipacket *   virtualDevice::config               (packet::ipacket * p)
+{
+    return conf.device(p, _confindex);
+}
+
+void                virtualDevice::send_dev_conf        (void)
+{
+    packet::ipacket p;
+    utils::board::io.send(conf.device(&p, _confindex));
+}
+
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       ACTUATOR GENERIC                                            |
+//      |___________________________________________________________________|
+//
+
+virtualActuator::~virtualActuator()
+{
+    debug_dev("actuator [%u]: deleting pin [%u]", _confindex, _pin);
+    digitalWrite(_pin, LOW);
+    pinMode(_pin, INPUT);
+}
+
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       SENSOR GENERIC                                              |
+//      |___________________________________________________________________|
+//
+
+virtualSensor::~virtualSensor()
+{
+    debug_dev("sensor [%u]: refreshing pin [%u]", _confindex, _pin);
+    pinMode(_pin, OUTPUT);
+    digitalWrite(_pin, LOW);
+    pinMode(_pin, INPUT);
+}
+
+
+
+
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       DEVICE LIST                                                 |
+//      |___________________________________________________________________|
+//
+
+IndoorinoDeviceList::IndoorinoDeviceList() {}
+
+IndoorinoDeviceList::~IndoorinoDeviceList()
+{
+    _devices.clear();
+}
+
+// void                IndoorinoDeviceList::clearList               (void)
+// {
+//     for(uint8_t i=0; i<conf.devnum(); i++)
+//     {
+//         delete _devices[i];
+//     }
+//     free(_devices);   
+// }
+
+void                IndoorinoDeviceList::begin                  (void)
+{
+    info_dev("Initializing dev list (size = %u)", conf.devnum());
+
+    _devices.clear();
+    
+    for (uint8_t i=0; i<conf.devnum(); i++)
+    {
+        _alloc_type(i);            
+    }
+}
+
+void                IndoorinoDeviceList::reset                  (void)
+{
+    for(uint8_t i=0; i<conf.devnum(); i++)
+    {
+        if (! _devices[i]->reset())
+        {
+            error_dev("Can not reset device [%u]", i);
+//             sendReport(3, F("DEVICES"), F("Can not reset %s"), P2C(_devptr[i]->config()->p_devname()));
+        }
+    }
+}
+
+bool                IndoorinoDeviceList::add                    (packet::ipacket * ptr)
+{
+
+    if (conf.devAdd(ptr))
+    {
+        uint8_t index = conf.indexFromName(ptr->p_devname());
+        debug_dev("devices: new device at [%u]: total devices [%u]",index, conf.devnum());
+        return _alloc_type(index);
+    }
+    else
+    {
+        error_dev("ERROR:device list can not add %s", ptr->p_devname());
+    }
+
+    return false;
+}
+
+bool                IndoorinoDeviceList::_alloc_type            (uint8_t index)
+{
+    
+    if (index < _devices.count() && _devices[index] != nullptr)
+    {
+        delete _devices[index];
+        warning_dev("devlist:overwrite device at index [%u]",index);
+    }
+    switch (conf.device_command(index))
+    {
+//         case IBACOM_CONF_ASENSOR:
+//         {
+//             _devices[index] = new Sensor_Analog(index);
+//             info_dev("devlist:alloc_type: init Analog Sensor");
+//             break;
+//         }
+//         case IBACOM_CONF_SWITCH:
+//         {
+//             _devices[index] = new Sensor_switch(index);
+//             info_dev("devlist:alloc_type: init Switch");
+//             break;
+//         }
+        case IBACOM_CONF_DHT22:
+        {
+            Sensor_DHT22 * p = new Sensor_DHT22(index);
+            _devices.append(p);
+            debug_dev("devlist:alloc_type: init DHT22");
+            break;
+        }
+        case IBACOM_CONF_RELAY:
+        {
+            Actuator_Relay * p = new Actuator_Relay(index);
+            _devices.append(p);
+            debug_dev("devlist:alloc_type: init Relay");
+            break;
+        }
+//         case IBACOM_CONF_TIMER:
+//         {
+//             _devices[index] = new Actuator_Relay(index);
+//             debug(F("\n\tInit Timer"));
+//             break;
+//         }
+        default:
+        {
+            error_mem("FATAL:class not defined for %u", conf.device_command(index));
+            return false;
+        }
+    }
+//     debug_dev("initialized device %u:%s on pin %u", 
+//              _devices[index]->config()->command(),
+//              _devices[index]->config()->p_devname(),
+//              *_devices[index]->config()->p_pin());
+             
+    return true;
+}
+
+bool                IndoorinoDeviceList::rem                    (const char * name)
+{
+
+    int8_t index = conf.indexFromName(name);
+    
+    if (index >= 0)
+    {
+        debug_dev("---Removing device [%u] <%s>", conf.indexFromName(name), name);
+        _devices.rem(index);        
+        return true;
+    }
+    else
+    {
+        error_dev("devicelist:rem: device %s not found", name);
+        return false;
+    }
+}
+
+bool                IndoorinoDeviceList::mod                    (packet::ipacket * ptr)
+{
+    char * name = ptr->p_devname();
+    int8_t index = conf.indexFromName(name);
+    
+    if (name != nullptr && index >= 0)
+    {
+        if (conf.devMod(name, ptr))
+        {
+            _devices[index]->reset();
+            return true;
+        }
+    }
+    else error_dev("devicelist:mod: wrong packet type %s", F2C(ptr->label()));
+    
+    return false;
+}
+
+bool                IndoorinoDeviceList::setName                (const char * name, const char * new_name)
+{
+    bool flag = conf.devSetName(name, new_name);
+//     if (flag)
+//         sendReport(1, F("DEVICES"), F("setName: %s has been renamed %s"),name, new_name);
+    return flag;
+
+}
+
+bool                IndoorinoDeviceList::setPin                 (const char * name, uint8_t pin)
+{
+    int8_t index = conf.indexFromName(name);
+    if (conf.devSetPin(name, pin))
+    {
+//         sendReport(1, F("DEVICES"), F("setPin: %s has been set to pin %u"),name, pin);
+        return _devices[index]->reset();
+    }
+    return false;
+}
+
+
+virtualDevice   *   IndoorinoDeviceList::operator[]             (uint8_t index)
+{    
+    return _devices[index];
+}
+
+virtualDevice   *   IndoorinoDeviceList::operator[]             (const char * name)
+{   
+    int8_t index = conf.indexFromName(name);
+    
+    if (index >= 0)
+    {
+        return _devices[index];
+    }
+    error_dev("ERROR:invalid call for device %s",name);
+    return nullptr;
+}
+
+#endif /* INDOORINO_DEVS */
+#endif /* INDOORINO */
+
+// #endif /* INDOORINO_NETWORK */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // #if defined (INDOORINO_NETWORK)
 // 
@@ -229,261 +518,6 @@
 // }
 // 
 // #else
-
-
-#include "../common/common.h"
-#if defined(ARDUINO) && defined(INDOORINO_DEVS)
-//      _____________________________________________________________________
-//      |                                                                   |
-//      |       VIRTUAL DEVICE                                              |
-//      |___________________________________________________________________|
-//
-
-virtualDevice::virtualDevice(uint8_t index)
-{
-    _confindex = index;
-    
-    int p = conf.device_pin(_confindex);
-    if (!utils::board::is_pin(p))
-    {
-        error_dev("init:invalid pin [%u] for device [%u]!", p, _confindex);
-        _status=1;
-    }
-    else
-    {
-        _status=0;
-        _pin=conf.device_pin(_confindex);
-        conf.device_name(_name, _confindex);
-    }
-}
-
-virtualDevice::~virtualDevice()
-{
-    debug_dev("deleting [%u]: pin [%u]", _confindex, _pin);
-}
-
-packet::ipacket *   virtualDevice::config               (packet::ipacket * p)
-{
-    return conf.device(p, _confindex);
-}
-
-void                virtualDevice::send_dev_conf        (void)
-{
-    packet::ipacket p;
-    utils::board::io.send(conf.device(&p, _confindex));
-}
-
-//      _____________________________________________________________________
-//      |                                                                   |
-//      |       ACTUATOR GENERIC                                            |
-//      |___________________________________________________________________|
-//
-
-virtualActuator::~virtualActuator()
-{
-    debug_dev("actuator [%u]: resetting pin [%u]", _confindex, _pin);
-    digitalWrite(_pin, LOW);
-    pinMode(_pin, INPUT);
-}
-
-//      _____________________________________________________________________
-//      |                                                                   |
-//      |       DEVICE LIST                                                 |
-//      |___________________________________________________________________|
-//
-
-IndoorinoDeviceList::IndoorinoDeviceList() {}
-
-IndoorinoDeviceList::~IndoorinoDeviceList()
-{
-    _devices.clear();
-}
-
-// void                IndoorinoDeviceList::clearList               (void)
-// {
-//     for(uint8_t i=0; i<conf.devnum(); i++)
-//     {
-//         delete _devices[i];
-//     }
-//     free(_devices);   
-// }
-
-void                IndoorinoDeviceList::begin                  (void)
-{
-    info_dev("Initializing dev list (size = %u)", conf.devnum());
-
-    _devices.clear();
-    
-    for (uint8_t i=0; i<conf.devnum(); i++)
-    {
-        _alloc_type(i);            
-    }
-}
-
-void                IndoorinoDeviceList::reset                  (void)
-{
-    for(uint8_t i=0; i<conf.devnum(); i++)
-    {
-        if (! _devices[i]->reset())
-        {
-            error_dev("Can not reset device [%u]", i);
-//             sendReport(3, F("DEVICES"), F("Can not reset %s"), P2C(_devptr[i]->config()->p_devname()));
-        }
-    }
-}
-
-bool                IndoorinoDeviceList::add                    (packet::ipacket * ptr)
-{
-
-    if (conf.devAdd(ptr))
-    {
-        uint8_t index = conf.indexFromName(ptr->p_devname());
-        debug_dev("devices: new device at [%u]: total devices [%u]",index, conf.devnum());
-        return _alloc_type(index);
-    }
-    else
-    {
-        error_dev("ERROR:device list can not add %s", ptr->p_devname());
-    }
-
-    return false;
-}
-
-bool                IndoorinoDeviceList::_alloc_type            (uint8_t index)
-{
-    
-    if (index < _devices.count() && _devices[index] != nullptr)
-    {
-        delete _devices[index];
-        warning_dev("devlist:overwrite device at index [%u]",index);
-    }
-    switch (conf.device_command(index))
-    {
-//         case IBACOM_CONF_ASENSOR:
-//         {
-//             _devices[index] = new Sensor_Analog(index);
-//             info_dev("devlist:alloc_type: init Analog Sensor");
-//             break;
-//         }
-//         case IBACOM_CONF_SWITCH:
-//         {
-//             _devices[index] = new Sensor_switch(index);
-//             info_dev("devlist:alloc_type: init Switch");
-//             break;
-//         }
-//         case IBACOM_CONF_DHT22:
-//         {
-//             _devices[index] = new Sensor_DHT22(index);
-//             info_dev("devlist:alloc_type: init DHT22");
-//             break;
-//         }
-        case IBACOM_CONF_RELAY:
-        {
-            Actuator_Relay * p = new Actuator_Relay(index);
-            _devices.append(p);
-//             _devices[index] = new Actuator_Relay(index);
-            info_dev("devlist:alloc_type: init Relay");
-            break;
-        }
-//         case IBACOM_CONF_TIMER:
-//         {
-//             _devices[index] = new Actuator_Relay(index);
-//             debug(F("\n\tInit Timer"));
-//             break;
-//         }
-        default:
-        {
-            error_mem("FATAL:class not defined for %u", conf.device_command(index));
-            return false;
-        }
-    }
-//     debug_dev("initialized device %u:%s on pin %u", 
-//              _devices[index]->config()->command(),
-//              _devices[index]->config()->p_devname(),
-//              *_devices[index]->config()->p_pin());
-             
-    return true;
-}
-
-bool                IndoorinoDeviceList::rem                    (const char * name)
-{
-
-    int8_t index = conf.indexFromName(name);
-    
-    if (index >= 0)
-    {
-        debug_dev("---Removing device [%u] <%s>", conf.indexFromName(name), name);
-        _devices.rem(index);        
-        return true;
-    }
-    else
-    {
-        error_dev("devicelist:rem: device %s not found", name);
-        return false;
-    }
-}
-
-bool                IndoorinoDeviceList::mod                    (packet::ipacket * ptr)
-{
-    char * name = ptr->p_devname();
-    int8_t index = conf.indexFromName(name);
-    
-    if (name != nullptr && index >= 0)
-    {
-        if (conf.devMod(name, ptr))
-        {
-            _devices[index]->reset();
-            return true;
-        }
-    }
-    else error_dev("devicelist:mod: wrong packet type %s", F2C(ptr->label()));
-    
-    return false;
-}
-
-bool                IndoorinoDeviceList::setName                (const char * name, const char * new_name)
-{
-    bool flag = conf.devSetName(name, new_name);
-//     if (flag)
-//         sendReport(1, F("DEVICES"), F("setName: %s has been renamed %s"),name, new_name);
-    return flag;
-
-}
-
-bool                IndoorinoDeviceList::setPin                 (const char * name, uint8_t pin)
-{
-    int8_t index = conf.indexFromName(name);
-    if (conf.devSetPin(name, pin))
-    {
-//         sendReport(1, F("DEVICES"), F("setPin: %s has been set to pin %u"),name, pin);
-        return _devices[index]->reset();
-    }
-    return false;
-}
-
-
-virtualDevice   *   IndoorinoDeviceList::operator[]             (uint8_t index)
-{    
-    return _devices[index];
-}
-
-virtualDevice   *   IndoorinoDeviceList::operator[]             (const char * name)
-{   
-    int8_t index = conf.indexFromName(name);
-    
-    if (index >= 0)
-    {
-        return _devices[index];
-    }
-    error_dev("ERROR:invalid call for device %s",name);
-    return nullptr;
-}
-
-#endif /* INDOORINO_DEVS */
-
-// #endif /* INDOORINO_NETWORK */
-
-
 
 
 

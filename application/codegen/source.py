@@ -191,10 +191,10 @@ packet_source_standard = (
 
     #---#    [02301   - 03000]   :   devices status
 
-    ( 2301,     'status_asensor',   'analog sensor stat',   ('name', 'devname','value1','status',)),
-    ( 2302,     'status_switch',    'switch sensor stat',   ('name', 'devname','value1','status',)),
-    ( 2310,     'status_ldr',       'ldr sensor stat',      ('name', 'devname','value1','status',)),
-    ( 2522,     'status_DHT22',     'DHT22 sensor stat',    ('name', 'devname','value1','value2','status',)),
+    ( 2301,     'status_asensor',   'analog sensor stat',   ('name', 'devname','status','value1',)),
+    ( 2302,     'status_switch',    'switch sensor stat',   ('name', 'devname','status','value1',)),
+    ( 2310,     'status_ldr',       'ldr sensor stat',      ('name', 'devname','status','value1',)),
+    ( 2522,     'status_DHT22',     'DHT22 sensor stat',    ('name', 'devname','status','value1','value2',)),
     ( 2700,     'status_relay',     'relay stat',           ('name', 'devname','status','level',)),
     ( 3000,     'status_devstd',    'device generic stat',  ('name', 'devname','status',)),
 
@@ -220,8 +220,6 @@ packet_source_standard = (
     #---#    [03201   - 03500]   :   requests
 
     ( 3205,     'req_probe',        'probe request',        ()),
-
-    ( 3205,     'request_probe',    'probe request',        ()),
 
     #---#    [03501   - 04000]   :   payloads
 
@@ -251,22 +249,24 @@ packet_source_server = (
     ( 7010,     'srv_req',          'server request',                       ('command',)),
 
     ( 7012,     'srv_conf',         'server config',                        ('ip1', 'port1', 'port2', 'status', 'table1')),
-    # ( 7020,     'srv_board_list',    'board list',          ('whole',)),
-    ( 7021,     'srv_board',        'board data',                           ('name','type','board','devnum','epoch','ip1','port1',)),
-    ( 7022,     'srv_board_conn',   'board connection',                     ('name','status',)),
+
+    ( 7021,     'sys_brd_cnf',      'system board config',                  ('name','type','board','devnum')),
+    ( 7022,     'sys_brd_sts',      'system board status',                  ('name','status')),
+    ( 7023,     'sys_dev_cnf',      'system device config',                 ('name','type','pin1')),
+    ( 7024,     'sys_dev_sts',      'system device status',                 ('name','status')),
+
+    ( 7100,     'sys_req',          'system request',                       ('command','value1','value2','value3','value4')),
 
     ( 7701,     'set_env_alarm',    'set environment alarm',                ('devname','board','value1')),
     ( 7702,     'ack_env_alarm',    'alarm acknowledge',                    ('devname','board')),
-    ( 7703,     'env_alarm',        'environment alarm signal',             ('devname','board', 'epoch', 'value1', 'status')),
+    ( 7703,     'env_alarm',        'environment alarm signal',             ('desc1', 'label1', 'label2', 'epoch', 'value1', 'status')),
+    ( 7705,     'alarm_devstat',    'device alarm status',                  ('devname','board', 'desc1', 'value1', 'status')),
 
-    ( 8010,     'lyt_board',        'layout board',                         ('name','devnum', 'label1', 'label2')),
+    ( 8008,     'lyt_conf',         'layout config command',                ('command','board', 'devname',)),
     ( 8012,     'lyt_device',       'layout device',                        ('devname','board', 'label1', 'label2', 'type')),
-    ( 8020,     'lyt_lights',       'layout lights',                        ('devname','board', 'label1', 'label2', 'type', 'desc1')),
-    ( 8050,     'lyt_alarms',       'layout alarms',                        ('devname','board', 'label1', 'label2', 'type', 'desc1')),
-
-
-
-
+    ( 8020,     'lyt_lights',       'layout lights',                        ('devname','board', 'label1', 'type')),
+    ( 8022,     'lyt_weather',      'layout weather station',               ('devname','board', 'label1', 'type')),
+    ( 8050,     'lyt_alarms',       'layout alarms',                        ('devname','board', 'label1', 'type')),
 
 
     # ( 7575,     'pack_route',        'route packet',        ('whole',)),

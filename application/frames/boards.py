@@ -10,6 +10,7 @@ from indoorino.packet import IndoorinoPacket
 class UiBoards(PanedTemplate):
 
     """ TOP WINDOWS """
+
     class DeviceTypeList(PanedTemplate):
 
         def __init__(self, parent, **kwargs):
@@ -1770,7 +1771,6 @@ class UiBoards(PanedTemplate):
                                 heigh=h_butt
                             )
 
-
             class Header(CanvasTemplate, DeviceLinkTemplate):
 
                 class Template(CanvasTemplate, DeviceLinkTemplate):
@@ -1884,7 +1884,6 @@ class UiBoards(PanedTemplate):
                                 self.icon.replace_image(Icons.devices.thermometer.OFFLINE())
                         else:
                             self.icon.replace_image(Icons.system.NOT_FOUND())
-
 
             class Container(PanedTemplate, DeviceLinkTemplate):
 

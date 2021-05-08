@@ -13,15 +13,20 @@
 
 #include "../packets/ipacket.h"
 
-#define LYT_DEFAULT_NUM_BOARDS      4
-#define LYT_DEFAULT_NUM_LIGHTS      8
-#define LYT_DEFAULT_NUM_ALARMS      1
+#define LYT_DEFAULT_NUM_DEVICES     25
+#define LYT_DEFAULT_NUM_LIGHTS      20
+#define LYT_DEFAULT_NUM_ALARMS      4
+#define LYT_DEFAULT_DEV_WEATHER     3
 
 #define LYT_NUM_AREAS               10
-#define LYT_NUM_L_HOME              17
-#define LYT_NUM_L_PERIMETER         7
+#define LYT_NUM_L_HOME              18
+#define LYT_NUM_L_PERIMETER         8
 #define LYT_NUM_DEVTYPES            5
+#define LYT_NUM_ALARMS              6
+#define LYT_NUM_ALARMS_GROUP        15
 
+#define MAX_DEVS_PER_ALARM          10
+#define ALR_DEFAULT_GROUP_NUM       2
 namespace indoorino
 {
 
@@ -62,6 +67,7 @@ namespace indoorino
             "bathroom_E",
             "workshop",
             "cellar",
+            "heating",
             "storage",
             "saferoom",
             "woodshop",
@@ -79,6 +85,7 @@ namespace indoorino
             "entrance",
             "garage",
             "porch",
+            "parking lot"
         };
         
         const char global_devtypes[LYT_NUM_DEVTYPES][LEN_DEVNAME]
@@ -90,35 +97,66 @@ namespace indoorino
             "SERVO",
         };
         
+        const char global_alarms[LYT_NUM_ALARMS][LEN_NAME]
+        {
+            "HEAT",
+            "FLOOD",
+            "SMOKE",
+            "POLLUTION",
+            "GRIDLOAD"
+            "GENERIC",
+        };
+        
+        const char global_alarms_group[LYT_NUM_ALARMS_GROUP][LEN_LABEL]
+        {
+            "attic fire alarm",
+            "kitchen fire alarm",
+            "studio fire alarm",
+            "bedroom fire alarm",
+            "workshop fire alarm",
+            "workshop gas alarm",
+            "woodshop fire alarm",
+            "woodshop gas alarm",
+            "cellar flood alarm",
+            "pool flood alarm",
+            "sheds flood alarm",
+            "heating room flood alarm",
+            "heating room fire alarm",
+            "heating room gas alarm",
+            "garage gas alarm"
+        };
+        
     //      _________________________________________
     //      |                                       |
     //      |       Layout utils                    |
     //      |_______________________________________|
     //
 
-        class device_t
-        {
-        public:
-            char        name[LEN_DEVNAME] {0};
-            char        type[LEN_DEVNAME] {0};
-        };
-
-        class board_t
-        {
-        public:
-            char        name[LEN_NAME]              {0};
-            uint8_t     devnum                      {0};
-            char        area[LEN_LOCATIONAME]       {0};
-            char        location[LEN_LOCATIONAME]   {0};
-            device_t    devices[MAX_ATTACHED_DEVICES];
-
-        };
+//         class device_t
+//         {
+//         public:
+//             char        boardname
+//             char        name[LEN_DEVNAME] {0};
+//             char        type[LEN_DEVNAME] {0};
+//         };
+// 
+//         class board_t
+//         {
+//         public:
+//             char        name[LEN_NAME]              {0};
+//             uint8_t     devnum                      {0};
+//             char        area[LEN_LOCATIONAME]       {0};
+//             char        location[LEN_LOCATIONAME]   {0};
+//             device_t    devices[MAX_ATTACHED_DEVICES];
+// 
+//         };
         
         class linked_dev_t
         {
         public:
             char        boardname[LEN_NAME]         {0};
             char        devname[LEN_DEVNAME]        {0};
+            char        type[LEN_DEVNAME]           {0};
             char        area[LEN_LOCATIONAME]       {0};
             char        location[LEN_LOCATIONAME]   {0};            
         };
@@ -126,7 +164,7 @@ namespace indoorino
         
         template <class OBJ> class LinkedDevList
         {
-            /* OBJ should have linked_dev_t as _layout */
+            /* OBJ should have <linked_dev_t> as attribute named <_layout> */
             
         protected:        
 
@@ -165,7 +203,11 @@ namespace indoorino
 
             void    clear       (void)  { _classlist.clear(); }
 
-            bool    exist       (const char * board, const char * dev) { if (this->get_index(board, dev) == -1) { return false; } return true; }
+            bool    exist       (const char * board, const char * dev)
+            {
+                if (this->get_index(board, dev) == -1) return false;
+                    return true;
+            }
 
         };
 
@@ -176,52 +218,47 @@ namespace indoorino
     //      |_______________________________________|
     //
 
-        inline  board_t         BoardDefaultLayout[LYT_DEFAULT_NUM_BOARDS]
+        inline  linked_dev_t        DefaultDeviceLayout[LYT_DEFAULT_NUM_DEVICES]
         {
-            
             /***    HOUSE.BEAMS         ***/
-            {
-                "SRV.HOUSE.BEAMS", 0,
-                "home", "attic",
-                {
-                }
-            },
 
-            {
-                "HOUSE.BEAMS", 9,
-                "home", "attic",
-                {
-                    { "BEAM1", "RELAY" },
-                    { "BEAM2", "RELAY" },
-                    { "BEAM3", "RELAY" },
-                    { "BEAM4", "RELAY" },
-                    { "BEAM5", "RELAY" },
-                    { "BEAM6", "RELAY" },
-                    { "BEAM7", "RELAY" },
-                    { "BEAM8", "RELAY" },
-                    { "HEAT1", "DHT22" },
-                }
-            },
-
-            /***    KITCHEN.WEATHER     ***/
-            {
-                "SRV.KITCHEN.WEATHER", 0,
-                "home", "kitchen",
-                {
-                }
-            },
-
-            {
-                "KITCHEN.WEATHER", 4,
-                "home", "kitchen",
-                {
-                    { "DHT1", "DHT22" },
-                    { "DHT2", "DHT22" },
-                    { "DHT3", "DHT22" },
-                    { "LDR1", "LDR" },
-                }
-            }
+            { "HOUSE.BEAMS", "BEAM1", "RELAY", "perimeter", "entrance"      },  // 0
+            { "HOUSE.BEAMS", "BEAM2", "RELAY", "perimeter", "north facade"  },  // 1
+            { "HOUSE.BEAMS", "BEAM3", "RELAY", "perimeter", "north facade"  },  // 2
+            { "HOUSE.BEAMS", "BEAM4", "RELAY", "perimeter", "west facade"   },  // 3
+            { "HOUSE.BEAMS", "BEAM5", "RELAY", "perimeter", "west facade"   },  // 4
+            { "HOUSE.BEAMS", "BEAM6", "RELAY", "perimeter", "south facade"  },  // 5
+            { "HOUSE.BEAMS", "BEAM7", "RELAY", "perimeter", "south facade"  },  // 6
+            { "HOUSE.BEAMS", "BEAM8", "RELAY", "perimeter", "south facade"  },  // 7
+            { "HOUSE.BEAMS", "HEAT1", "DHT22", "home", "attic",             },  // 8
             
+            /***    GATE.BEAMS         ***/
+            
+            { "GATE.BEAMS", "BEAM1", "RELAY", "gate", "entrance"  },
+            { "GATE.BEAMS", "BEAM2", "RELAY", "gate", "entrance"  },
+            { "GATE.BEAMS", "BEAM3", "RELAY", "gate", "entrance"  },
+            { "GATE.BEAMS", "BEAM4", "RELAY", "gate", "entrance"  },
+            
+            /***    HOUSE.LIGHTS         ***/
+            
+            { "HOUSE.LIGHTS", "BEAM1", "RELAY", "perimeter", "south facade"  },
+            { "HOUSE.LIGHTS", "BEAM2", "RELAY", "perimeter", "south facade"  },
+            { "HOUSE.LIGHTS", "BEAM3", "RELAY", "perimeter", "south facade"  },
+            { "HOUSE.LIGHTS", "BEAM4", "RELAY", "perimeter", "south facade"  },
+            
+            /***    OUTER.BEAMS         ***/
+            
+            { "OUTER.BEAMS", "BEAM1", "RELAY", "perimeter", "parking lot" }, 
+            { "OUTER.BEAMS", "BEAM2", "RELAY", "sheds",     "third shed"  },
+            { "OUTER.BEAMS", "BEAM3", "RELAY", "garden",    "orchard"     },
+            { "OUTER.BEAMS", "BEAM4", "RELAY", "garden",    "grow area"   },
+             
+            /***    KITCHEN.WEATHER     ***/
+            
+            { "KITCHEN.WEATHER", "DHT1", "DHT22", "home", "kitchen" },  // 9      
+            { "KITCHEN.WEATHER", "DHT2", "DHT22", "home", "kitchen" },  // 10
+            { "KITCHEN.WEATHER", "DHT3", "DHT22", "home", "kitchen" },  // 11
+            { "KITCHEN.WEATHER", "LDR1", "LDR", "home", "kitchen"   },  // 12
         };
 
     //      _________________________________________
@@ -232,61 +269,118 @@ namespace indoorino
 
         struct dev_light_t : public linked_dev_t
         {
-            char        group[LEN_NAME] {0};
-            char        type[LEN_NAME]  {0};
+            char        group[LEN_LABEL]    {0};
+            char        lightype[LEN_NAME]  {0};
         };
         
-        inline  dev_light_t     LightsDefaultLayout[LYT_DEFAULT_NUM_LIGHTS]
-        {
-          
-            /***    PERIMETER.BEAMS     ***/
+        inline  dev_light_t     DefaultLightsLayout[LYT_DEFAULT_NUM_LIGHTS]
+        {       
+
+            /***    OUTER PERIMETER.BEAMS     ***/
+            
             {
-                "HOUSE.BEAMS", "BEAM1",
-                "perimeter", "entrance",
-                "PERIMETER",
+                "GATE.BEAMS", "BEAM1", "RELAY", "gate", "entrance",
+                "outer perimeter",
                 "LEDBEAM",
             },
             {
-                "HOUSE.BEAMS", "BEAM2",
-                "perimeter", "north facade"
-                "PERIMETER",
+                "GATE.BEAMS", "BEAM2", "RELAY", "gate", "entrance",
+                "outer perimeter",
+                "LEDBEAM",
+            },
+            {
+                "GATE.BEAMS", "BEAM3", "RELAY", "gate", "entrance",
+                "outer perimeter",
+                "LEDBEAM",
+            },
+            {
+                "GATE.BEAMS", "BEAM4", "RELAY", "gate", "entrance",
+                "outer perimeter",
+                "LEDBEAM",
+            },
+            {
+                "OUTER.BEAMS", "BEAM1", "RELAY", "perimeter", "parking lot",
+                "outer perimeter",
+                "LEDBEAM",
+            },         
+            {
+                "OUTER.BEAMS", "BEAM2", "RELAY", "sheds",     "third shed",
+                "outer perimeter",
+                "LEDBEAM",
+            },         
+            {
+                "OUTER.BEAMS", "BEAM3", "RELAY", "garden",    "orchard",
+                "outer perimeter",
+                "LEDBEAM",
+            },         
+            {
+                "OUTER.BEAMS", "BEAM4", "RELAY", "garden",    "grow area",
+                "outer perimeter",
+                "LEDBEAM",
+            },  
+            
+            /***    HOME PERIMETER.BEAMS     ***/
+            
+            {
+                "HOUSE.BEAMS", "BEAM1", "RELAY", "perimeter", "entrance",
+                "home perimeter",
+                "LEDBEAM",
+            },
+            {
+                "HOUSE.BEAMS", "BEAM2", "RELAY", "perimeter", "north facade",
+                "home perimeter",
                 "LEDBEAM",
             },            
             {
-                "HOUSE.BEAMS", "BEAM3",
-                "perimeter", "north facade"
-                "PERIMETER",
+                "HOUSE.BEAMS", "BEAM3", "RELAY", "perimeter", "north facade",
+                "home perimeter",
                 "LEDBEAM",
             },            
             {
-                "HOUSE.BEAMS", "BEAM4",
-                "perimeter", "west facade"
-                "PERIMETER",
+                "HOUSE.BEAMS", "BEAM4", "RELAY", "perimeter", "west facade",
+                "home perimeter",
                 "LEDBEAM",
             },
             {
-                "HOUSE.BEAMS", "BEAM5",
-                "perimeter", "west facade"
-                "PERIMETER",
+                "HOUSE.BEAMS", "BEAM5", "RELAY", "perimeter", "west facade",
+                "home perimeter",
                 "LEDBEAM",
             },
             {
-                "HOUSE.BEAMS", "BEAM6",
-                "perimeter", "south facade"
-                "PERIMETER",
+                "HOUSE.BEAMS", "BEAM6", "RELAY", "perimeter", "south facade",
+                "home perimeter",
                 "LEDBEAM",
             },
             {
-                "HOUSE.BEAMS", "BEAM7",
-                "perimeter", "south facade"
-                "PERIMETER",
+                "HOUSE.BEAMS", "BEAM7", "RELAY", "perimeter", "south facade",
+                "home perimeter",
                 "LEDBEAM",
             },
             {
-                "HOUSE.BEAMS", "BEAM8",
-                "perimeter", "south facade"
-                "PERIMETER",
+                "HOUSE.BEAMS", "BEAM8", "RELAY", "perimeter", "south facade",
+                "home perimeter",
                 "LEDBEAM",
+            },
+            
+            {
+                "HOUSE.LIGHTS", "BEAM1", "RELAY", "perimeter", "south facade",
+                "home perimeter",
+                "LED10",
+            },
+            {
+                "HOUSE.LIGHTS", "BEAM2", "RELAY", "perimeter", "south facade",
+                "home perimeter",
+                "LED10",
+            },
+            {
+                "HOUSE.LIGHTS", "BEAM3", "RELAY", "perimeter", "south facade",
+                "home perimeter",
+                "LED10",
+            },
+            {
+                "HOUSE.LIGHTS", "BEAM4", "RELAY", "perimeter", "south facade",
+                "home perimeter",
+                "LED10",
             }
             
         };
@@ -299,52 +393,122 @@ namespace indoorino
      
         struct dev_alarm_t : public linked_dev_t
         {
-            char        type[LEN_NAME]  {0};
-            uint8_t     level           {0};
+            char        alarmtype[LEN_NAME] {0};    // global_alarms 
+            char        group[LEN_LABEL]    {0};    // 
         };
 
-        inline dev_alarm_t      AlarmsDefaultLayout[LYT_DEFAULT_NUM_ALARMS]
+        inline dev_alarm_t      DefaultAlarmsLayout[LYT_DEFAULT_NUM_ALARMS]
         {
           
             /***    HEAT.ALARMS         ***/
             {
-                "HOUSE.BEAMS", "HEAT1",
-                "home", "attic",
-                "HEAT", 2
+               "HOUSE.BEAMS", "HEAT1", "DHT22", "home", "attic",
+                "HEAT", "attic fire allarm"
             },
-            
+            {
+                "KITCHEN.WEATHER", "DHT1", "DHT22", "home", "kitchen",
+                "HEAT", "kitchen fire allarm"
+            },
+            {
+                "KITCHEN.WEATHER", "DHT2", "DHT22", "home", "kitchen",
+                "HEAT", "kitchen fire allarm"
+            },
+            {
+                "KITCHEN.WEATHER", "DHT3", "DHT22", "home", "kitchen",
+                "HEAT", "kitchen fire allarm"
+            },
         };
-
         
+        struct dev_weather_t : public linked_dev_t
+        {
+            char        group[LEN_LABEL]         {0};
+        };
+        
+        inline dev_weather_t    DefaultWeatherStationLayout[LYT_DEFAULT_DEV_WEATHER]
+        {
+            
+            /***    KITCHEN.WEATHER     ***/
+            
+            {
+                "KITCHEN.WEATHER", "DHT1", "DHT22", "home", "kitchen",
+                "kitchen climate"
+            },
+            {
+                "KITCHEN.WEATHER", "DHT2", "DHT22", "home", "kitchen",
+                "kitchen climate"
+            },
+            {
+                "KITCHEN.WEATHER", "DHT3", "DHT22", "home", "kitchen",
+                "kitchen climate"
+            }
+        };
+//         struct alarm_group_t
+//         {
+//             char        name[LEN_LABEL]             {0};
+//             char        type[LEN_NAME]              {0};
+//             char        area[LEN_LOCATIONAME]       {0};
+//             char        location[LEN_LOCATIONAME]   {0};
+//             uint8_t     devnum                      {0};
+//             dev_alarm_t devices[MAX_DEVS_PER_ALARM] {0};
+//         };
+//         
+//         inline alarm_group_t    AlarmsDefaultGroups[ALR_DEFAULT_GROUP_NUM]
+//         {
+//             "Attic fire allarm", "HEAT",
+//             "home", "attic", 1,
+//             {
+//                 "HOUSE.BEAMS", "HEAT1",
+//                 "home", "attic",
+//                 "HEAT", 2                
+//             }
+//             
+//         };
+        
+    //      _________________________________________
+    //      |                                       |
+    //      |       Main Layout Class               |
+    //      |_______________________________________|
+    //
+             
         class Layout
         {
-            std::vector<board_t>        _boards;
+            std::vector<linked_dev_t>   _devices;
             std::vector<dev_light_t>    _lights;
             std::vector<dev_alarm_t>    _alarms;
+            std::vector<dev_weather_t>  _weather;
             
         public:
              Layout() {}
-            ~Layout() {}
+            ~Layout() { clear(); }
             
             void    reset       (void);
             void    show        (void);
-            void    save        (const char *);
-            void    load        (const char *);
-            
+            void    clear       (void);
             int     check       (void);
-            int     is_board    (const char * entry);
-
-            packet::netpacket   *   get_boards_layout   (void);
-            packet::netpacket   *   get_lights_layout   (void);
-            packet::netpacket   *   get_alarm_layout    (void);
-            packet::netpacket   *   get_weather_layout  (void);
-            packet::netpacket   *   get_camera_layout   (void);
-            packet::netpacket   *   get_hydro_layout    (void);
-            packet::netpacket   *   get_pool_layout     (void);
             
-            const std::vector<board_t>& boards() { return _boards; }
-            const std::vector<dev_light_t>& lights() { return _lights; }
-            const std::vector<dev_alarm_t>& alarms() { return _alarms; }
+            bool    save        (void);
+            bool    load        (void);
+            
+            void    parse       (packet::netpacket *);
+            
+            int     is_device   (const char *, const char *);
+            int     is_light    (const char *, const char *);
+            int     is_alarm    (const char *, const char *);
+            int     is_weather  (const char *, const char *);
+
+            packet::netpacket   *   get_layout_packet   (const char *, const char *, const char *);
+            
+            void    send_devices    (void);
+            void    send_lights     (void);
+            void    send_alarms     (void);
+            void    send_weather    (void);
+            
+            void    send_config     (void);
+            
+            const std::vector<linked_dev_t> & devices() { return _devices; }
+            const std::vector<dev_light_t>  & lights()  { return _lights; }
+            const std::vector<dev_alarm_t>  & alarms()  { return _alarms; }
+            const std::vector<dev_weather_t>& weather() { return _weather; }
             
         };
         

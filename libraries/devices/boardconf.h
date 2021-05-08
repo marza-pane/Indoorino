@@ -36,10 +36,10 @@
     {
     protected:
         
-//         const   __FSH   *   _id=nullptr;
-        StaticSpace         staticspace;        
-        virtual void        initdev         (iSize_t) {}
-        virtual uint8_t     validate        (packet::ipacket *) { return 0; }
+        StaticSpace         staticspace;
+        void                initdev         (iSize_t);
+        uint8_t             validate        (packet::ipacket *);
+        iSize_t             _dpos[MAX_ATTACHED_DEVICES] {0};
 
     public:
                  Conf_Board ();
@@ -52,35 +52,7 @@
        
         void                begin           (void);
         void                factory         (void);
-        
-        virtual packet::ipacket * device    (packet::ipacket *p, const char *m) { if(m) {}; return p; }
-        virtual packet::ipacket * device    (packet::ipacket *p, int8_t n)      { if(n) {}; return p; }
 
-    };
-    
-//      _____________________________________________________________________
-//      |                                                                   |
-//      |       BOARD BASE CONFIGURATION                                    |
-//      |___________________________________________________________________|
-//
-
-    class   Conf_AVR      : public Conf_Board
-    {
-        
-    protected:
-        
-        void                initdev         (iSize_t);
-        uint8_t             validate        (packet::ipacket *);
-        iSize_t             _dpos[MAX_ATTACHED_DEVICES] {0};
-
-    public:
-        
-         Conf_AVR():Conf_Board() { };
-        ~Conf_AVR()              { };
-
-//         void                begin           (void);
-//         void                factory         (void);
-        
         bool                devAdd          (packet::ipacket *);
         bool                devRem          (const char *);
         bool                devMod          (const char *, packet::ipacket *);
@@ -97,9 +69,32 @@
         int8_t              device_pin      (int8_t);
         int8_t              device_pin      (const char * name) { return device_pin(indexFromName(name)); }
 
-//         iCom_t           index2command   (uint8_t);
-//         uint8_t             pin2index       (uint8_t);
     };
+    
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       BOARD BASE CONFIGURATION                                    |
+//      |___________________________________________________________________|
+//
+
+// // // // // //     class   Conf_AVR      : public Conf_Board
+// // // // // //     {
+// // // // // //         
+// // // // // //     protected:
+// // // // // //         
+// // // // // // 
+// // // // // //     public:
+// // // // // //         
+// // // // // //          Conf_AVR():Conf_Board() { };
+// // // // // //         ~Conf_AVR()              { };
+// // // // // // 
+// // // // // // //         void                begin           (void);
+// // // // // // //         void                factory         (void);
+// // // // // //         
+// // // // // // 
+// // // // // // //         iCom_t           index2command   (uint8_t);
+// // // // // // //         uint8_t             pin2index       (uint8_t);
+// // // // // //     };
 
 
     #if defined (ESP8266)
@@ -120,7 +115,7 @@
         uint16_t            _remote_port=0;
         
         iEpoch_t            _timeout_packet=0;
-        iEpoch_t            _attemps_packet=0;
+        uint8_t             _attemps_packet=0;
 
         
     public:
@@ -161,7 +156,7 @@
 
     #if defined (INDOORINO_SAMPLER)
     
-    class   ConfSampler     : public Conf_AVR
+    class   ConfSampler     : public Conf_Board
     {
     public:
         void                begin           (void);
@@ -174,14 +169,25 @@
     };
     
     #elif defined (INDOORINO_CONTROLLER)
+        
+        class   ConfController  : public Conf_Board
+        {
+        public:
+            void        begin           (void);
+            void        factory         (void);        
+        };
     
-    class   ConfController  : public Conf_AVR
-    {
-    public:
-        void                begin           (void);
-        void                factory         (void);        
-    };
-    
+        #if defined (ESP8266)
+        
+            class ConfEspController : public ConfRouter
+            {
+            public:
+                void        begin           (void);
+                void        factory         (void);
+            };
+
+        #endif
+        
     #endif /* PROJECTS */
 
 #endif /* INDOORINO */

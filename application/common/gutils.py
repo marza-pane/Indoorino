@@ -261,6 +261,10 @@ class IconPaths:
             def OFFLINE():
                 return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/beam-spot-offline.png'))
 
+            @staticmethod
+            def DISCONNECTED():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/beam-spot-disconnected.png'))
+
         def __init__(self):
             self.beamspot = self._BeamSpot()
 

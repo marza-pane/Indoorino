@@ -798,7 +798,7 @@ namespace packet
     //    |______________________________________________________________________|
     //
 
-            case IBACOM_REQUEST_PROBE:
+            case IBACOM_REQ_PROBE:
             {
             #if defined (ARDUINO)
             #else

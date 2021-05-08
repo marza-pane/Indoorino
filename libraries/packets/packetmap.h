@@ -2,7 +2,7 @@
  * packetmap.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: Apr 26, 2021 - 03:14:14
+ *   Edited on: May 08, 2021 - 01:18:33
  *      Author: n00b
  *  This code is code-generated
  */
@@ -580,7 +580,7 @@ namespace packet
 	//
 		{
 			IBACOM_STATUS_ASENSOR, 4,
-			"analog sensor stat", { 2, 10, 25, 54 } // name, devname, value1, status
+			"analog sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
 		},
 	
 	
@@ -591,7 +591,7 @@ namespace packet
 	//
 		{
 			IBACOM_STATUS_SWITCH, 4,
-			"switch sensor stat", { 2, 10, 25, 54 } // name, devname, value1, status
+			"switch sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
 		},
 	
 	
@@ -602,7 +602,7 @@ namespace packet
 	//
 		{
 			IBACOM_STATUS_LDR, 4,
-			"ldr sensor stat", { 2, 10, 25, 54 } // name, devname, value1, status
+			"ldr sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
 		},
 	
 	
@@ -613,7 +613,7 @@ namespace packet
 	//
 		{
 			IBACOM_STATUS_DHT22, 5,
-			"DHT22 sensor stat", { 2, 10, 25, 26, 54 } // name, devname, value1, value2, status
+			"DHT22 sensor stat", { 2, 10, 54, 25, 26 } // name, devname, status, value1, value2
 		},
 	
 	
@@ -762,17 +762,6 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 3205 - IBACOM_REQUEST_PROBE - probe request              |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_REQUEST_PROBE, 0,
-			"probe request", {}
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
 	//    |    IBACOM - 3505 - IBACOM_PROBE_AMBIENT - ambient probe              |
 	//    |______________________________________________________________________|
 	//
@@ -889,23 +878,56 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 7021 - IBACOM_SRV_BOARD - board data                     |
+	//    |    IBACOM - 7021 - IBACOM_SYS_BRD_CNF - system board config          |
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_SRV_BOARD, 7,
-			"board data", { 2, 3, 4, 9, 16, 71, 75 } // name, type, board, devnum, epoch, ip1, port1
+			IBACOM_SYS_BRD_CNF, 4,
+			"system board config", { 2, 3, 4, 9 } // name, type, board, devnum
 		},
 	
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 7022 - IBACOM_SRV_BOARD_CONN - board connection          |
+	//    |    IBACOM - 7022 - IBACOM_SYS_BRD_STS - system board status          |
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_SRV_BOARD_CONN, 2,
-			"board connection", { 2, 54 } // name, status
+			IBACOM_SYS_BRD_STS, 2,
+			"system board status", { 2, 54 } // name, status
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7023 - IBACOM_SYS_DEV_CNF - system device config         |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_SYS_DEV_CNF, 3,
+			"system device config", { 2, 3, 63 } // name, type, pin1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7024 - IBACOM_SYS_DEV_STS - system device status         |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_SYS_DEV_STS, 2,
+			"system device status", { 2, 54 } // name, status
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7100 - IBACOM_SYS_REQ - system request                   |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_SYS_REQ, 5,
+			"system request", { 1, 25, 26, 27, 28 } // command, value1, value2, value3, value4
 		},
 	
 	
@@ -926,8 +948,8 @@ namespace packet
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_ACK_ENV_ALARM, 3,
-			"alarm acknowledge", { 10, 4, 25 } // devname, board, value1
+			IBACOM_ACK_ENV_ALARM, 2,
+			"alarm acknowledge", { 10, 4 } // devname, board
 		},
 	
 	
@@ -937,19 +959,30 @@ namespace packet
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_ENV_ALARM, 4,
-			"environment alarm signal", { 10, 4, 16, 25 } // devname, board, epoch, value1
+			IBACOM_ENV_ALARM, 6,
+			"environment alarm signal", { 12, 5, 6, 16, 25, 54 } // desc1, label1, label2, epoch, value1, status
 		},
 	
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 8010 - IBACOM_LYT_BOARD - layout board                   |
+	//    |    IBACOM - 7705 - IBACOM_ALARM_DEVSTAT - device alarm status        |
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_LYT_BOARD, 4,
-			"layout board", { 2, 9, 5, 6 } // name, devnum, label1, label2
+			IBACOM_ALARM_DEVSTAT, 5,
+			"device alarm status", { 10, 4, 12, 25, 54 } // devname, board, desc1, value1, status
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 8008 - IBACOM_LYT_CONF - layout config command           |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_LYT_CONF, 3,
+			"layout config command", { 1, 4, 10 } // command, board, devname
 		},
 	
 	
@@ -970,8 +1003,19 @@ namespace packet
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_LYT_LIGHTS, 6,
-			"layout lights", { 10, 4, 5, 6, 3, 12 } // devname, board, label1, label2, type, desc1
+			IBACOM_LYT_LIGHTS, 4,
+			"layout lights", { 10, 4, 5, 3 } // devname, board, label1, type
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 8022 - IBACOM_LYT_WEATHER - layout weather station       |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_LYT_WEATHER, 4,
+			"layout weather station", { 10, 4, 5, 3 } // devname, board, label1, type
 		},
 	
 	
@@ -981,8 +1025,8 @@ namespace packet
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_LYT_ALARMS, 6,
-			"layout alarms", { 10, 4, 5, 6, 3, 12 } // devname, board, label1, label2, type, desc1
+			IBACOM_LYT_ALARMS, 4,
+			"layout alarms", { 10, 4, 5, 3 } // devname, board, label1, type
 		},
 
 #endif /* __linux__ */

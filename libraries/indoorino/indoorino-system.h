@@ -21,22 +21,23 @@
 namespace indoorino 
 {
     
-    class system
+    class IndoorinoSystem
     {
     public:
         
-         system()       {};
-        ~system()       { boards.clear(); }
+         IndoorinoSystem(){};
+        ~IndoorinoSystem();
         
         layout::Layout  layout;
+        alarms::Alarms  alarms;
         
         BoardList       boards;
-        AlarmList       alarms;
         
         
         void            begin           (void);
         void            loop            (void);
         void            parse           (packet::netpacket *);
+        void            parse_request   (const char *);
         
         bool            save_state      (void);
         bool            load_state      (void);
@@ -44,7 +45,7 @@ namespace indoorino
     
 } /* namespace:indoorino */
 
-extern indoorino::system System;
+extern indoorino::IndoorinoSystem System;
 
 #endif /* INDOORINO_SERVER */
 

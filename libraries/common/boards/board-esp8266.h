@@ -136,8 +136,8 @@
                 LED_BUILTIN = GPIO16    
             */
 
-        #define DEBUG_PIN_RX D0
-        #define DEBUG_PIN_TX D1
+        #define DEBUG_PIN_RX D2
+        #define DEBUG_PIN_TX D3
         
         extern SoftwareSerial  SerialDebug;
         #define SerialDebugPrint(S,...) SerialDebug.print(S, ## __VA_ARGS__)

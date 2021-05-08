@@ -1,7 +1,6 @@
 from common.templates import *
 from widgets.tools import AlarmWidget
 
-
 class UiAlarms(PanedTemplate):
 
     class AlarmEntry(AlarmWidget):

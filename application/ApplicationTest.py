@@ -1,7 +1,9 @@
 from frames.application import ApplicationWindow
 
 from indoorino.core import System
+from common.utils import Config
 print('{}'.format(System.io.tx_packets()))
+print('{}'.format(Config.layout.devices.keys()))
 
 from common.environment import environment
 

@@ -450,7 +450,7 @@ namespace benchmark
         debug_io("\n\nNow testing packet methods...");
 
 
-        packet::ipacket * q = new packet::ipacket(IBACOM_REPORT);
+//         packet::ipacket * q = new packet::ipacket(IBACOM_REPORT);
     #if defined(ARDUINO)
             debug_io("\t- Free SRAM is %u", utils::board::available_ram());
             if (utils::board::available_ram() < 250)    return;

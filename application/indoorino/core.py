@@ -226,6 +226,7 @@ class IndoorinoCore:
                 self.session.parse(packet)
                 return
 
+            Config.layout.parse(packet)
             self.boards.parse(packet)
 
     def on_exit(self):

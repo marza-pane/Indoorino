@@ -13,49 +13,54 @@
 
 #include "../packets/ipacket.h"
 #include "layout.h"
-#include <deque>
+// #include <deque>
 
 namespace indoorino
 {
-    class AlarmDevice
+    namespace alarms
     {
-    private:
-        bool                    _enabled    =false;
-        bool                    _on_alarm   =false;
+        class AlarmDevice
+        {
+        private:
+            bool                    _enabled    =false;
+            bool                    _on_alarm   =false;
         
-        void    send_updates    (void);
-        void    acknowledge     (void);
-    protected:
-        std::vector<iEpoch_t>           _alarm_ack;
-        std::vector<packet::netpacket>  _signals;
-        layout::dev_alarm_t &   _layout;
-        
-    public:
-        AlarmDevice(layout::dev_alarm_t &);
-        ~AlarmDevice() {}
-        void    parse       (packet::netpacket *);
-        
-        bool    is_enabled() { return _enabled;  }
-        bool    is_onalarm() { return _on_alarm; }
-        
-        friend  class       AlarmList;
-    };
+        protected:
+            std::vector<std::chrono::system_clock::time_point> _alarm_ack;
+            std::vector<packet::netpacket>  _signals;
+            layout::dev_alarm_t &           _layout;
+            
+        public:
+            AlarmDevice(layout::dev_alarm_t &);
+            ~AlarmDevice() {}
+            void    parse           (packet::netpacket *);
+            void    send_updates    (void);
+            
+            bool    is_enabled() { return _enabled;  }
+            bool    is_onalarm() { return _on_alarm; }
+            
+            const std::vector<packet::netpacket>& rxpackets () { return _signals; }
+            const std::vector<std::chrono::system_clock::time_point>& acknowledges () { return _alarm_ack; }
+            
+            friend  class       Alarms;
+        };
+
+        class Alarms : public layout::LinkedDevList<AlarmDevice>
+        {
+        public:
+
+             Alarms()   {};
+            ~Alarms()   {};
+            
+            void    begin       (void);
+            void    load_layout (void);
+            void    send_status (void);
+            void    parse       (packet::netpacket *);
+            
+        };
     
-    class AlarmList : public layout::LinkedDevList<AlarmDevice>
-    {
-
-    public:
-        AlarmList() {}
-        ~AlarmList() {}
-        
-        void    begin       (void);
-        void    parse       (packet::netpacket *);
-        
-        bool    load        (const char *);
-        bool    save        (const char *);
-
-    };
-
+    } /* namespace:alarms */
+    
 } /* namespace:indoorino */
     
 #endif /* INDOORINO_NETWORK */

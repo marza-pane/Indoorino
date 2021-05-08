@@ -203,7 +203,7 @@ class UiHomeLights(CanvasTemplate):
                             self.icon.replace_image(Icons.lights.beamspot.OFF())
 
                     else:
-                        self.icon.replace_image(Icons.lights.beamspot.ERROR())
+                        self.icon.replace_image(Icons.lights.beamspot.DISCONNECTED())
                         self.waiting = False
 
                 else:
@@ -518,12 +518,29 @@ class UiHomeLights(CanvasTemplate):
             widget.build()
 
     def on_update(self, *args, **kwargs):
+
+        resize_flag=False
+        for group, data in Config.layout.lights.items():
+            if not group in self.widgets.keys():
+                self.widgets.update(
+                    {
+                        group : self.Group(self, data, group),
+                    }
+                )
+                self.widgets[group].build()
+                resize_flag=True
+
         for widget in self.widgets.values():
             widget.on_update()
 
+        if resize_flag:
+            self.on_resize()
+
     def loop(self, *args, **kwargs):
+
         if Config.flags.update.DEVICES:
             self.on_update()
+
         for widget in self.widgets.values():
             widget.loop()
 

@@ -19,6 +19,7 @@ void setup()
 
     /* client.begin() and utils::board::send_boot_signal() are called in loop() */
 }
+
 void loop()
 {
     static iEpoch_t timeout_stat=0;

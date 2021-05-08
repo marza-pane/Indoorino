@@ -168,7 +168,7 @@ Sensor_DHT22::Sensor_DHT22(uint8_t index):virtualSensor(index)
     
 Sensor_DHT22::~Sensor_DHT22()
 {
-    debug_dev("\nDHT22 %s:", _config->p_devname()); 
+    debug_dev("\nDHT22 %s:", _name); 
 }
 
 

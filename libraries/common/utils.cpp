@@ -326,7 +326,62 @@ namespace utils
 
     #endif 
     }
-
+    
+    
+//     int         chopstring          (char ** buffer, const char * string, iSize_t size, char splitter)
+//     {
+//         int count = 0;
+//         
+//         if (strlen(string) > 0)
+//         {
+//             count = 1;
+//         }
+//         
+//         char *  source;
+//         char *  ptr;
+//         
+//         source=(char *)malloc(size + 1);
+//         strcpy(source, string);
+//         
+//         ptr = strchr(source, splitter);
+//         while (ptr != NULL)
+//         {
+//             count++;
+//             ptr=strchr(ptr + 1, splitter);
+//         }
+//         
+//         char * index = source;
+//         
+//         buffer = (char**)calloc(count, sizeof(char*));
+// 
+//         for (uint8_t i=0; i<count; i++)
+//         {
+//             buffer[i] = (char *)calloc(LEN_NAME, sizeof(char));
+//             ptr = strchr(index, splitter);
+// 
+//             if (ptr==NULL)  { strcpy(buffer[i], index); }
+//             else            
+//             { 
+//                 strncpy(buffer[i], index, ptr - index);
+//                 index = ptr + 1;
+//             }
+// 
+//             debug_io("-->Chunk %u : %s",i, buffer[i]);
+//         }
+//         
+//         free (source);
+//         
+//         return count;
+//     }
+        
+// for (uint8_t i=0; i<=n; i++)
+// {
+//     free(c[i]);
+// }
+// free(c);
+// }
+    
+    
 #if defined (ARDUINO)
     namespace board
     {

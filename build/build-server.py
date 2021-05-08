@@ -44,8 +44,7 @@ outputname = 'serverbuilt'
 
 
 macros = [ 'INDOORINO_NETWORK', 'INDOORINO_SERVER']
-options = [ 'Wall', 'pthread', 'std=c++17',] # 'g',
-# options = [ 'Wall', 'pthread', 'fpermissive', 'std=c++17']
+options = [ 'Wall', 'pthread', 'std=c++17',] # 'g', 'fpermissive',
 includes = [ '.', '/usr/include/openssl/', '/usr/include/boost/']
 libraries = [ 'm', 'dl', 'stdc++', 'boost_system', 'crypto',] #ssl
 

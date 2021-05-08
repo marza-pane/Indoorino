@@ -4,6 +4,7 @@ from common.gutils import *
 from indoorino.core import System
 
 import matplotlib as mpl
+
 mpl.use("TkAgg")
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk

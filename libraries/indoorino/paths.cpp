@@ -66,6 +66,15 @@ namespace indoorino
         return (const char *)_buffer;    
     }
 
+    const char  *   Paths::db_layout    (void)
+    {
+        memset(_buffer, 0, LEN_SERVER_PATH);
+        strcat(_buffer, _syspath_buffer_);
+        strcat(_buffer, _d_db);
+        strcat(_buffer, _f_layout);
+        return (const char *)_buffer;    
+    }
+
     Paths paths;
     
 } /* namespace : indoorino */

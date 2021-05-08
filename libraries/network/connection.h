@@ -23,10 +23,7 @@
 #include "../packets/ipacket.h"
 #include "../common/queue.h"
 
-
 #include "../indoorino/schedule.h"
-// #include "boardserver.h"
-// #include "shellserver.h"
 
 #include <boost/asio.hpp>
 #include <boost/asio/ts/buffer.hpp>
@@ -57,7 +54,6 @@ namespace net
         boost::asio::ip::tcp::socket    _socket;
 
         utils::ObjectQueue<packet::bufpacket>       _txqueue;
-//         utils::Queue<std::vector<char>>             _txqueue;
         utils::ObjectQueue<packet::netpacket>   &   _rxqueue;
         
         std::vector<uint8_t>                        _readbuffer;
@@ -171,6 +167,7 @@ namespace net
         utils::ObjectQueue<packet::netpacket>&          _rxqueue;
         std::deque<std::shared_ptr<serverConnection>>   _clientlist;
 
+
     public:
                  serverTemplate(utils::ObjectQueue<packet::netpacket>&, uint16_t);
         virtual ~serverTemplate();
@@ -180,6 +177,7 @@ namespace net
         void            loop                (void);
         void            stop                (void);
         
+        bool            has_client          (const char *);
         void            broadcast           (packet::ipacket *);
         void            broadcast           (packet::netpacket *);
         void            send                (packet::netpacket *);
@@ -194,6 +192,8 @@ namespace net
         
         virtual bool    on_new_client       (std::shared_ptr<serverConnection>)=0;
         virtual void    on_lost_client      (std::shared_ptr<serverConnection>)=0;
+        
+        friend class    IndoorinoServer;
 
     };
 
@@ -211,9 +211,10 @@ namespace net
          serverBoards(utils::ObjectQueue<packet::netpacket>&, uint16_t);
         ~serverBoards();
 
-        bool        has_client          (const char *);
         void        sync_board          (const char *);
         void        sync_board          (void);
+        void        stop                (void);
+
     protected:
 	
         bool        on_new_client       (std::shared_ptr<serverConnection>);
@@ -233,7 +234,7 @@ namespace net
 
          serverShell(utils::ObjectQueue<packet::netpacket>&, uint16_t);
         ~serverShell();
-    
+
     protected:
 	
         bool        on_new_client       (std::shared_ptr<serverConnection>);

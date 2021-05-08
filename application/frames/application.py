@@ -10,6 +10,7 @@ from frames.homemap import UiHomeMap
 from frames.homelights import UiHomeLights
 from frames.weather import UiWeather
 from frames.alarms import UiAlarms
+from frames.homelayout import UiLayout
 
 import tkinter.messagebox
 
@@ -66,6 +67,7 @@ class ApplicationMainFrame(PanedTemplate):
             'overview'          : UiIOverview(self),
             'boards'            : UiBoards(self),
             'alarms'            : UiAlarms(self),
+            'layout'            : UiLayout(self),
             'map'               : UiHomeMap(self),
             'resources:lights'  : UiHomeLights(self),
             'resources:weather' : UiWeather(self),
@@ -74,10 +76,11 @@ class ApplicationMainFrame(PanedTemplate):
         self.status_bar = StatusBar(self)
         self.tree_view = ResourceTreeView(self)
         self.top_bar = TopDashboardBar(self)
-        self.current='overview'
         self.current='resources:lights'
         self.current='boards'
         self.current='alarms'
+        self.current='overview'
+        self.current='layout'
 
     def build(self, *args, **kwargs):
         super(ApplicationMainFrame, self).build(*args)
@@ -102,6 +105,8 @@ class ApplicationMainFrame(PanedTemplate):
         self.tree_view.on_update()
 
     def show_frame(self, name):
+
+        if not len(name): return
         info_os('Showing [{}]'.format(name))
 
         if name == 'treeview':

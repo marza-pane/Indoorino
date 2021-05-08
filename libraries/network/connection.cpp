@@ -467,13 +467,15 @@ namespace net
     
     void            serverConnection::broadcast             (packet::netpacket *p)
     {
-        if (!utils::is_devname(p->source)) { strcpy(p->source, BOARD_NAME); }
+        packet::netpacket s(p);
+        
+        if (!utils::is_devname(s.source)) { strcpy(s.source, BOARD_NAME); }
         
         for(const auto& target: _namelist)
         {
-            strcpy(p->target, target.c_str());
-            std::cout << "Broadcasting netpacket" << p->description() << "to " << target << std::endl;
-            this->send(p);
+            strcpy(s.target, target.c_str());
+            std::cout << "Broadcasting netpacket" << s.description() << "to " << target << std::endl;
+            this->send(&s);
         }
         
     }
@@ -752,7 +754,16 @@ namespace net
         if (count == 0)
             warning_net("Could not find connections for <%s> sending <%s>", p->target, p->label());
     }
-    
+
+                    /*  H A S   C L I E N T  */
+    bool            serverTemplate::has_client              (const char * name)
+    {
+        for (auto& client : this->_clientlist)
+        {
+            if (client->has_client(name)) return true;
+        }
+        return false;
+    }
 //     void            serverTemplate::send                    (const char * target, packet::ipacket * p)
 //     {
 //         this->send(new packet::netpacket(p, BOARD_NAME, target));

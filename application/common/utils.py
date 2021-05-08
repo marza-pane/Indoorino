@@ -1,4 +1,5 @@
 from common.debug import *
+from common.comtable import *
 
 import common.IndoorinoModule as Client
 
@@ -278,48 +279,65 @@ class AppConfig:
             """
             def __init__(self):
                 dict.__init__(self, {})
-                self.update(
-                    {
-                        'outer perimeter': {
-                            # """ Outer perimeter boards """
-                            'OUTER.BEAMS': {
-                                'BEAM1': ['beam-spot',],
-                                'BEAM2': ['beam-spot',],
-                                'BEAM3': ['beam-spot',],
-                                'BEAM4': ['beam-spot',],
-                            }
-                        },
-                        'inner perimeter': {
-                            # """ Inner perimeter boards """
-                            'HOUSE.BEAMS' : {
-                                'BEAM1': ['beam-spot',],
-                                'BEAM2': ['beam-spot',],
-                                'BEAM3': ['beam-spot',],
-                                'BEAM4': ['beam-spot',],
-                                'BEAM5': ['beam-spot',],
-                                'BEAM6': ['beam-spot',],
-                                'BEAM7': ['beam-spot',],
-                                'BEAM8': ['beam-spot',],
-                            },
-                            'HOME.LIGHTS': {
-                                'BULB1': ['lightbulb', ],
-                                'BULB2': ['lightbulb', ],
-                                'BULB3': ['lightbulb', ],
-                                'BULB4': ['lightbulb', ],
-                            }
-                        },
-                        'garden': {
-                            # """ Garden boards """
-                            'GARDEN.LIGHTS': {
-                                'LAMP1': ['fluorescent'],
-                                'LAMP2': ['fluorescent'],
-                                'LAMP3': ['fluorescent'],
-                                'LAMP4': ['fluorescent'],
-                            }
-                        },
+                # self.update(
+                #     {
+                #         'outer perimeter': {
+                #             # """ Outer perimeter boards """
+                #             'OUTER.BEAMS': {
+                #                 'BEAM1': ['beam-spot',],
+                #                 'BEAM2': ['beam-spot',],
+                #                 'BEAM3': ['beam-spot',],
+                #                 'BEAM4': ['beam-spot',],
+                #             }
+                #         },
+                #         'inner perimeter': {
+                #             # """ Inner perimeter boards """
+                #             'HOUSE.BEAMS' : {
+                #                 'BEAM1': ['beam-spot',],
+                #                 'BEAM2': ['beam-spot',],
+                #                 'BEAM3': ['beam-spot',],
+                #                 'BEAM4': ['beam-spot',],
+                #                 'BEAM5': ['beam-spot',],
+                #                 'BEAM6': ['beam-spot',],
+                #                 'BEAM7': ['beam-spot',],
+                #                 'BEAM8': ['beam-spot',],
+                #             },
+                #             'HOME.LIGHTS': {
+                #                 'BULB1': ['lightbulb', ],
+                #                 'BULB2': ['lightbulb', ],
+                #                 'BULB3': ['lightbulb', ],
+                #                 'BULB4': ['lightbulb', ],
+                #             }
+                #         },
+                #         'garden': {
+                #             # """ Garden boards """
+                #             'GARDEN.LIGHTS': {
+                #                 'LAMP1': ['fluorescent'],
+                #                 'LAMP2': ['fluorescent'],
+                #                 'LAMP3': ['fluorescent'],
+                #                 'LAMP4': ['fluorescent'],
+                #             }
+                #         },
+                #
+                #     }
+                # )
 
-                    }
-                )
+            def parse(self, source, packet):
+                bname=source[0]
+                dname=source[1]
+
+                data = []
+                if packet.payload['type'] == 'LEDBEAM':
+                    data.append('beam-spot')
+
+                if not packet.payload['label1'] in self.keys():
+                    self.update({ packet.payload['label1'] : dict() })
+
+                self.__getitem__(packet.payload['label1'])
+                if not bname in self.__getitem__(packet.payload['label1']).keys():
+                    self.__getitem__(packet.payload['label1']).update({ bname : dict() })
+
+                self.__getitem__(packet.payload['label1'])[bname].update({   dname : data    })
 
         class Sensors(dict):
             """
@@ -402,9 +420,36 @@ class AppConfig:
                 )
 
         def __init__(self):
+            self.devices = dict()
             self.lights=self.Lights()
             self.sensors=self.Sensors()
             self.alarmgroups=self.Alarms()
+
+        def parse(self, packet):
+
+            try:
+                key = '{}:{}'.format(packet.payload['board'], packet.payload['devname'])
+            except KeyError:
+                return
+
+            info_database('Layout:parse: packet {}'.format(packet))
+            if packet.command == IBACOM_LYT_DEVICE:
+                self.devices.update(
+                    {   key : {
+                            'devtype'   : packet.payload['type'],
+                            'area'      : packet.payload['label1'],
+                            'location'  : packet.payload['label2'],
+                        }
+                    }
+                )
+
+            elif packet.command == IBACOM_LYT_LIGHTS:
+
+                if not key in self.devices.keys():
+                    warning_os('Layout:lights: could not find {} in device dict'.format(key))
+
+                self.lights.parse(key.split(':'), packet)
+
 
 
     class Flags:
@@ -445,6 +490,7 @@ class AppConfig:
                 self.PACKET = False
                 self.BOARD = False
                 self.DEVICES = False
+                self.SYSTEM = False
 
 
         def __init__(self):

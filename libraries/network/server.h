@@ -15,32 +15,36 @@
 
 #include "connection.h"
 
-class IndoorinoServer
+namespace net
 {
-private:
-    std::thread             _thr_netcheck;
-protected:
-    utils::ObjectQueue<packet::netpacket> _rxqueue;
+    class IndoorinoServer
+    {
+    private:
+        std::thread             _thr_netcheck;
+    protected:
+        utils::ObjectQueue<packet::netpacket> _rxqueue;
+        
+    public:
+        IndoorinoServer();
+        ~IndoorinoServer();
+        
+        void        begin   (void);
+        void        loop    (void);
+        void        stop    (void);
+        
+        void        on_packet       (packet::netpacket *);
+        
+        void        parse_request   (const char *);
+        
+        net::serverBoards   board;
+        net::serverShell    shell;
+        
+        indoorino::Schedule schedule; 
+    };
     
-public:
-    IndoorinoServer();
-    ~IndoorinoServer();
-    
-    void        begin   (void);
-    void        loop    (void);
-    void        stop    (void);
-    
-    void        on_packet       (packet::netpacket *);
-    
-    void        parse_request   (const char *);
-    
-    net::serverBoards   board;
-    net::serverShell    shell;
-    
-    indoorino::Schedule schedule; 
-};
+} /* namespace:net */
 
-extern  IndoorinoServer      Server;
+extern  net::IndoorinoServer    Server;
 
 
 #endif /* INDOORINO_SERVER */

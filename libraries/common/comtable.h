@@ -2,7 +2,7 @@
  * comtable.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: Apr 26, 2021 - 03:14:14
+ *   Edited on: May 08, 2021 - 01:18:33
  *      Author: n00b
  *  This code is code-generated
  */
@@ -18,13 +18,13 @@
 
 
 #if defined (__linux__)
-	#define TOTAL_IBACOM 74
+	#define TOTAL_IBACOM 78
 	#define MAX_PACKET_ENTRIES 13
 #elif defined (ESP8266)
-	#define TOTAL_IBACOM 60
+	#define TOTAL_IBACOM 59
 	#define MAX_PACKET_ENTRIES 13
 #else
-	#define TOTAL_IBACOM 56
+	#define TOTAL_IBACOM 55
 	#define MAX_PACKET_ENTRIES 13
 #endif
 
@@ -105,7 +105,6 @@
 	/*** [ 03201 - 03500 ] : requests        ***/
 
 #define	IBACOM_REQ_PROBE                    3205
-#define	IBACOM_REQUEST_PROBE                3205
 
 	/*** [ 03501 - 04000 ] : payloads        ***/
 
@@ -125,14 +124,19 @@
 #define	IBACOM_SESSION_END                  7003
 #define	IBACOM_SRV_REQ                      7010
 #define	IBACOM_SRV_CONF                     7012
-#define	IBACOM_SRV_BOARD                    7021
-#define	IBACOM_SRV_BOARD_CONN               7022
+#define	IBACOM_SYS_BRD_CNF                  7021
+#define	IBACOM_SYS_BRD_STS                  7022
+#define	IBACOM_SYS_DEV_CNF                  7023
+#define	IBACOM_SYS_DEV_STS                  7024
+#define	IBACOM_SYS_REQ                      7100
 #define	IBACOM_SET_ENV_ALARM                7701
 #define	IBACOM_ACK_ENV_ALARM                7702
 #define	IBACOM_ENV_ALARM                    7703
-#define	IBACOM_LYT_BOARD                    8010
+#define	IBACOM_ALARM_DEVSTAT                7705
+#define	IBACOM_LYT_CONF                     8008
 #define	IBACOM_LYT_DEVICE                   8012
 #define	IBACOM_LYT_LIGHTS                   8020
+#define	IBACOM_LYT_WEATHER                  8022
 #define	IBACOM_LYT_ALARMS                   8050
 
 

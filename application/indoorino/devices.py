@@ -232,8 +232,9 @@ class IndoorinoDevice(DeviceParameters):
 
             if packet.payload['devname'] == self.name and packet.payload['name'] == self.boardname:
 
-                self._timeout = time.perf_counter() + Config.macros.TIMEOUT_BOARD
-                self.status.std['status'].set('ONLINE')
+                if packet.source == self.boardname:
+                    self._timeout = time.perf_counter() + Config.macros.TIMEOUT_BOARD
+                    self.status.std['status'].set('ONLINE')
 
                 if IBACOM_CONF_ASENSOR <= packet.command <= IBACOM_CONF_DEVSTD:
 

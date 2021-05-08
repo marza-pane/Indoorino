@@ -15,12 +15,14 @@
 #include <deque>
 #include "packets/ipacket.h"
 
-//         * STATUS:
-//         * 0 = no errors
-//         * 1 = offline
-//         * 2 = invalid pin
-//         * 3 = io error
-//         */
+    /*
+     * STATUS:
+     * 0 = no errors
+     * 1 = invalid pin
+     * 2 = offline
+     * 3 = io error
+     * 4 = type error
+     */
 
 namespace indoorino
 {
@@ -30,26 +32,28 @@ namespace indoorino
     {
         
     protected:
-        uint8_t                     _status=0;
-        std::string                 _boardname;
         std::deque<Probe>           _probes;
         packet::ipacket             _conf;
         packet::ipacket             _stat;
+        char                        _type[LEN_NAME];
         
     public:
-                 DeviceTemplate(const char *);
+                 DeviceTemplate(packet::ipacket *);
         
         virtual ~DeviceTemplate() {};
         
         virtual void        parse           (packet::ipacket *);
         
+        const char  *       type            () { return (const char *)_type; }
         const char  *       name            () { return (const char *)_conf.p_devname(); }
-        const char  *       boardname       () { return _boardname.c_str(); }
-//         void                set_offline     () { _status=1; }
+        const char  *       boardname       () { return (const char *)_conf.p_name();    }
+        
+        void                set_offline     () { *_stat.p_status() = 2;     }
+        bool                is_connected    () { return (*_stat.p_status() == 0); }
 
-        uint8_t                 pin         ()    { return *_conf.p_pin1(); }
-        const packet::ipacket&  config      () { return _conf; }
-        const packet::ipacket&  status      () { return _stat; }
+        uint8_t             pin         () { return *_conf.p_pin1(); }
+        packet::ipacket&    config      () { return _conf; }
+        packet::ipacket&    status      () { return _stat; }
     };
     
     namespace devices
@@ -60,11 +64,20 @@ namespace indoorino
         private:
             uint8_t         _relay_stat=0;
         public:
-            Relay(const char *);
+            Relay(packet::ipacket *);
 
-            void            parse           (packet::ipacket *);
+//             void            parse           (packet::ipacket *);
 
             uint8_t         relay_status()  { return _relay_stat; }
+        };
+        
+        class DHT22 : public DeviceTemplate
+        {
+        private:
+        public:
+            DHT22(packet::ipacket *);
+            
+//             void            parse           (packet::ipacket *);
         };
 
         
@@ -76,7 +89,7 @@ namespace indoorino
     class DeviceList
     {
     private:
-        std::deque<DeviceTemplate> _list;
+        std::vector<DeviceTemplate> _list;
     public:
         DeviceList()  {};
         ~DeviceList() { clear(); }
@@ -86,11 +99,13 @@ namespace indoorino
         DeviceTemplate      &   operator()      (const char *);
         bool                    exist           (const char *);
         bool                    remove          (const char *);
-        bool                    add             (const char *, packet::ipacket *);
+        bool                    add             (packet::ipacket *);
         
         iSize_t                 count       () { return _list.size();  }
         bool                    is_empty    () { return _list.empty(); }
         void                    clear       () { _list.clear(); }
+        
+        friend class BoardTemplate;
     };
 
     

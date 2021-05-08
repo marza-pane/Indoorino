@@ -25,7 +25,7 @@ namespace net
         _thread_ping = std::thread([this]()
         {
             iEpoch_t timeout=utils::millis() + 60000;
-            alert_server("Ping service start!");
+            info_server("ping thread start!");
             while (_flag_ping)
             {
                 iEpoch_t ima = utils::millis();
@@ -38,24 +38,23 @@ namespace net
                     }
                 }
             }
-            alert_server("Ping service terminated!");
+            alert_server("Ping thread terminated!");
         });
     }
     
     serverBoards::~serverBoards()
     {
-        _flag_ping=false;
-        _thread_ping.join();
+        this->stop();
     }
-    
-    
-    bool        serverBoards::has_client            (const char * name)
+
+    void        serverBoards::stop                  (void)
     {
-        for (auto& client : this->_clientlist)
+        if (_flag_ping)
         {
-            if (client->has_client(name)) return true;
+            _flag_ping=false;
+            if (_thread_ping.joinable()) _thread_ping.join();
         }
-        return false;
+        serverTemplate::stop();
     }
     
     void        serverBoards::sync_board            (const char * name)

@@ -11,7 +11,7 @@
     const char BOARD_TYPE[] PROGMEM = "MEGA2560";
     #define EEPROM_MODULE
     #pragma message "Compiling for ARDUINO MEGA2560"
-    #define SRAM_LIMIT 800
+    #define SRAM_LIMIT 1000
     #define SRAM_FATAL 200
     extern char * __brkval;
 

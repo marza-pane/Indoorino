@@ -75,7 +75,8 @@ bool    ShellClient::connect2server     (void)
         return false;
     }
     debug_os("CONNECTED!");
-    packet::netpacket q(IBACOM_REQUEST_CONFIG);
+    packet::netpacket q(IBACOM_SYS_REQ);
+    strcpy(q.p_command(), "GET:ALL");
     strcpy(q.source, _name.c_str());
     strcpy(q.target, DEFAULT_TARGET);
 

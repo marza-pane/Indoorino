@@ -337,7 +337,7 @@ namespace utils
             debug_io("send_config: STD");
             io.send(&p);
 
-        #if defined INDOORINO_SAMPLER
+        #if defined (INDOORINO_SAMPLER)
         // 
         //     ptr=reallocPacket(ptr, IBACOM_CONF_SAMPLER);
         //     
@@ -350,9 +350,9 @@ namespace utils
         //     boardio.tx.send(ptr);
         // 
         //     
-        #elif defined INDOORINO_CONTROLLER
+        #elif defined (INDOORINO_CONTROLLER)
 
-        #elif defined INDOORINO_ROUTER
+        #elif defined (ESP8266)
             
 //             uint32_t n {0};
             
@@ -380,14 +380,14 @@ namespace utils
             
         #endif /* PROJECTS */
             
-            #if defined (INDOORINO_DEVS)
-            debug_dev("packet:sendConfig: [%u] devices", conf.devnum());    
-            for (uint8_t i=0; i<conf.devnum(); i++)
-            {                 
-                p.dump();
-                io.send(conf.device(&p,i));
-            }
-            #endif /* INDOORINO_DEVS */
+        #if defined (INDOORINO_DEVS)
+        debug_dev("packet:sendConfig: [%u] devices", conf.devnum());    
+        for (uint8_t i=0; i<conf.devnum(); i++)
+        {                 
+            p.dump();
+            io.send(conf.device(&p,i));
+        }
+        #endif /* INDOORINO_DEVS */
 
         }
 
@@ -416,7 +416,7 @@ namespace utils
             
             io.send(&p);
             
-        #if defined INDOORINO_SAMPLER
+        #if defined (INDOORINO_SAMPLER)
 
 //             extern  uint32_t lastprobe;
 // 
@@ -439,10 +439,10 @@ namespace utils
 //                 boardio.tx.send(ptr);
 //             }
 
-        #elif defined INDOORINO_CONTROLLER
+        #elif defined (INDOORINO_CONTROLLER)
 
 
-        #elif defined INDOORINO_ROUTER
+        #elif defined (ESP8266)
 
             uint32_t buf {0};
             p.init(IBACOM_STATUS_ESP);

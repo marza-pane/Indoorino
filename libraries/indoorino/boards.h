@@ -36,14 +36,14 @@ namespace indoorino
         std::chrono::seconds            _lag{0};
         
         DeviceList                      _devices;
-        std::deque<packet::netpacket>   _rxqueue;
-        std::deque<packet::netpacket>   _txqueue;
+        std::vector<packet::netpacket>  _rxqueue;
+        std::vector<packet::netpacket>  _txqueue;
         
-        packet::ipacket                 _config[2] { packet::ipacket(IBACOM_CONF_STD), packet::ipacket()   };
-        packet::ipacket                 _status[2] { packet::ipacket(IBACOM_STATUS_STD), packet::ipacket() };
+        packet::ipacket                 _config[2] { packet::ipacket(IBACOM_CONF_STD), packet::ipacket(IBACOM_STATUS_STD)   };
+        packet::ipacket                 _status[2] { packet::ipacket(IBACOM_STATUS_STD), packet::ipacket(IBACOM_STATUS_STD) };
 
     public:
-        BoardTemplate(const char *);
+        BoardTemplate(packet::ipacket *);
         virtual ~BoardTemplate();
 
     public:
@@ -57,12 +57,15 @@ namespace indoorino
         
         const iSize_t   devnum          (void);
 
-        const packet::ipacket * config()  { return _config; }
-        const packet::ipacket * status()  { return _status; }
+        const packet::ipacket * config  () { return _config; }
+        const packet::ipacket * status  () { return _status; }
         
-        DeviceList&             devices() { return _devices;}
-
-        std::deque<packet::netpacket>& rxpackets() { return _rxqueue; } 
+        DeviceList&             devices () { return _devices;}
+        
+        void            send_config     (void);
+        void            send_status     (void);
+        
+        std::vector<packet::netpacket>& rxpackets() { return _rxqueue; } 
         std::chrono::system_clock::time_point& boardtime (void);
         
         friend class BoardList;
@@ -80,7 +83,7 @@ namespace indoorino
         int         get_index       (const char *);
 
     protected:        
-        std::deque<BoardTemplate>  _blist;
+        std::vector<BoardTemplate>  _blist;
     
     public:
         BoardList() {}
@@ -89,15 +92,18 @@ namespace indoorino
         BoardTemplate&      operator[]  (const iSize_t i) { return _blist.at(i); };
         BoardTemplate&      operator()  (const char *);
         
-        iSize_t             size        () { return _blist.size(); }    
+        iSize_t             size        () { return _blist.size(); }
         void                clear       () { _blist.clear(); }    
         
         void                add_board   (packet::netpacket *);
         bool                rem_board   (const char *);
         bool                exist       (const char *);
+        void                show        (void);
         
         bool                save        (void);
         bool                load        (void);
+        
+        friend class IndoorinoSystem;
     };
     
 } /* namespace:indoorino */

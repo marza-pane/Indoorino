@@ -7,7 +7,7 @@
 #    |______________________________________________________________________|
 #
 
-TOTAL_IBACOM = 60
+TOTAL_IBACOM = 59
 
 
 
@@ -88,7 +88,6 @@ IBACOM_GENERIC_ALARM                = 3050
 	# --- # [ 03201 - 03500 ] : requests        # --- #
 
 IBACOM_REQ_PROBE                    = 3205
-IBACOM_REQUEST_PROBE                = 3205
 
 	# --- # [ 03501 - 04000 ] : payloads        # --- #
 
@@ -108,12 +107,17 @@ IBACOM_SESSION_STAT                 = 7002
 IBACOM_SESSION_END                  = 7003
 IBACOM_SRV_REQ                      = 7010
 IBACOM_SRV_CONF                     = 7012
-IBACOM_SRV_BOARD                    = 7021
-IBACOM_SRV_BOARD_CONN               = 7022
+IBACOM_SYS_BRD_CNF                  = 7021
+IBACOM_SYS_BRD_STS                  = 7022
+IBACOM_SYS_DEV_CNF                  = 7023
+IBACOM_SYS_DEV_STS                  = 7024
+IBACOM_SYS_REQ                      = 7100
 IBACOM_SET_ENV_ALARM                = 7701
 IBACOM_ACK_ENV_ALARM                = 7702
 IBACOM_ENV_ALARM                    = 7703
-IBACOM_LYT_BOARD                    = 8010
+IBACOM_ALARM_DEVSTAT                = 7705
+IBACOM_LYT_CONF                     = 8008
 IBACOM_LYT_DEVICE                   = 8012
 IBACOM_LYT_LIGHTS                   = 8020
+IBACOM_LYT_WEATHER                  = 8022
 IBACOM_LYT_ALARMS                   = 8050

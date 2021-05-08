@@ -60,15 +60,22 @@ namespace packet
                     char buffer[pvr.size] {0};
                     memcpy(buffer,this->payload() + increment, pvr.size);
 //                     strcpy(buffer, this->payload() + increment);
-
-                    if (utils::is_readable(buffer))
+                    
+                    if (strlen(buffer) > 0)
                     {
-                        PyDict_SetItemString(data, type_name ,PyUnicode_FromString(buffer));
+                        if (utils::is_readable(buffer))
+                        {
+                            PyDict_SetItemString(data, type_name ,PyUnicode_FromString(buffer));
+                        }
+                        else
+                        {
+                            PyDict_SetItemString(data, type_name , PyByteArray_FromStringAndSize(buffer, pvr.size));
+                            debug_io("toDictionary: Invalid string for %s", type_name);               
+                        }
                     }
                     else
                     {
-                        PyDict_SetItemString(data, type_name , PyByteArray_FromStringAndSize(buffer, pvr.size));
-                        debug_io("toDictionary: Invalid string for %s", type_name);               
+                        PyDict_SetItemString(data, type_name ,PyUnicode_FromString(""));
                     }
                     break;
                 }

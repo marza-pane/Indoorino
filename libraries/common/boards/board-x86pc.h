@@ -12,10 +12,10 @@
     
     #if defined(INDOORINO_SERVER)
         const char BOARD_TYPE[] = "SERVER";
-        #pragma message "Compiling INDOORINO SERVER"
+//         #pragma message "Compiling INDOORINO SERVER"
     #elif defined(INDOORINO_CLIENT)
         const char BOARD_TYPE[] = "MODULE";
-        #pragma message "Compiling PYTHON MODULE"
+//         #pragma message "Compiling PYTHON MODULE"
     #else
         const char BOARD_TYPE[] = "APPLICATION";
         #pragma message "Compiling GENERIC APPLICATION"

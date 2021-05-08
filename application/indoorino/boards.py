@@ -239,11 +239,12 @@ class IndoorinoBoard (BoardParameters):
         # if not isinstance(packet, IndoorinoPacket):
         #     return
 
-        if isinstance(self.name, str) and packet.source != self.name:
-            return
+        # if isinstance(self.name, str) and packet.source != self.name:
+        #     return
 
-        self._timeout = time.perf_counter() + Config.macros.TIMEOUT_BOARD
-        self._online=True
+        if packet.source == self.name:
+            self._timeout = time.perf_counter() + Config.macros.TIMEOUT_BOARD
+            self._online=True
 
         if packet.command == IBACOM_CONF_STD:
             if not packet.payload['type'] == self.config.std.packet.payload['type']:
@@ -292,6 +293,7 @@ class IndoorinoBoard (BoardParameters):
 
             name = packet.payload['devname']
             if not name in self._devs.keys() and IBACOM_CONF_ASENSOR <= packet.command <= IBACOM_CONF_DEVSTD:
+                alert_boards('Adding device {}:{}'.format(packet.payload['name'], packet.payload['devname']))
                 self._devs[name] = IndoorinoDevice(self.name, name, packet.payload['pin1'])
             try:
                 self._devs[name].parse(packet)

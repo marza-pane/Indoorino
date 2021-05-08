@@ -58,13 +58,17 @@
 
         /* MANDATORY FOR ARDUINO: choose a unique board name */
 
-//         const char BOARD_NAME[] PROGMEM = "HOUSE.BEAMS";
-//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
-//         #define INDOORINO_CONTROLLER
+        const char BOARD_NAME[] PROGMEM = "HOUSE.BEAMS";
+        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
+        #define INDOORINO_CONTROLLER
 
-        const char BOARD_NAME[] PROGMEM = "SRV.HSE.BMS";
-        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
-        #define INDOORINO_ROUTER
+//         const char BOARD_NAME[] PROGMEM = "SRV.HSE.BMS";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
+//         #define INDOORINO_ROUTER
+
+//         const char BOARD_NAME[] PROGMEM = "KITCHEN.WEATHER";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
+//         #define INDOORINO_CONTROLLER
 
 //         const char BOARD_NAME[] PROGMEM = "WEATHER.SOUTH";
 //         #define INDOORINO_SAMPLER

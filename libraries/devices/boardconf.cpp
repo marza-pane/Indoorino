@@ -106,7 +106,7 @@ void        Conf_Board::factory             (void)
         }    
     }
 #endif
-    debug_dev("Done resetting conf! (devnum = %u)", devnum());
+    debug_dev("Done resetting STD conf! (devnum = %u)", devnum());
 }
 
 //      _____________________________________________________________________
@@ -116,7 +116,7 @@ void        Conf_Board::factory             (void)
 //
 
 
-void        Conf_AVR::initdev               (iSize_t start)
+void        Conf_Board::initdev             (iSize_t start)
 {
     _dpos[0]=start;    
 
@@ -181,7 +181,7 @@ void        Conf_AVR::initdev               (iSize_t start)
     #endif /* DEBUG_DEVICES */
 }
 
-void        Conf_AVR::device_name           (char * buffer, int8_t index)
+void        Conf_Board::device_name         (char * buffer, int8_t index)
 {
     memset(buffer, 0 ,LEN_DEVNAME);
     if (index >= 0 && index < devnum())
@@ -197,7 +197,7 @@ void        Conf_AVR::device_name           (char * buffer, int8_t index)
     error_dev("device_name: invalid index %u", index);
 }
 
-int8_t      Conf_AVR::indexFromName         (const char * name)
+int8_t      Conf_Board::indexFromName       (const char * name)
 {
     char            n_buff[LEN_DEVNAME];
     
@@ -217,7 +217,7 @@ int8_t      Conf_AVR::indexFromName         (const char * name)
     
 }
 
-int8_t      Conf_AVR::indexFromPin          (int8_t pin)
+int8_t      Conf_Board::indexFromPin        (int8_t pin)
 {
     int8_t p=0;
     for (int8_t i=0; i<devnum(); i++)
@@ -229,7 +229,7 @@ int8_t      Conf_AVR::indexFromPin          (int8_t pin)
     return -1;
 }
 
-iCom_t      Conf_AVR::device_command        (int8_t index)
+iCom_t      Conf_Board::device_command      (int8_t index)
 {   
     if (index >= 0 && index < devnum())
     {
@@ -242,7 +242,7 @@ iCom_t      Conf_AVR::device_command        (int8_t index)
     return 0;
 }
 
-int8_t      Conf_AVR::device_pin            (int8_t index)
+int8_t      Conf_Board::device_pin          (int8_t index)
 {
     if (index >= 0 && index < devnum())
     {
@@ -255,7 +255,7 @@ int8_t      Conf_AVR::device_pin            (int8_t index)
     return 0;    
 }
 
-packet::ipacket  *   Conf_AVR::device       (packet::ipacket * ptr, const char * name)
+packet::ipacket  *   Conf_Board::device     (packet::ipacket * ptr, const char * name)
 {
     int8_t index=indexFromName(name);
     
@@ -267,7 +267,7 @@ packet::ipacket  *   Conf_AVR::device       (packet::ipacket * ptr, const char *
     return device(ptr, index);
 }
 
-packet::ipacket  *   Conf_AVR::device       (packet::ipacket * ptr, int8_t index)
+packet::ipacket  *   Conf_Board::device     (packet::ipacket * ptr, int8_t index)
 {        
  
     iCom_t com=0;
@@ -293,7 +293,7 @@ packet::ipacket  *   Conf_AVR::device       (packet::ipacket * ptr, int8_t index
     return ptr;
 }
 
-uint8_t     Conf_AVR::validate              (packet::ipacket * ptr)
+uint8_t     Conf_Board::validate            (packet::ipacket * ptr)
 {
     if (ptr == nullptr)
     {
@@ -328,7 +328,7 @@ uint8_t     Conf_AVR::validate              (packet::ipacket * ptr)
     return 0;
 }
 
-bool        Conf_AVR::devAdd                (packet::ipacket * ptr)
+bool        Conf_Board::devAdd              (packet::ipacket * ptr)
 {
     if (devnum() >= MAX_ATTACHED_DEVICES)
     {
@@ -392,7 +392,7 @@ bool        Conf_AVR::devAdd                (packet::ipacket * ptr)
     return true;
 }
 
-bool        Conf_AVR::devMod                (const char * name, packet::ipacket * ptr)
+bool        Conf_Board::devMod              (const char * name, packet::ipacket * ptr)
 {
     int8_t n=indexFromName(name);
 
@@ -443,7 +443,7 @@ bool        Conf_AVR::devMod                (const char * name, packet::ipacket 
     return true;
 }
 
-bool        Conf_AVR::devRem                (const char * name)
+bool        Conf_Board::devRem              (const char * name)
 {
     uint8_t     dvn=devnum();
     int8_t      index=indexFromName(name);
@@ -478,7 +478,7 @@ bool        Conf_AVR::devRem                (const char * name)
     return true;
 }
 
-bool        Conf_AVR::devSetName            (const char * name, const char *new_name)
+bool        Conf_Board::devSetName          (const char * name, const char *new_name)
 {
 
     if (!utils::is_devname(new_name,1,LEN_DEVNAME))
@@ -507,7 +507,7 @@ bool        Conf_AVR::devSetName            (const char * name, const char *new_
     return true;
 }
 
-bool        Conf_AVR::devSetPin             (const char * name, uint8_t pin)
+bool        Conf_Board::devSetPin           (const char * name, uint8_t pin)
 {
     
     /* const __FSH * constring =F("conf:set:pin: "); */
@@ -547,12 +547,14 @@ bool        Conf_AVR::devSetPin             (const char * name, uint8_t pin)
 
 #if defined(ESP8266)
 
+// #define SIZEOF_STDESPCONF (SIZEOF_STDCONF + LEN_SSID + LEN_PSK + (4 * sizeof(uint8_t)) + sizeof(uint16_t) + (2 * sizeof(iEpoch_t)) + sizof(uint8_t))
+
 void            ConfRouter::begin             (void)
 {
     Conf_Board::begin();
 
     /*
-    *  ___________________________________________________________________________________________
+    *  __________________________________________________________________________
     *  |         | WiFi |  WiFi | remote | remote | timeout | timeout | attemps |
     *  | STDCONF | SSID |  PSK  |   IP   |  PORT  | client  | packet  | packet  |
     *  |____49___|__32__|__64___|___4____|___2____|____4____|____4____|____1____|
@@ -653,6 +655,7 @@ void            ConfRouter::begin             (void)
 
 void            ConfRouter::factory           (void)
 {
+    Conf_Board::factory();
 
     alert_dev("esp:conf:factory reset");
     
@@ -874,60 +877,110 @@ void        ConfSampler::cool               (uint32_t value)
 
 #elif defined (INDOORINO_CONTROLLER)
 
-void        ConfController::begin           (void)
-{
-    Conf_Board::begin();
-    
-//     uint32_t  par=0;
-//     staticspace.get(SIZEOF_STDCONF, par);
-    
-    info_dev("conf:loading [%u] devices!", devnum());
-    initdev(SIZEOF_STDCONF);
-}
-
-void        ConfController::factory         (void)
-{ 
-        
-    Conf_Board::factory();
-    
-    device_conf_template dev;
-    iSize_t ndx=SIZEOF_STDCONF;  
-    packet::ipacket data;
-    
-    for (uint8_t i=0; i<DEFAULT_DEVNUM; i++)
+    void        ConfController::begin           (void)
     {
-        memcpy_P(&dev, &DEFAULT_DEVCONF[i], sizeof(dev));
-
-        data.init(dev.type);
-
-        staticspace.put(ndx, dev.type);
-        ndx+=sizeof(iCom_t);
-
-        debug_dev("Writing device %u: %u - %s - on pin %u", i, dev.type, dev.name, dev.pin);
+        Conf_Board::begin();
         
-        strcpy(data.p_name(), P2C(BOARD_NAME));
-        strcpy(data.p_devname(), dev.name);
-        memcpy(data.p_pin1(), &dev.pin, sizeof(iPin_t));
+    //     uint32_t  par=0;
+    //     staticspace.get(SIZEOF_STDCONF, par);
         
-        for (iSize_t j=0; j<data.data_size(); j++)
-            {
-                staticspace.update(ndx, data.payload()[j]);
-                ndx++;
-            }
-            debug_dev("Wrote sensor %u:%s - on pin %u", i, 
-                     data.p_devname(),
-                     *data.p_pin1());
+        info_dev("conf:loading [%u] devices!", devnum());
+        initdev(SIZEOF_STDCONF);
     }
 
-    for(iSize_t i=ndx; i<ndx + 100; i++)
-    {
-        // trailing zeros
-        staticspace.update(i, 0);
-    }      
-}
+    void        ConfController::factory         (void)
+    { 
+        Conf_Board::begin();
+
+        device_conf_template dev;
+        iSize_t ndx=SIZEOF_STDCONF;  
+        packet::ipacket data;
+        
+        for (uint8_t i=0; i<DEFAULT_DEVNUM; i++)
+        {
+            memcpy_P(&dev, &DEFAULT_DEVCONF[i], sizeof(dev));
+
+            data.init(dev.type);
+
+            staticspace.put(ndx, dev.type);
+            ndx+=sizeof(iCom_t);
+
+            debug_dev("Writing device %u: %u - %s - on pin %u", i, dev.type, dev.name, dev.pin);
+            
+            strcpy(data.p_name(), P2C(BOARD_NAME));
+            strcpy(data.p_devname(), dev.name);
+            memcpy(data.p_pin1(), &dev.pin, sizeof(iPin_t));
+            
+            for (iSize_t j=0; j<data.data_size(); j++)
+                {
+                    staticspace.update(ndx, data.payload()[j]);
+                    ndx++;
+                }
+                debug_dev("Wrote sensor %u:%s - on pin %u", i, 
+                        data.p_devname(),
+                        *data.p_pin1());
+        }
+
+        for(iSize_t i=ndx; i<ndx + 100; i++)
+        {
+            // trailing zeros
+            staticspace.update(i, 0);
+        }      
+    }
+
+    #if defined (ESP8266)
+
+        void        ConfEspController::begin        (void)
+        {
+            ConfRouter::begin();
+            initdev(SIZEOF_STDESPCONF);
+            info_dev("conf:loading [%u] devices!", devnum());
+        }
+
+        void        ConfEspController::factory      (void)
+        { 
+                
+            ConfRouter::factory();
+
+            device_conf_template dev;
+            iSize_t ndx=SIZEOF_STDESPCONF;  
+            packet::ipacket data;
+            
+            for (uint8_t i=0; i<DEFAULT_DEVNUM; i++)
+            {
+                memcpy_P(&dev, &DEFAULT_DEVCONF[i], sizeof(dev));
+
+                data.init(dev.type);
+
+                staticspace.put(ndx, dev.type);
+                ndx+=sizeof(iCom_t);
+
+                debug_dev("Writing device %u: %u - %s - on pin %u", i, dev.type, dev.name, dev.pin);
+                
+                strcpy(data.p_name(), P2C(BOARD_NAME));
+                strcpy(data.p_devname(), dev.name);
+                memcpy(data.p_pin1(), &dev.pin, sizeof(iPin_t));
+                
+                for (iSize_t j=0; j<data.data_size(); j++)
+                    {
+                        staticspace.update(ndx, data.payload()[j]);
+                        ndx++;
+                    }
+                    debug_dev("Wrote sensor %u:%s - on pin %u", i, 
+                            data.p_devname(),
+                            *data.p_pin1());
+            }
+
+            for(iSize_t i=ndx; i<ndx + 100; i++)
+            {
+                // trailing zeros
+                staticspace.update(i, 0);
+            }      
+        }
+
+    #endif
 
 #elif defined (INDOORINO_CAMERA)
-
 
 #endif /* PROJECTS */
 

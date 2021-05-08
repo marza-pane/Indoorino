@@ -16,9 +16,8 @@
 // #include "../network/boardserver.h"
 // #include "../network/shellserver.h"
 
-IndoorinoServer     Server;
-
-indoorino::system   System;
+net::IndoorinoServer        Server;
+indoorino::IndoorinoSystem  System;
 
 int main (void)
 {

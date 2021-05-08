@@ -7,12 +7,21 @@
  *      Author: n00b
  */
 
+/*
+ * STATUS:
+ * 0 = no errors
+ * 1 = invalid pin
+ * 2 = offline
+ * 3 = io error
+ * 4 = type error
+ */
+
 
 #if defined (INDOORINO_SERVER)
 
 #include "../common/common.h"
 #include "devices.h"
-static indoorino::DeviceTemplate invalid_device("");
+static indoorino::DeviceTemplate invalid_device(nullptr);
 
 //      _________________________________________
 //      |                                       |
@@ -21,14 +30,33 @@ static indoorino::DeviceTemplate invalid_device("");
 
 namespace indoorino
 {
-    DeviceTemplate::DeviceTemplate(const char * boardname)
+    DeviceTemplate::DeviceTemplate(packet::ipacket * p)
     {
-        if(utils::is_devname(boardname)) _boardname.assign(boardname);
-        else                             _boardname.assign("UNKNOWN");
-        _conf.init(IBACOM_CONF_DEVSTD);
         _stat.init(IBACOM_STATUS_DEVSTD);
+        strcpy(_type, "NO-TYPE");
+        
+        
+        if (p)
+        {
+            if (packet::is_devconf(p->command()))
+            {
+                _conf.init(p->command());            
+                memcpy(_conf.payload(), p->payload(), _conf.data_size());
+                alert_board("NEW DEVICE: added %s to System.boards.%s on pin [%u]", name(), boardname(), pin());
+                return;
+            }
+            else error_os("NEW DEVICE: invalid init packet <%s>", p->label());
+        }
+        else error_os("NEW DEVICE: nullptr init packet");
+
+        _conf.init(IBACOM_CONF_DEVSTD);
+
+        strcpy(_conf.p_name(),    "UNKNOWN");
+        strcpy(_conf.p_devname(), "UNKNOWN");
+
     }
 
+  
     void                        DeviceTemplate::parse              (packet::ipacket * p)
     {
         debug_dev("parse: parsing <%s>", p->label());
@@ -38,13 +66,13 @@ namespace indoorino
             if (p->command() != _conf.command())
             {
                 warning_dev("Updating %s:%s CONF type [%u] ==> [%u]",
-                            boardname(),  name(), p->command() != _conf.command());
+                            boardname(),  name(), p->command(), _conf.command());
                 _conf.init(p->command());
             }
             
             if (memcmp(p->payload(), _conf.payload(), _conf.data_size()) != 0)
             {
-                warning_dev("Updating device <%s>", name());
+                warning_dev("Updating device <%s:%s>", boardname(), name());
                 memcpy(_conf.payload(), p->payload(), _conf.data_size());
             }
             
@@ -54,7 +82,7 @@ namespace indoorino
             if (p->command() != _stat.command())
             {
                 warning_dev("Updating %s:%s STAT type [%u] ==> [%u]",
-                            boardname(),  name(), p->command() != _conf.command());
+                            boardname(),  name(), p->command(), _conf.command());
                 _stat.init(p->command());
             }
             
@@ -74,16 +102,34 @@ namespace indoorino
         //      |       Device : RELAY                  |
         //      |_______________________________________|
 
-        Relay::Relay(const char * boardname):DeviceTemplate(boardname)
+        Relay::Relay(packet::ipacket * p):DeviceTemplate(p)
         {
-            _conf.init(IBACOM_CONF_RELAY);
-            _stat.init(IBACOM_STATUS_RELAY);
+            strcpy(_type, "RELAY");
+//             _conf.init(IBACOM_CONF_RELAY);
+//             _stat.init(IBACOM_STATUS_RELAY);
         }
         
-        void                        Relay::parse                    (packet::ipacket * p)
+//         void                        Relay::parse                    (packet::ipacket * p)
+//         {
+//             DeviceTemplate::parse(p);
+//         }
+
+        //      _________________________________________
+        //      |                                       |
+        //      |       Device : DHT22                  |
+        //      |_______________________________________|
+
+        DHT22::DHT22(packet::ipacket * p):DeviceTemplate(p)
         {
-            DeviceTemplate::parse(p);
+            strcpy(_type, "DHT22");
+//             _conf.init(IBACOM_CONF_DHT22);
+//             _stat.init(IBACOM_STATUS_DHT22);
         }
+        
+//         void                        DHT22::parse                    (packet::ipacket * p)
+//         {
+//             DeviceTemplate::parse(p);
+//         }
 
 
     } /* namespace : devices */
@@ -116,7 +162,7 @@ namespace indoorino
         }
         
         error_os("FATAL:devices: invalid call for index %d", i);
-        return invalid_device;        
+        return invalid_device;
     }
     
     DeviceTemplate     &       DeviceList::operator()     (const char *key)
@@ -146,12 +192,14 @@ namespace indoorino
         return false;
     }
 
-    bool                        DeviceList::add            (const char * boardname, packet::ipacket * p)
+    bool                        DeviceList::add            (packet::ipacket * p)
     {
+//         static uint32_t rcheck=utils::random_signed();
+        
         iCom_t com = p->command();
         
         if (!packet::is_devconf(com)) { goto handle_invalid_packet; }
-            
+                
         switch (com)
         {
             case IBACOM_CONF_ASENSOR:
@@ -168,19 +216,21 @@ namespace indoorino
             }
             case IBACOM_CONF_DHT22:
             {
-                break;
-            }
+//                 alert_board("adding DHT22 <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                _list.push_back(devices::DHT22(p));
+                _list.back().parse(p);
+                break;            }
             case IBACOM_CONF_RELAY:
             {
-                warning_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(devices::Relay(boardname));
+//                 alert_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                _list.push_back(devices::Relay(p));
                 _list.back().parse(p);
                 break;
             }
             case IBACOM_CONF_DEVSTD:
             {
-                warning_dev("adding generic device <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(DeviceTemplate(boardname));
+//                 warning_dev("adding generic device <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                _list.push_back(DeviceTemplate(p));
                 _list.back().parse(p);
                 break;
             }
@@ -189,6 +239,11 @@ namespace indoorino
                 goto handle_invalid_packet;
             }
         }
+        
+//         alert_board("Now listing devices for %u: ###",rcheck);
+//         for (auto &d: _list) { std::cout << d.boardname() << ":" << d.name() << std::endl; }
+//         std::cout << "###\n";
+        
         return true;
         
         handle_invalid_packet:

@@ -32,10 +32,13 @@ class ResourceTreeView(TreeViewTemplate):
 
         self._structure['home'] = self.insert("", 1, text="Home", values=('',))
         self._structure['boards'] = self.insert("", 2, text="Boards", values=('',))
-        self._structure['alarms'] = self.insert("", 3, text="Alarms", values=('',))
-        self._structure['reports'] = self.insert("", 4, text="Reports", values=('',))
-        self._structure['resources'] = self.insert("", 5, text="Resources", values=('',))
-        self._structure['map'] = self.insert("", 6, text="Map", values=('',))
+        self._structure['server'] = self.insert("", 3, text="Server", values=('',))
+        self._structure['layout'] = self.insert("", 4, text="Layout", values=('',))
+        self._structure['alarms'] = self.insert("", 5, text="Alarms", values=('',))
+        self._structure['reports'] = self.insert("", 6, text="Reports", values=('',))
+        self._structure['resources'] = self.insert("", 7, text="Resources", values=('',))
+
+        self._structure['map'] = self.insert("", 8, text="Map", values=('',))
 
         # self._structure['reports'] = self.insert(self._structure['signals'], 1, text="Reports", values=('',))
         # self._structure['warnings'] = self.insert(self._structure['signals'], 2, text="Warnings", values=('',))

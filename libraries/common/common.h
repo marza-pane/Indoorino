@@ -21,15 +21,26 @@
     #include "boardio.h"
     #include "boardconf.h"
     
-    #if defined(INDOORINO_ROUTER)
+    #if defined(ESP8266)
         #include "netconfig.h"
         #include "espclient.h"
-        extern ConfRouter           conf;
         extern NetworkConnection    network;
-        extern IndoorinoEspClient   client;
-    #elif defined(INDOORINO_CONTROLLER)
-        extern ConfController       conf;
+        extern IndoorinoEspClient   client;  
+        
+        #if defined(INDOORINO_ROUTER)
+            extern ConfRouter           conf;
+        #elif defined(INDOORINO_CONTROLLER)
+            extern ConfEspController    conf;
+        #endif
+        
+    #else
+        #if defined(INDOORINO_ROUTER)
+            #error "INDOORINO_ROUTER can only be flashed onto ESP8266 chips"
+        #elif defined(INDOORINO_CONTROLLER)
+            extern ConfController       conf;
+        #endif    
     #endif
+    
 
     #if defined(INDOORINO_DEVS)
         #include "devices.h"

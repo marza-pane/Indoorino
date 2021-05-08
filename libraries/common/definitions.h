@@ -12,7 +12,7 @@
 #define INDOORINO_VERSION "3.1.0"
 
 #if !defined(__linux__) && !defined(ARDUINO)
-#error "Indoorino can only be compiled for linux or Arduino"
+#error "Indoorino can only be compiled for Linux, AVR and ESP"
 #endif
 
 /* Some people ask why the first release is number 3. Here is why.
@@ -187,6 +187,7 @@ typedef     uint32_t    iPid_t;
 #define     FLOAT2UINT_M            100
 
 #define     SIZEOF_STDCONF          (3 * LEN_NAME + sizeof(uint8_t))
+#define     SIZEOF_STDESPCONF       (SIZEOF_STDCONF + LEN_SSID + LEN_PSK + (4 * sizeof(uint8_t)) + sizeof(uint16_t) + (2 * sizeof(iEpoch_t)) + sizeof(uint8_t))
 #define     SIZEOF_PREAMBLE         (4 * sizeof(uint8_t))
 #define     SIZEOF_PACKET_HEADER    (SIZEOF_PREAMBLE + sizeof(iCom_t) + 2 * LEN_NAME + sizeof(iPid_t)) // 4 + 2 + 48 + 4 = 58
 #define     SIZEOF_NET_HEADER       (SIZEOF_PREAMBLE + sizeof(iSize_t) + N_BLOCK)
@@ -290,19 +291,23 @@ typedef struct {
         *  Table parameters are: <device name>, <pin>, <device type>
         */
 
-        #define DEFAULT_DEVNUM      9
+        #define DEFAULT_DEVNUM      2
 
         const device_conf_template DEFAULT_DEVCONF[DEFAULT_DEVNUM] PROGMEM = 
         {
-            "HEAT1",  7, IBACOM_CONF_DHT22,
-            "BEAM1", 28, IBACOM_CONF_RELAY,
-            "BEAM2", 30, IBACOM_CONF_RELAY,
-            "BEAM3", 32, IBACOM_CONF_RELAY,
-            "BEAM4", 34, IBACOM_CONF_RELAY,
-            "BEAM5", 36, IBACOM_CONF_RELAY,
-            "BEAM6", 38, IBACOM_CONF_RELAY,
-            "BEAM7", 40, IBACOM_CONF_RELAY,
-            "BEAM8", 42, IBACOM_CONF_RELAY
+            "DHT1",  6, IBACOM_CONF_DHT22,
+            "DHT2",  7, IBACOM_CONF_DHT22,
+
+//             "HEAT1",  7, IBACOM_CONF_DHT22,
+//             "BEAM1", 28, IBACOM_CONF_RELAY,
+//             "BEAM2", 30, IBACOM_CONF_RELAY,
+//             "BEAM3", 32, IBACOM_CONF_RELAY,
+//             "BEAM4", 34, IBACOM_CONF_RELAY,
+//             "BEAM5", 36, IBACOM_CONF_RELAY,
+//             "BEAM6", 38, IBACOM_CONF_RELAY,
+//             "BEAM7", 40, IBACOM_CONF_RELAY,
+//             "BEAM8", 42, IBACOM_CONF_RELAY
+            
         };
 
 //      _____________________________________________________________________

@@ -4,7 +4,7 @@
 targetpath=$HOME/Code/Develop/Indoorino.3.1.0/
 size=$(du -sbh $targetpath | cut -d'/' -f1)
 
-$targetpath/clean.sh
+${targetpath}build/devutils/clean.sh
 
 if [ -d "$targetpath" ]; then
     echo -e "Pushing $targetpath to github: total $size\n\n";

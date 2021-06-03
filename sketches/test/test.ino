@@ -5,36 +5,55 @@
 
 //Libraries
 #include "utils.h"
-#include "DHT.h"
 
-//Constants
-#define DHTPIN 2     // what pin we're connected to
-#define DHTTYPE DHT22   // DHT 22  (AM2302)
-DHT dht(DHTPIN, DHTTYPE); //// Initialize DHT sensor for normal 16mhz Arduino
+/*
+ Dust Sensor project for arduino
+ sensor GP2Y1010AU0F
+ www.keyestudio.com
+*/
+
+#define ANALPIN 0
+#define LEDPIN 3
+#define SAMPLING 280
+#define DELTATIME 40
+#define SLEEPTIME 9680
 
 
-//Variables
-int chk;
-float hum;  //Stores humidity value
-float temp; //Stores temperature value
+float voMeasured = 0;
+float calcVoltage = 0;
+float dustDensity = 0;
 
 void setup()
 {
-    utils::board::debug_init();
-	dht.begin();
+    SerialDebug.begin(SERIAL_DEFAULT_BAUDRATE);
+//     utils::board::debug_init();
+    
+    pinMode(LEDPIN, OUTPUT);
+    SerialDebug.println("Dust sensor START: ");
 
 }
+void loop(){
 
-void loop()
-{
-    //Read data and store it to variables hum and temp
-    hum = dht.readHumidity();
-    temp= dht.readTemperature();
-    //Print temp and humidity values to serial monitor
-    SerialDebug.print("Humidity: ");
-    SerialDebug.print(hum);
-    SerialDebug.print(" %, Temp: ");
-    SerialDebug.print(temp);
-    SerialDebug.println(" Celsius");
-    delay(2000); //Delay 2 sec.
+    digitalWrite(LEDPIN, LOW); // power on the LED
+
+    delayMicroseconds(SAMPLING);
+    voMeasured = analogRead(ANALPIN); // read the dust value
+    delayMicroseconds(DELTATIME);
+    
+    digitalWrite(LEDPIN,HIGH); // turn the LED off
+//     delayMicroseconds(SLEEPTIME);
+    
+  // 0 - 5V mapped to 0 - 1023 integer values
+  // recover voltage
+    calcVoltage = voMeasured * (5.0 / 1024.0);
+    dustDensity = 170 * calcVoltage - 0.1;
+    SerialDebug.print("Analog value = ");
+    SerialDebug.println(voMeasured);
+    SerialDebug.print("Mapped value = ");
+    SerialDebug.println(calcVoltage);
+    SerialDebug.print("The dust concentration is: ");
+    SerialDebug.print(dustDensity);
+    SerialDebug.print(" ug/m3\n");  
+
+    delay(1000); //Delay 2 sec.
 }

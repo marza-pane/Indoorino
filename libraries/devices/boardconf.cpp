@@ -890,7 +890,7 @@ void        ConfSampler::cool               (uint32_t value)
 
     void        ConfController::factory         (void)
     { 
-        Conf_Board::begin();
+        Conf_Board::factory();
 
         device_conf_template dev;
         iSize_t ndx=SIZEOF_STDCONF;  
@@ -910,6 +910,31 @@ void        ConfSampler::cool               (uint32_t value)
             strcpy(data.p_name(), P2C(BOARD_NAME));
             strcpy(data.p_devname(), dev.name);
             memcpy(data.p_pin1(), &dev.pin, sizeof(iPin_t));
+            
+            switch (data.command())
+            {
+                case IBACOM_CONF_DHT22:
+                {
+                    * data.p_param1() = FLOAT2UINT_M;
+                    * data.p_param2() = 0;
+                    * data.p_param3() = FLOAT2UINT_M;
+                    * data.p_param4() = 0;    
+                    break;
+                }
+                case IBACOM_CONF_DUSTPM25:
+                {   
+                    /* default values from https://wiki.keyestudio.com/Ks0196_keyestudio_PM2.5_Dust_Sensor_Module */
+                    
+                    * data.p_param1() = 170 * FLOAT2UINT_M;  // dust K (multiplier)
+                    * data.p_param2() = -10;                // dust C (constant)
+                    * data.p_param3() = 1000;              // dust alarm limit
+                    * data.p_timeout1() = 280;            // sampling time
+                    * data.p_timeout2() = 40;            // release time
+                    break;
+                }
+                default:
+                    debug_dev("no config required for %%s", dev.name);
+            }
             
             for (iSize_t j=0; j<data.data_size(); j++)
                 {

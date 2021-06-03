@@ -42,12 +42,12 @@ namespace indoorino
             {
                 _conf.init(p->command());            
                 memcpy(_conf.payload(), p->payload(), _conf.data_size());
-                alert_board("NEW DEVICE: added %s to System.boards.%s on pin [%u]", name(), boardname(), pin());
+                alert_dev("NEW DEVICE: added %s to System.boards.%s on pin [%u]", name(), boardname(), pin());
                 return;
             }
-            else error_os("NEW DEVICE: invalid init packet <%s>", p->label());
+            else error_dev("NEW DEVICE: invalid init packet <%s>", p->label());
         }
-        else error_os("NEW DEVICE: nullptr init packet");
+        else error_dev("NEW DEVICE: nullptr init packet");
 
         _conf.init(IBACOM_CONF_DEVSTD);
 
@@ -105,8 +105,7 @@ namespace indoorino
         Relay::Relay(packet::ipacket * p):DeviceTemplate(p)
         {
             strcpy(_type, "RELAY");
-//             _conf.init(IBACOM_CONF_RELAY);
-//             _stat.init(IBACOM_STATUS_RELAY);
+            _stat.init(IBACOM_STATUS_RELAY);
         }
         
 //         void                        Relay::parse                    (packet::ipacket * p)
@@ -122,14 +121,19 @@ namespace indoorino
         DHT22::DHT22(packet::ipacket * p):DeviceTemplate(p)
         {
             strcpy(_type, "DHT22");
-//             _conf.init(IBACOM_CONF_DHT22);
-//             _stat.init(IBACOM_STATUS_DHT22);
+            _stat.init(IBACOM_STATUS_DHT22);
         }
         
-//         void                        DHT22::parse                    (packet::ipacket * p)
-//         {
-//             DeviceTemplate::parse(p);
-//         }
+        //      _________________________________________
+        //      |                                       |
+        //      |       Device : PM25 dust sensor       |
+        //      |_______________________________________|
+
+        DustPM25::DustPM25(packet::ipacket * p):DeviceTemplate(p)
+        {
+            strcpy(_type, "DUSTPM25");
+            _stat.init(IBACOM_STATUS_DUSTPM25);
+        }
 
 
     } /* namespace : devices */
@@ -210,8 +214,22 @@ namespace indoorino
             {
                 break;
             }
+            case IBACOM_CONF_RELAY:
+            {
+//                 alert_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                _list.push_back(devices::Relay(p));
+                _list.back().parse(p);
+                break;
+            }
             case IBACOM_CONF_LDR:
             {
+                break;
+            }
+            case IBACOM_CONF_DUSTPM25:
+            {
+//                 alert_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                _list.push_back(devices::DustPM25(p));
+                _list.back().parse(p);
                 break;
             }
             case IBACOM_CONF_DHT22:
@@ -220,13 +238,6 @@ namespace indoorino
                 _list.push_back(devices::DHT22(p));
                 _list.back().parse(p);
                 break;            }
-            case IBACOM_CONF_RELAY:
-            {
-//                 alert_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(devices::Relay(p));
-                _list.back().parse(p);
-                break;
-            }
             case IBACOM_CONF_DEVSTD:
             {
 //                 warning_dev("adding generic device <%s> on pin %u", p->p_devname(), *p->p_pin1());

@@ -16,6 +16,30 @@
 // #include "../network/boardserver.h"
 // #include "../network/shellserver.h"
 
+
+
+void on_exit         (int exitcode)
+{
+    printf("\n");
+    fflush(stdout);
+
+    System.save_state();
+    Server.stop();
+    
+    printf("\n%s\t exitcode [%d] on process [%d] - See you in space cowboy\n\n", debug::TRS, exitcode, getpid());
+    
+    std::exit(EXIT_SUCCESS);
+}
+
+
+
+
+
+
+
+
+
+
 net::IndoorinoServer        Server;
 indoorino::IndoorinoSystem  System;
 

@@ -12,18 +12,7 @@
 
 static bool net_thread_flag=true;
 
-void on_exit         (int exitcode)
-{
-    printf("\n");
-    fflush(stdout);
 
-    System.save_state();
-    Server.stop();
-    
-    printf("\n%s\t exitcode [%d] on process [%d] - See you in space cowboy\n\n", debug::TRS, exitcode, getpid());
-
-    (exitcode != 0) ? (std::exit(EXIT_FAILURE)) : (std::exit(EXIT_SUCCESS));
-}
 
 namespace net
 {    
@@ -49,7 +38,7 @@ namespace net
             static bool isOnline=false;
             while (net_thread_flag)
             {
-                std::cout << ".";
+//                 std::cout << ".";
                 if (net::netstatus() != isOnline)
                 {
                     if (net::netstatus())
@@ -97,13 +86,13 @@ namespace net
 
     void        IndoorinoServer::stop           (void)
     {
-        alert_server("halting server...");
+        board.stop();
+        shell.stop();
         
         if (net_thread_flag)
         {
+            alert_server("halting server...");
             net_thread_flag = false;
-            board.stop();
-            shell.stop();
             if (_thr_netcheck.joinable()) { _thr_netcheck.join(); }
         }
         

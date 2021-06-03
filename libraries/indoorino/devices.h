@@ -75,9 +75,14 @@ namespace indoorino
         {
         private:
         public:
-            DHT22(packet::ipacket *);
-            
-//             void            parse           (packet::ipacket *);
+            DHT22(packet::ipacket *);            
+        };
+
+        class DustPM25 : public DeviceTemplate
+        {
+        private:
+        public:
+            DustPM25(packet::ipacket *);            
         };
 
         
@@ -132,7 +137,7 @@ namespace indoorino
         
     };
     
-    class Message
+    class Message //??
     {
     protected:
         std::chrono::system_clock::time_point _boardtime;

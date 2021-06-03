@@ -1,5 +1,5 @@
 /*
- * board_ESP8266.h
+ * board_esp8266.h
  *
  *  Created on: 7 May, 2020
  *      Author: n00b
@@ -12,7 +12,11 @@
     #include <ESP8266WiFiMulti.h>
     #include <SoftwareSerial.h>
     #include <Hash.h>
-
+    
+    #if !defined(ESP8266)
+    #error "Invalid loading <board_esp8266.h> on non-ESP board!"
+    #endif
+    
     #if     defined(ARDUINO_ESP8266_GENERIC)
 
         //      ________________________________
@@ -136,8 +140,8 @@
                 LED_BUILTIN = GPIO16    
             */
 
-        #define DEBUG_PIN_RX D2
-        #define DEBUG_PIN_TX D3
+        #define DEBUG_PIN_RX D5
+        #define DEBUG_PIN_TX D6
         
         extern SoftwareSerial  SerialDebug;
         #define SerialDebugPrint(S,...) SerialDebug.print(S, ## __VA_ARGS__)

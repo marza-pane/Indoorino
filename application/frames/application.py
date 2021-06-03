@@ -8,9 +8,9 @@ from frames.ioverview import UiIOverview
 from frames.boards import UiBoards
 from frames.homemap import UiHomeMap
 from frames.homelights import UiHomeLights
+from frames.homelayout import UiLayout
 from frames.weather import UiWeather
 from frames.alarms import UiAlarms
-from frames.homelayout import UiLayout
 
 import tkinter.messagebox
 
@@ -48,15 +48,8 @@ class ApplicationWindow(ApplicationWindowTemplate):
         self.main_frame.on_resize()
 
     def on_closing(self, *evt):
-        Config.options.SAVE_ON_EXIT = False
-        if len(System.boards()):
-            r = tk.messagebox.askyesnocancel('Exit Application', 'Do you want to save session?')
-            if r is None:
-                return
-            elif r:
-                Config.options.SAVE_ON_EXIT = True
-
         System.on_exit()
+        self.main_frame.on_closing()
         super(ApplicationWindow, self).on_closing(*evt)
 
 class ApplicationMainFrame(PanedTemplate):
@@ -66,7 +59,7 @@ class ApplicationMainFrame(PanedTemplate):
         self.frames = {
             'overview'          : UiIOverview(self),
             'boards'            : UiBoards(self),
-            'alarms'            : UiAlarms(self),
+            'resources:alarms'  : UiAlarms(self),
             'layout'            : UiLayout(self),
             'map'               : UiHomeMap(self),
             'resources:lights'  : UiHomeLights(self),
@@ -77,10 +70,15 @@ class ApplicationMainFrame(PanedTemplate):
         self.tree_view = ResourceTreeView(self)
         self.top_bar = TopDashboardBar(self)
         self.current='resources:lights'
-        self.current='boards'
-        self.current='alarms'
+        self.current='resources:alarms'
         self.current='overview'
         self.current='layout'
+        self.current='resources:alarms'
+        self.current='boards'
+        # self.after(4500, self.tempdrop)
+
+    def tempdrop(self):
+        self.show_frame('resources:alarms:fire:attic')
 
     def build(self, *args, **kwargs):
         super(ApplicationMainFrame, self).build(*args)
@@ -118,8 +116,56 @@ class ApplicationMainFrame(PanedTemplate):
                 self.tree_view.state(('disabled',))
                 self.top_bar.buttons['treeview'].replace_image(Icons.system.TREEVIEW_OFF())
                 self.on_resize()
-
             return
+
+        if 'resources:alarms' in name:
+
+            key = 'resources:alarms'
+            arg='all'
+
+            chunk = name.split(':')
+            if len(chunk) > 2 :
+                if chunk[2] in [group.alarmtype.lower() for group in System.alarms.groups.values()]:
+                    if len(chunk) == 3:
+                        arg=chunk[2]
+                    else:
+                        data = [
+                            group.name for
+                                group in System.alarms.groups.values() if
+                                group.alarmtype.lower() == chunk[2] and
+                                group.name.split(' ')[0] == chunk[3]]
+
+                        if data:
+                            arg=data[0]
+                        else:
+                            error_ui('application:show:alarms: {} not a valid group'.format(chunk[3]))
+                else:
+                    error_ui('application:show:alarms: {} not a valid type'.format(chunk[2]))
+
+
+            if not self.current == key:
+                if self.current in self.frames.keys():
+                    self.frames[self.current].place_forget()
+                self.current = key
+                self.on_resize()
+            self.frames[self.current].show(arg)
+            self.frames[self.current].on_update()
+
+        if 'boards:' in name:
+
+            key = 'boards'
+            chunk = name.split(':')
+            if len(chunk) == 2:
+                if chunk[1].upper() in System.boards().keys():
+                    if not self.current == key:
+                        if self.current in self.frames.keys():
+                            self.frames[self.current].place_forget()
+                        self.current = key
+                        self.on_resize()
+                    self.frames[self.current].show_frame(chunk[1].upper())
+                    self.frames[self.current].on_update()
+
+
 
         elif name in self.frames.keys():
             if self.current == name:
@@ -130,9 +176,10 @@ class ApplicationMainFrame(PanedTemplate):
             self.current=name
             self.frames[self.current].on_update()
             self.on_resize()
+            return
+
         else:
-            error_ui('Invalid show_frame command {}'.format(name))
-        pass
+            warning_ui('Invalid show_frame command {}'.format(name))
 
     def on_resize(self, *args, **kwargs):
         w,h=super(ApplicationMainFrame, self).on_resize()
@@ -314,3 +361,16 @@ class ApplicationWindowOld(ApplicationWindowTemplate):
 # # some time later, inject the "<<Foo>>" virtual event at the
 # # tail of the event queue
 # root.event_generate("<<Foo>>", when="tail")
+
+
+
+        # if tk.messagebox.askyesno('Indoorino Start', 'Do you want to load last session?'):
+        #     System.load_session()
+
+        # Config.options.SAVE_ON_EXIT = False
+        # if len(System.boards()):
+        #     r = tk.messagebox.askyesnocancel('Exit Application', 'Do you want to save session?')
+        #     if r is None:
+        #         return
+        #     elif r:
+        #         Config.options.SAVE_ON_EXIT = True

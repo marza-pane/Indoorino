@@ -455,8 +455,8 @@ namespace benchmark
             debug_io("\t- Free SRAM is %u", utils::board::available_ram());
             if (utils::board::available_ram() < 250)    return;
     #endif        
-        debug_io("label: %s", q->label());
-        debug_io("description: %s", q->description());
+//         debug_io("label: %s", q->label());
+//         debug_io("description: %s", q->description());
         
 //         debug_io("dump:");
 //         q->dump();

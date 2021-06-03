@@ -20,7 +20,10 @@ namespace net
         _timeout = std::chrono::milliseconds(TIMEOUT_CLIENT_SHELL);        
     }
     
-    serverShell::~serverShell() {}
+    serverShell::~serverShell()
+    {
+        this->stop();        
+    }
 
 //     void        serverShell::broadcast              (packet::netpacket * p)
 //     {

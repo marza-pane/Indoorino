@@ -113,43 +113,41 @@ class UiHomeLights(CanvasTemplate):
             if self._waiting:
                 return
 
-            if not self.exist():
+            if self.exist() and System.io.is_connected():
+                device = self.get_device()
+                self.waiting = True
+                self.after(10000, self._rem_wait)
+                if device.is_connected():
+                    if device.status.dev['relay_state'].data:
+                        # send turn OFF
+                        d = {
+                            'devname': self.device,
+                            'command': 'SET',
+                            'value1': 0
+                        }
+                        p = IndoorinoPacket()
+                        p.build(IBACOM_SET_DEVICE, self.board, d)
+                        System.io.send(p)
+                        self._waitfor = False
+
+                        # self.after(2000, lambda : (device.status.dev['relay_state'].set(False), self.on_update()))
+
+                    else:
+                        # send turn ON
+                        d = {
+                            'devname': self.device,
+                            'command': 'SET',
+                            'value1': 1
+                        }
+                        p = IndoorinoPacket()
+                        p.build(IBACOM_SET_DEVICE, self.board, d)
+                        System.io.send(p)
+                        self._waitfor = True
+
+                        # self.after(2000, lambda : (device.status.dev['relay_state'].set(True), self.on_update()))
+
                 self.on_update()
                 return
-
-            device = self.get_device()
-            self.waiting = True
-            self.after(10000, self._rem_wait)
-            if device.is_connected():
-                if device.status.dev['relay_state'].data:
-                    # send turn OFF
-                    d = {
-                        'devname': self.device,
-                        'command': 'SET',
-                        'value1': 0
-                    }
-                    p = IndoorinoPacket()
-                    p.build(IBACOM_SET_DEVICE, self.board, d)
-                    System.io.send(p)
-                    self._waitfor = False
-
-                    # self.after(2000, lambda : (device.status.dev['relay_state'].set(False), self.on_update()))
-
-                else:
-                    # send turn ON
-                    d = {
-                        'devname': self.device,
-                        'command': 'SET',
-                        'value1': 1
-                    }
-                    p = IndoorinoPacket()
-                    p.build(IBACOM_SET_DEVICE, self.board, d)
-                    System.io.send(p)
-                    self._waitfor = True
-
-                    # self.after(2000, lambda : (device.status.dev['relay_state'].set(True), self.on_update()))
-
-                self.on_update()
 
         def on_press(self, *event):
             super(UiHomeLights.Device, self).on_press(*event)
@@ -250,19 +248,12 @@ class UiHomeLights(CanvasTemplate):
 
     class Board(PanedTemplate):
 
-        def __init__(self, parent, source, name, **kwargs):
-            PanedTemplate.__init__(self, parent, **kwargs)
-
+        def __init__(self, parent, name, group):
+            PanedTemplate.__init__(self, parent)
+            self._group=group
+            self._boardname=name
             self.devices = dict()
             self.buttons = dict()
-
-            for key, item in source.items():
-                print('Adding {}:{} with options {}'.format(name, key, item))
-                self.devices.update(
-                    {
-                        key: UiHomeLights.Device(self, name, key, item)
-                    }
-                )
 
         def build(self):
             super(UiHomeLights.Board, self).build()
@@ -270,8 +261,8 @@ class UiHomeLights(CanvasTemplate):
                 relief=tk.RAISED,
                 bg='black'
             )
-            for item in self.devices.values():
-                item.build()
+            # for item in self.devices.values():
+            #     item.build()
 
             for key in ('update', 'turn ON', 'turn OFF',):
                 self.buttons.update(
@@ -333,6 +324,32 @@ class UiHomeLights(CanvasTemplate):
                 warning_ui('Could not ned update because board name is unknown (no devices found)')
 
         def on_update(self, *args, **kwargs):
+
+            resize_flag = False
+
+            for key in self.devices.keys():
+                if not key in [i.group for i in System.layout.lights.values()]:
+                    self.devices[key].on_closing()
+                    self.devices.pop(key)
+                    self.on_update()
+                    return
+
+            for key, light in System.layout.lights.items():
+                if not light.devname in self.devices.keys() \
+                        and light.boardname == self._boardname \
+                        and light.group == self._group:
+                    debug_ui('Adding {}:{}'.format(light.boardname, light.devname))
+                    self.devices.update(
+                        {
+                            light.devname: UiHomeLights.Device(self, light.boardname, light.devname)
+                        }
+                    )
+                    self.devices[light.devname].build()
+                    resize_flag = True
+
+                if resize_flag:
+                    self.on_resize()
+
             for item in self.devices.values():
                 item.on_update()
 
@@ -378,22 +395,14 @@ class UiHomeLights(CanvasTemplate):
 
     class Group(PanedTemplate):
 
-        def __init__(self, parent, source, group, **kwargs):
+        def __init__(self, parent, group, **kwargs):
             PanedTemplate.__init__(self, parent, **kwargs)
 
+            self._group=group
             self._visible=True
-
             self.boards = dict()
-            self.label = LabelTemplate(self, text=group.upper())
+            self.label = LabelTemplate(self, text=str(group).upper())
             self.compact = PictureTemplate(self, Icons.system.COLLAPSE(), bg=Palette.generic.DISABLED)
-
-            for key, item in source.items():
-                debug_ui('Adding {}:{}'.format(group, key, item))
-                self.boards.update(
-                    {
-                        key: UiHomeLights.Board(self, item, key)
-                    }
-                )
 
         def build(self, *args, **kwargs):
             super(UiHomeLights.Group, self).build()
@@ -437,8 +446,32 @@ class UiHomeLights(CanvasTemplate):
             self.master.on_resize()
 
         def on_update(self, *args, **kwargs):
+
+            resize_flag = False
+
+            for key in self.boards.keys():
+                if not key in [i.group for i in System.layout.lights.values()]:
+                    self.boards[key].on_closing()
+                    self.boards.pop(key)
+                    self.on_update()
+                    return
+
+            for key, light in System.layout.lights.items():
+                if not light.boardname in self.boards.keys():
+                    debug_ui('Adding {}:{}'.format(light.group, light.boardname))
+                    self.boards.update(
+                        {
+                            light.boardname: UiHomeLights.Board(self, light.boardname, self._group)
+                        }
+                    )
+                    self.boards[light.boardname].build()
+                    resize_flag = True
+
             for item in self.boards.values():
                 item.on_update()
+
+            if resize_flag:
+                self.on_resize()
 
         def loop(self, *args, **kwargs):
             for item in self.boards.values():
@@ -467,7 +500,7 @@ class UiHomeLights(CanvasTemplate):
             bnum = len(self.boards)
 
             if bnum == 0:
-                return w, h
+                return h_title
 
             weights = list()
             for item in self.boards.values():
@@ -475,12 +508,13 @@ class UiHomeLights(CanvasTemplate):
 
             if bnum > 3:
                 n = np.array(weights)
-                wtable = tuple(w * n / np.sqrt(np.sum(n**2)))
+                wtable = tuple(w * n / np.sum(n))
+                # wtable = tuple(w * n / np.sqrt(np.sum(n**2)))
             else:
                 wtable = [int(w / bnum)] * bnum
 
             offset = 0
-            hboards = list()
+            hboards = [0,]
             for count, widget in enumerate(self.boards.values()):
                 widget.place(
                     x=offset,
@@ -505,29 +539,30 @@ class UiHomeLights(CanvasTemplate):
         CanvasTemplate.__init__(self, parent, **kwargs)
         self.widgets = dict()
 
-        for group, data in Config.layout.lights.items():
-            self.widgets.update(
-                {
-                    group:self.Group(self, data, group),
-                }
-            )
-
     def build(self, *args, **kwargs):
         super(UiHomeLights, self).build()
-        for widget in self.widgets.values():
-            widget.build()
+        self.on_update()
 
     def on_update(self, *args, **kwargs):
 
         resize_flag=False
-        for group, data in Config.layout.lights.items():
-            if not group in self.widgets.keys():
+
+        for key in self.widgets.keys():
+            if not key in [i.group for i in System.layout.lights.values()]:
+                self.widgets[key].on_closing()
+                self.widgets.pop(key)
+                self.on_update()
+                return
+
+
+        for key, light in System.layout.lights.items():
+            if not light.group in self.widgets.keys():
                 self.widgets.update(
                     {
-                        group : self.Group(self, data, group),
+                        light.group : self.Group(self, light.group)
                     }
                 )
-                self.widgets[group].build()
+                self.widgets[light.group].build()
                 resize_flag=True
 
         for widget in self.widgets.values():
@@ -538,7 +573,7 @@ class UiHomeLights(CanvasTemplate):
 
     def loop(self, *args, **kwargs):
 
-        if Config.flags.update.DEVICES:
+        if Config.flags.update.DEVICES or Config.flags.update.NETWORK:
             self.on_update()
 
         for widget in self.widgets.values():

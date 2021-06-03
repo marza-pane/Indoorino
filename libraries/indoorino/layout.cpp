@@ -307,26 +307,35 @@ namespace indoorino
                 }
                 
                 /*
+                 * GET
                  * LOAD
                  * SAVE
                  * CLEAR    BOARDS
                  *          LIGHTS
                  *          ALARMS
+                 *          WEATHER
+                 * REM      <group>     <boardname>     <devname>
                  * 
                  */
                 
                 if (n == 1)
                 {
-                    if (strcmp(c[0], "LOAD") == 0)
+                    if (strcmp(c[0], "GET") == 0)
+                    {
+                        alert_os("sending layout");
+                        this->send_config();
+                    }
+                    else if (strcmp(c[0], "LOAD") == 0)
                     {
                         alert_os("Loading layout");
-//                         this->load("PATH-TO-LAYOUT");
+                        this->load();
                     }
                     else if (strcmp(c[0], "SAVE") == 0)
                     {
                         alert_os("Saving layout");
-//                         this->save("PATH-TO-LAYOUT");
+                        this->save();
                     }
+                    
                 
                 }
                 else if (n == 2)
@@ -346,11 +355,88 @@ namespace indoorino
                         else if (strcmp(c[1], "ALARMS") == 0)
                         {
                             alert_os("Clearing lights layout");
-//                             _alarms.clear();
+                            _alarms.clear();
                         }
-                    }                    
+                        else if (strcmp(c[1], "WEATHER") == 0)
+                        {
+                            alert_os("Clearing weather layout");
+                            _weather.clear();
+                        }
+                        else
+                        {
+                            warning_os("layout:parse: invalid command %s", p->p_command());
+                        }
+
+                    }
+                    else
+                    {
+                        warning_os("layout:parse: invalid command %s", p->p_command());
+                    }
+                    
                 }
-                for (uint8_t i=0; i<=n; i++)
+                else if ( n == 4 && strcmp(c[0], "REM") )
+                {
+                    int index;
+                    if (strcmp(c[1], "BOARDS") == 0)
+                    {
+                        index = is_device(c[2], c[3]);
+                        if ( index == -1 )
+                        {
+                            warning_os("layout:parse:rem:board invalid board:device %s:%s", c[2], c[3]);
+                        }
+                        else
+                        {
+                            _devices.erase(_devices.begin() + index);
+                        }
+                    }
+                        
+                    else if (strcmp(c[1], "LIGHTS") == 0)
+                    {
+                        index = is_light(c[2], c[3]);
+                        if ( index == -1 )
+                        {
+                            warning_os("layout:parse:rem:lights invalid board:device %s:%s", c[2], c[3]);
+                        }
+                        else
+                        {
+                            _lights.erase(_lights.begin() + index);
+                        }
+                    }
+                    else if (strcmp(c[1], "ALARMS") == 0)
+                    {
+                        index = is_alarm(c[2], c[3]);
+                        if ( index == -1 )
+                        {
+                            warning_os("layout:parse:rem:alarms invalid board:device %s:%s", c[2], c[3]);
+                        }
+                        else
+                        {
+                            _alarms.erase(_alarms.begin() + index);
+                        }
+                    }
+                    else if (strcmp(c[1], "WEATHER") == 0)
+                    {
+                        index = is_weather(c[2], c[3]);
+                        if ( index == -1 )
+                        {
+                            warning_os("layout:parse:rem:weather invalid board:device %s:%s", c[2], c[3]);
+                        }
+                        else
+                        {
+                            _weather.erase(_weather.begin() + index);
+                        }
+                    }
+                    else
+                    {
+                        warning_os("layout:parse: invalid command %s", p->p_command());
+                    } 
+                }
+                else
+                {
+                    warning_os("layout:parse: invalid command %s", p->p_command());
+                }
+                                
+                for (uint8_t i=0; i<n; i++)
                 {
                     free(c[i]);
                 }
@@ -359,20 +445,79 @@ namespace indoorino
             }
             else if (p->command() == IBACOM_LYT_DEVICE)
             {
-                
+                int index = is_device(p->p_board(), p->p_devname());
+            
+                if (index == -1)
+                {
+                    linked_dev_t d;
+                    strcpy(d.boardname, p->p_board());
+                    strcpy(d.devname,   p->p_devname());
+                    strcpy(d.type,      p->p_type());
+                    strcpy(d.area,      p->p_label1());
+                    strcpy(d.location,  p->p_label2());
+
+                    _devices.push_back(d);
+                }
+                else
+                {
+                    linked_dev_t &d = _devices.at(index);
+
+                    strcpy(d.type,      p->p_type());
+                    strcpy(d.area,      p->p_label1());
+                    strcpy(d.location,  p->p_label2());
+                    
+                }
             }
             else if (p->command() == IBACOM_LYT_LIGHTS)
             {
-                
+                int index = is_light(p->p_board(), p->p_devname());
+            
+                if (index == -1)
+                {
+                    dev_light_t d;
+                    strcpy(d.boardname, p->p_board());
+                    strcpy(d.devname,   p->p_devname());
+                    strcpy(d.lightype,  p->p_type());
+                    strcpy(d.group,     p->p_label1());
+
+                    _lights.push_back(d);
+                }
+                else
+                {
+                    dev_light_t &d = _lights.at(index);
+
+                    strcpy(d.lightype,  p->p_type());
+                    strcpy(d.group,     p->p_label1());
+                }
             }
+
             else if (p->command() == IBACOM_LYT_ALARMS)
             {
-                
+                int index = is_alarm(p->p_board(), p->p_devname());
+            
+                if (index == -1)
+                {
+                    dev_alarm_t d;
+                    strcpy(d.boardname, p->p_board());
+                    strcpy(d.devname,   p->p_devname());
+                    strcpy(d.alarmtype, p->p_type());
+                    strcpy(d.group,     p->p_label1());
+
+                    _alarms.push_back(d);
+                }                
+                else
+                {
+                    dev_alarm_t &d = _alarms.at(index);
+
+                    strcpy(d.alarmtype, p->p_type());
+                    strcpy(d.group,     p->p_label1());
+                }
             }
-                        
+            
+            return;
         }
         
-        void    Layout::show        (void)
+        void    Layout::show            (void)
         {
             std::cout << "\tLayout devices:" << std::endl;
             for (auto& b: _devices)
@@ -592,7 +737,7 @@ namespace indoorino
                 if (this->is_device(p.p_board(), p.p_devname()) == -1)
                 {
                     _devices.push_back( linked_dev_t() );
-                    alert_os("Added device %s:%s from file!", p.p_board(), p.p_devname());
+                    debug_os("Added device %s:%s from file!", p.p_board(), p.p_devname());
                     
                     strcpy(_devices.back().boardname,   p.p_board());
                     strcpy(_devices.back().devname,     p.p_devname());
@@ -670,7 +815,7 @@ namespace indoorino
                         strcpy(_lights.back().group,        p.p_label1());
                         strcpy(_lights.back().lightype,     p.p_type());
                         
-                        alert_os("Added light relay %s:%s from file!", p.p_board(), p.p_devname());
+                        debug_os("Added light relay %s:%s from file!", p.p_board(), p.p_devname());
                     }
                     else
                     {
@@ -743,7 +888,7 @@ namespace indoorino
                         strcpy(_alarms.back().group,        p.p_label1());
                         strcpy(_alarms.back().alarmtype,    p.p_type());
                         
-                        alert_os("Added alarm device %s:%s from file!", p.p_board(), p.p_devname());
+                        debug_os("Added alarm device %s:%s from file!", p.p_board(), p.p_devname());
                     }
                     else
                     {
@@ -815,7 +960,7 @@ namespace indoorino
                         strcpy(_weather.back().type,         dev.type);
                         strcpy(_weather.back().group,        p.p_label1());
                         
-                        alert_os("Added weather device %s:%s from file!", p.p_board(), p.p_devname());
+                        debug_os("Added weather device %s:%s from file!", p.p_board(), p.p_devname());
                     }
                     else
                     {
@@ -850,7 +995,7 @@ namespace indoorino
             }
         }
 
-        void    Layout::send_lights (void)
+        void    Layout::send_lights     (void)
         {
             for (auto& d: _lights)
             {
@@ -863,7 +1008,7 @@ namespace indoorino
             }
         }
 
-        void    Layout::send_alarms (void)
+        void    Layout::send_alarms     (void)
         {
             for (auto& d: _alarms)
             {
@@ -876,7 +1021,7 @@ namespace indoorino
             }
         }
         
-        void    Layout::send_weather (void)
+        void    Layout::send_weather    (void)
         {
             for (auto& d: _weather)
             {
@@ -888,7 +1033,7 @@ namespace indoorino
             }
         }
         
-        void    Layout::send_config (void)
+        void    Layout::send_config     (void)
         {
             this->send_devices();
             this->send_alarms();
@@ -922,6 +1067,9 @@ namespace indoorino
             {
                 
             }
+            
+            error_os("FATAL:layout:get_packet: invalid board:device %s:%s", bname, dname);
+            return nullptr;
         }
         
     } /* namespace:layout */

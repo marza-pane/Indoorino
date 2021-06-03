@@ -1,5 +1,6 @@
 from common.comtable import *
 from common.templates import *
+from indoorino.parameters import ParameterDatetime
 
 import tkinter.messagebox
 
@@ -19,14 +20,7 @@ class UiBoards(PanedTemplate):
             self._listbox = ListBoxTemplate(self)
             self._scroll = tk.Scrollbar(self._listbox)
             self._type = ''
-            self._source = (
-                'ANALOG',
-                'RELAY',
-                'DHT22',
-                'TIMER',
-                'STEPPER',
-                'SERVO'
-            )
+            self._source = Config.layout.devtypes
 
         @property
         def type(self):
@@ -767,14 +761,17 @@ class UiBoards(PanedTemplate):
 
             elif command == 'delete':
 
-                # c = tk.messagebox.askyesnocancel('Confirm remove', 'Proceed re-configuring board?')
-                # if c is None:
-                #     return
-                # if c is True:
-                #     p = IndoorinoPacket()
-                #     p.build(IBACOM_REM_DEVICE, self.board, { 'devname': self.device })
-                #     System.io.send(p)
-                #
+                c = tk.messagebox.askyesnocancel('Board removed locally', 'Remove {} also from server list?'.format(self.board))
+                if c is None:
+                    return
+                if c is True:
+                    if not System.io.is_connected():
+                        tk.messagebox.showinfo('','You must be connected!')
+                        return
+                    p = IndoorinoPacket()
+                    p.build(IBACOM_SYS_REQ, 'SERVER', { 'command': 'BOARDS:REM:{}'.format(self.board) })
+                    System.io.send2server(p)
+
                 System.boards.remove(self.board)
                 self.master.destroy()
 
@@ -1366,6 +1363,28 @@ class UiBoards(PanedTemplate):
                     else:
                         self.icon.replace_image(Icons.devices.thermometer.ERROR())
 
+            class DustPM25sensor(Template):
+                def __init__(self, parent, board, sensor, **kwargs):
+                    UiBoards.Devices.Header.Template.__init__(self, parent, board, sensor, **kwargs)
+                    self.icon = PictureTemplate(self, Icons.devices.airsensor.OFFLINE())
+
+                def on_update(self, *args, **kwargs):
+                    super(UiBoards.Devices.Header.DustPM25sensor, self).on_update()
+                    if not self.exist():
+                        self.icon.replace_image(Icons.system.NOT_FOUND())
+                        return
+
+                    device = System.boards()[self.board].device[self.device]
+
+                    if not System.io.is_connected() or not device.is_connected():
+                        self.icon.replace_image(Icons.devices.airsensor.OFFLINE())
+                        return
+
+                    if device.status.std['status'].data == 'ONLINE':
+                        self.icon.replace_image(Icons.devices.airsensor.ONLINE())
+                    else:
+                        self.icon.replace_image(Icons.devices.airsensor.ERROR())
+
         class DeviceList(ScrollableFrameTemplate, BoardLinkTemplate):
 
             def __init__(self, parent, board, **kwargs):
@@ -1388,6 +1407,8 @@ class UiBoards(PanedTemplate):
                                 self.add(UiBoards.Devices.Header.Relay, board.name, device.name)
                             elif device.devtype == 'DHT22':
                                 self.add(UiBoards.Devices.Header.DHT22, board.name, device.name)
+                            elif device.devtype == 'DUSTPM25':
+                                self.add(UiBoards.Devices.Header.DustPM25sensor, board.name, device.name)
                             else:
                                 error_ui('No valid class for <{}>'.format(device.devtype))
                                 self.add(UiBoards.Devices.Header.Template, board.name, device.name)
@@ -1771,6 +1792,37 @@ class UiBoards(PanedTemplate):
                                 heigh=h_butt
                             )
 
+                class DustPM25sensor(Template):
+
+                    def __init__(self, parent, board, sensor, **kwargs):
+                        UiBoards.Devices.DeviceDisplay.Widgets.Template.__init__(self, parent, board, sensor, **kwargs)
+
+                    def on_update(self):
+                        if self.exist():
+                            if System.io.is_connected():
+                                for entry in self.buttons.values():
+                                    entry.configure(
+                                        state=tk.NORMAL
+                                    )
+                                    return
+
+                        for entry in self.buttons.values():
+                            entry.configure(
+                                state=tk.DISABLED
+                            )
+
+                    def on_resize(self):
+                        w,h = super(UiBoards.Devices.DeviceDisplay.Widgets.DustPM25sensor, self).on_resize()
+                        w_butt = int(0.75 * w / len(self.buttons))
+                        h_butt = 28
+                        for count, widget in enumerate(self.buttons.values()):
+                            widget.place(
+                                x=10 + count * w_butt,
+                                y=h - (h_butt + 5),
+                                width= w_butt,
+                                heigh=h_butt
+                            )
+
             class Header(CanvasTemplate, DeviceLinkTemplate):
 
                 class Template(CanvasTemplate, DeviceLinkTemplate):
@@ -1884,6 +1936,28 @@ class UiBoards(PanedTemplate):
                                 self.icon.replace_image(Icons.devices.thermometer.OFFLINE())
                         else:
                             self.icon.replace_image(Icons.system.NOT_FOUND())
+                class DustPM25sensor(Template):
+                    def __init__(self, parent, board, sensor, **kwargs):
+                        UiBoards.Devices.DeviceDisplay.Header.Template.__init__(self, parent, board, sensor, **kwargs)
+                        self.icon = PictureTemplate(self, Icons.devices.airsensor.OFFLINE())
+
+                    def on_update(self):
+                        super(UiBoards.Devices.DeviceDisplay.Header.DustPM25sensor, self).on_update()
+                        if self.exist():
+                            device = self.get_device()
+
+                            if device.is_connected():
+                                if System.io.is_connected():
+                                    if device.status.std['status'].data == 'ONLINE':
+                                        self.icon.replace_image(Icons.devices.airsensor.ONLINE())
+                                    else:
+                                        self.icon.replace_image(Icons.devices.airsensor.ERROR())
+                                else:
+                                    self.icon.replace_image(Icons.devices.airsensor.DISCONNECTED())
+                            else:
+                                self.icon.replace_image(Icons.devices.airsensor.OFFLINE())
+                        else:
+                            self.icon.replace_image(Icons.system.NOT_FOUND())
 
             class Container(PanedTemplate, DeviceLinkTemplate):
 
@@ -1897,10 +1971,10 @@ class UiBoards(PanedTemplate):
 
                 def build(self, *args, **kwargs):
                     super(UiBoards.Devices.DeviceDisplay.Container, self).build()
-                    device = self.get_device()
 
                     c = self._context.split(':')
-                    p = device.__getattribute__(c[0]).__getattribute__(c[1])
+                    p = self.get_device().__getattribute__(c[0]).__getattribute__(c[1])
+
                     for key, entry in p.items():
 
                         self.labels.update(
@@ -1961,8 +2035,8 @@ class UiBoards(PanedTemplate):
 
                     h_label = max(20, 0.01 * h)
                     y_off = 5
-                    w_label = max(5, 0.475 * w)
-                    w_value = max(5, 0.38 * w)
+                    w_label = max(50, 0.475 * w)
+                    w_value = max(50, 0.3 * w)
 
                     for count, key in enumerate(self.labels.keys()):
                         self.labels[key].place(
@@ -1971,18 +2045,28 @@ class UiBoards(PanedTemplate):
                             width=w_label,
                             heigh=h_label
                         )
-                        self.values[key].place(
-                            x=w_label,
-                            y=y_off + count * h_label,
-                            width=w_value,
-                            heigh=h_label
-                        )
-                        self.units[key].place(
-                            x=w_label + w_value,
-                            y=y_off + count * h_label,
-                            width=w - (w_label + w_value) - 2,
-                            heigh=h_label
-                        )
+                        if self.units[key].cget('text'):
+
+                            self.values[key].place(
+                                x=w_label,
+                                y=y_off + count * h_label,
+                                width=w_value,
+                                heigh=h_label
+                            )
+                            self.units[key].place(
+                                x=w_label + w_value,
+                                y=y_off + count * h_label,
+                                width=w - (w_label + w_value) - 2,
+                                heigh=h_label
+                            )
+                        else:
+                            self.values[key].place(
+                                x=w_label,
+                                y=y_off + count * h_label,
+                                width=w - w_label - 2,
+                                heigh=h_label
+                            )
+
 
             def __init__(self, parent, board, sensor, **kwargs):
                 CanvasTemplate.__init__(self, parent, **kwargs)
@@ -2002,6 +2086,9 @@ class UiBoards(PanedTemplate):
                 elif dev.devtype == 'DHT22':
                     self.devwidget=self.Widgets.DHT22(self, board, sensor)
                     self.header = self.Header.DHT22(self, board, sensor)
+                elif dev.devtype == 'DUSTPM25':
+                    self.devwidget=self.Widgets.DustPM25sensor(self, board, sensor)
+                    self.header = self.Header.DustPM25sensor(self, board, sensor)
                 else:
                     self.devwidget = PanedTemplate(self, bg=Palette.generic.ERROR_GUI)
                     self.header = self.Header.Template(self, board, sensor)
@@ -2025,6 +2112,7 @@ class UiBoards(PanedTemplate):
                 self.devwidget.on_update()
                 for item in self.body.values():
                     item.on_update()
+
 
             def on_resize(self, *args, **kwargs):
                 w,h=super(UiBoards.Devices.DeviceDisplay, self).on_resize()
@@ -2051,6 +2139,8 @@ class UiBoards(PanedTemplate):
                     )
                     item.on_resize()
                     y_off += h_body
+
+
 
                 self.devwidget.place(
                     x=2,

@@ -92,15 +92,17 @@ namespace net
         if (_socket.is_open())
         {
             alert_net("Un-binding client [%u] on socket %s",this->id(), this->ipstring());
-            boost::asio::post(_asio_context, [this]()
+            boost::system::error_code ec;
+            _socket.cancel(ec);
+            if (ec)
             {
-                boost::system::error_code ec;
-                _socket.close(ec);
-                if (ec)
-                {
-                    error_net("ASIO:socket can not close!");
-                }                
-            });
+                std::cout << "SOCKET:" << ec.message() << std::endl;
+            }
+            _socket.close(ec);
+            if (ec)
+            {
+                std::cout << "SOCKET:" << ec.message() << std::endl;
+            }
         }
     }
     
@@ -674,20 +676,49 @@ namespace net
                 }
                 else
                 {
-                    error_server("New connection failed");
-                    std::cout << errorcode.message() << std::endl;
+                    int ec = errorcode.value();
+                    
+                    if (ec == 125)
+                    {
+                        return;
+                    }
+                    
+                    if (ec == 9)
+                    {
+                        error_server("Bad file description", errorcode.value());
+                    }
+
+                    error_server("New connection failed [%d]", errorcode.value());
+                    std::cout << "ACCEPTOR:" << errorcode.message() << std::endl;
+                    
                 }
 
                 WaitForClient();
-            });
+            });        
     }
 
                     /*     S T O P     */
     void            serverTemplate::stop                    (void)
     {
-        _acceptor.cancel();
-        if (!_asio_context.stopped())   { _asio_context.stop(); alert_server("ASIO context stopped!"); }
-        if (_thread_context.joinable()) { _thread_context.join(); alert_server("IO thread finished!"); }
+        if (_acceptor.is_open())
+        {
+            _acceptor.cancel();
+            _acceptor.close();
+            alert_server("Connections acceptor closed!");
+        }
+        
+        if (!_asio_context.stopped())
+        {
+            _asio_context.stop();
+            alert_server("ASIO context stopped!");
+        }
+        
+        if (_thread_context.joinable())
+        {
+            _thread_context.join();
+            alert_server("IO thread finished!");
+        }
+        
         _clientlist.clear();
     }
     
@@ -699,7 +730,18 @@ namespace net
             if ( !(client && client->is_connected()) )
             {
                 on_lost_client(client);
-                client.reset();
+                
+                
+                boost::asio::post(_asio_context, [client]()
+                {
+                    boost::system::error_code ec;
+                    client->stop();
+                    if (ec)
+                    {
+                        error_net("ASIO:socket can not close!");
+                    }                
+                });
+                
                 _clientlist.erase(std::remove(_clientlist.begin(), _clientlist.end(), client), _clientlist.end());
                 loop();
                 return;

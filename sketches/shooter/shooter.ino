@@ -40,7 +40,7 @@ void loop()
     if (millis() > timeout)
     {
         SerialDebug.print(".");
-//         debug_os("[RAM: %u KB] ", utils::board::available_ram());
+        debug_os("[RAM: %u KB] ", utils::board::available_ram());
         timeout = millis() + 1000;
     }
     
@@ -83,17 +83,17 @@ void loop()
     
     
     
-     if (millis() > timeout_shot0)
-    {
-        packet::ipacket s(IBACOM_OVERH_ALARM);
-        strcpy_P(s.p_board(), BOARD_NAME);
-        strcpy(s.p_devname(), "DHT1");
-        *s.p_epoch() = rtc.epoch();
-        *s.p_value1() = 1;
-        
-        utils::board::io.send(&s);
-        timeout_shot0 = millis() + RATE_BEACON + 20000;
-    }
+//     if (millis() > timeout_shot0)
+//     {
+//         packet::ipacket s(IBACOM_OVERH_ALARM);
+//         strcpy_P(s.p_board(), BOARD_NAME);
+//         strcpy(s.p_devname(), "DHT1");
+//         *s.p_epoch() = rtc.epoch();
+//         *s.p_value1() = 1;
+//         
+//         utils::board::io.send(&s);
+//         timeout_shot0 = millis() + RATE_BEACON + 20000;
+//     }
        
     
     

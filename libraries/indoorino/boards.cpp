@@ -237,10 +237,10 @@ namespace indoorino
         
         if (index == -1) return false;
         
-        alert_board("LIST: removing board %s", name);
+        alert_board("LIST: removing board %s: index %u/%u", name, index, _blist.size());
         _blist.erase(_blist.begin() + index);
-        return true;
         
+        return true;        
     }
 
     bool            BoardList::save         (void)

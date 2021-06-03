@@ -128,7 +128,7 @@ public:
     void        loop                (void) {}
     bool        reset               (void);
     
-    void        send_probe          (void) {};
+    void        send_probe          (void) {}
     void        send_dev_stat       (void);
     
     int32_t     value               (void)  { return uint32_t(getHumidity()); };
@@ -136,6 +136,34 @@ public:
     int32_t     getTemperature      (void);
 
 };
+
+class   Sensor_PM25dust     : public virtualSensor
+{
+protected:
+    
+    uint8_t     _analpin=0;
+    
+    int32_t     _sampling_time = 40;
+    int32_t     _delta_time = 280;
+    int32_t     _dustK = 170 * FLOAT2UINT_M;    /* default values from https://wiki.keyestudio.com/Ks0196_keyestudio_PM2.5_Dust_Sensor_Module */
+    int32_t     _dustC = -10;
+    int32_t     _alert = 1000;
+
+public:
+     Sensor_PM25dust    (uint8_t);
+    ~Sensor_PM25dust    () {};
+
+    void        loop                (void) {}
+    bool        reset               (void);
+    
+    void        send_probe          (void) {}
+    void        send_dev_stat       (void);
+    
+    int32_t     value               (void);
+//     float       read_sensor         (void);
+    
+};
+
 
 #endif /* INDOORINO_DEVS */
 

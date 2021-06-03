@@ -25,7 +25,7 @@ namespace indoorino
         }
 
         layout.check();
-        layout.show();
+//         layout.show();
         alarms.begin();
 
     }
@@ -207,14 +207,17 @@ void        IndoorinoSystem::parse_request   (const char * command)
         }
         else if (strcmp(c[1], "SAVE") == 0)
         {
+            info_os("sys:command: Saving board list!");
             boards.save();
         }
         else if (strcmp(c[1], "LOAD") == 0)
         {
+            info_os("sys:command: Loading board list!");
             boards.load();
         }
         else if (strcmp(c[1], "CLEAR") == 0)
         {
+            info_os("sys:command: Clearing board list!");
             boards.clear();
         }
         else if (strcmp(c[1], "REM") == 0)
@@ -224,12 +227,14 @@ void        IndoorinoSystem::parse_request   (const char * command)
                 warning_os("Incomplete sys:command <%s> missing arg:<boardname>", command);
                 return;
             }
+            info_os("sys:command: Removing board %s!", c[2]);
             boards.rem_board(c[2]);
+            return; // remove
         }
         else
         {
             warning_os("Invalid board sys:command <%s>", command);
-            return;            
+            return;
         }
     }    
     else if ( (strcmp(c[0], "GET") == 0) && (strcmp(c[1], "ALL") == 0) )
@@ -244,7 +249,7 @@ void        IndoorinoSystem::parse_request   (const char * command)
         alarms.send_status();
     }
     
-    for (uint8_t i=0; i<=n; i++)
+    for (uint8_t i=0; i<n; i++)
     {
         free(c[i]);
     }

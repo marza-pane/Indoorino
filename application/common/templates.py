@@ -173,11 +173,13 @@ class   GenericUiTemplate(AppClassTemplate):
         self._tooltip.text=message
 
     def on_closing(self):
-        try:
-            self.master.on_closing()
-        except AttributeError:
-            pass
-
+        if isinstance(self, tk.BaseWidget):
+            for child in self.children:
+                try:
+                    child.on_closing()
+                except AttributeError:
+                    pass
+            self.destroy()
 
 class   BoardLinkTemplate:
     """ This template is used to link a class to a board """
@@ -215,7 +217,6 @@ class   DeviceLinkTemplate(BoardLinkTemplate):
         if self.exist():
             return System.boards()[self.board].device[self.device]
         return None
-
 
 """ Base Widget Templates """
 

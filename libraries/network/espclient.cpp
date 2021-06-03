@@ -8,6 +8,11 @@
 #if defined(ESP8266)
 #include "../common/common.h"
 
+/* 
+ * Questo è il nome della boaard attaccata al seriale.
+ * Andrebbe messa dentro utils::board::io.serialBoardName() con un #if defined(ESP8266)
+ */
+
 char childname[LEN_NAME] {0};
 
 //      ________________________________________________________________________

@@ -166,13 +166,6 @@ bool                IndoorinoDeviceList::_alloc_type            (uint8_t index)
 //             info_dev("devlist:alloc_type: init Switch");
 //             break;
 //         }
-        case IBACOM_CONF_DHT22:
-        {
-            Sensor_DHT22 * p = new Sensor_DHT22(index);
-            _devices.append(p);
-            debug_dev("devlist:alloc_type: init DHT22");
-            break;
-        }
         case IBACOM_CONF_RELAY:
         {
             Actuator_Relay * p = new Actuator_Relay(index);
@@ -180,6 +173,21 @@ bool                IndoorinoDeviceList::_alloc_type            (uint8_t index)
             debug_dev("devlist:alloc_type: init Relay");
             break;
         }
+        case IBACOM_CONF_DUSTPM25:
+        {
+            Sensor_PM25dust * p = new Sensor_PM25dust(index);
+            _devices.append(p);
+            debug_dev("devlist:alloc_type: init Relay");
+            break;
+        }
+        case IBACOM_CONF_DHT22:
+        {
+            Sensor_DHT22 * p = new Sensor_DHT22(index);
+            _devices.append(p);
+            debug_dev("devlist:alloc_type: init DHT22");
+            break;
+        }
+        
 //         case IBACOM_CONF_TIMER:
 //         {
 //             _devices[index] = new Actuator_Relay(index);

@@ -2,7 +2,7 @@
  * packetStub.cpp
  *
  *  Created on: Apr 25, 2020
- *   Edited on: May 08, 2021 - 01:18:33
+ *   Edited on: May 17, 2021 - 23:54:34
  *      Author: n00b
  *  This code is code-generated
  */
@@ -101,6 +101,8 @@ namespace packet
 			return (char *) (payload());
 		case IBACOM_CONF_LDR :
 			return (char *) (payload());
+		case IBACOM_CONF_DUSTPM25 :
+			return (char *) (payload());
 		case IBACOM_CONF_DHT22 :
 			return (char *) (payload());
 		case IBACOM_CONF_RELAY :
@@ -122,6 +124,8 @@ namespace packet
 		case IBACOM_STATUS_SWITCH :
 			return (char *) (payload());
 		case IBACOM_STATUS_LDR :
+			return (char *) (payload());
+		case IBACOM_STATUS_DUSTPM25 :
 			return (char *) (payload());
 		case IBACOM_STATUS_DHT22 :
 			return (char *) (payload());
@@ -230,7 +234,7 @@ namespace packet
 		switch(command())
 		{
 		case IBACOM_ENV_ALARM :
-			return (char *) (payload() + LEN_NAME);
+			return (char *) (payload() + LEN_NAME + LEN_NAME);
 		case IBACOM_LYT_DEVICE :
 			return (char *) (payload() + LEN_DEVNAME + LEN_NAME);
 		case IBACOM_LYT_LIGHTS :
@@ -250,7 +254,7 @@ namespace packet
 		switch(command())
 		{
 		case IBACOM_ENV_ALARM :
-			return (char *) (payload() + LEN_NAME + LEN_LABEL);
+			return (char *) (payload() + LEN_NAME + LEN_NAME + LEN_LABEL);
 		case IBACOM_LYT_DEVICE :
 			return (char *) (payload() + LEN_DEVNAME + LEN_NAME + LEN_LABEL);
 		default:
@@ -315,6 +319,8 @@ namespace packet
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_CONF_LDR :
 			return (char *) (payload() + LEN_NAME);
+		case IBACOM_CONF_DUSTPM25 :
+			return (char *) (payload() + LEN_NAME);
 		case IBACOM_CONF_DHT22 :
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_CONF_RELAY :
@@ -328,6 +334,8 @@ namespace packet
 		case IBACOM_STATUS_SWITCH :
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_STATUS_LDR :
+			return (char *) (payload() + LEN_NAME);
+		case IBACOM_STATUS_DUSTPM25 :
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_STATUS_DHT22 :
 			return (char *) (payload() + LEN_NAME);
@@ -415,6 +423,8 @@ namespace packet
 		{
 		case IBACOM_PROBE_AMBIENT :
 			return (char *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint32_t) + LEN_NAME);
+		case IBACOM_ENV_ALARM :
+			return (char *) (payload() + LEN_NAME);
 		default:
 			error_packet_call(label());
 			return nullptr;
@@ -481,8 +491,12 @@ namespace packet
 			return (uint32_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_SESSION_STAT :
 			return (uint32_t *) (payload() + LEN_NAME + sizeof(uint8_t));
+		case IBACOM_SET_ENV_ALARM :
+			return (uint32_t *) (payload() + LEN_DEVNAME + LEN_NAME + sizeof(int32_t));
+		case IBACOM_ACK_ENV_ALARM :
+			return (uint32_t *) (payload() + LEN_DEVNAME + LEN_NAME);
 		case IBACOM_ENV_ALARM :
-			return (uint32_t *) (payload() + LEN_NAME + LEN_LABEL + LEN_LABEL);
+			return (uint32_t *) (payload() + LEN_NAME + LEN_NAME + LEN_LABEL + LEN_LABEL);
 		default:
 			error_packet_call(label());
 			return nullptr;
@@ -611,6 +625,8 @@ namespace packet
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		case IBACOM_STATUS_LDR :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
+		case IBACOM_STATUS_DUSTPM25 :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		case IBACOM_STATUS_DHT22 :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		case IBACOM_HEAT_ALARM :
@@ -640,7 +656,7 @@ namespace packet
 		case IBACOM_SET_ENV_ALARM :
 			return (int32_t *) (payload() + LEN_DEVNAME + LEN_NAME);
 		case IBACOM_ENV_ALARM :
-			return (int32_t *) (payload() + LEN_NAME + LEN_LABEL + LEN_LABEL + sizeof(uint32_t));
+			return (int32_t *) (payload() + LEN_NAME + LEN_NAME + LEN_LABEL + LEN_LABEL + sizeof(uint32_t));
 		case IBACOM_ALARM_DEVSTAT :
 			return (int32_t *) (payload() + LEN_DEVNAME + LEN_NAME + LEN_NAME);
 		default:
@@ -743,6 +759,8 @@ namespace packet
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		case IBACOM_CONF_LDR :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
+		case IBACOM_CONF_DUSTPM25 :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t));
 		case IBACOM_CONF_DHT22 :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		case IBACOM_STATUS_SD :
@@ -763,6 +781,8 @@ namespace packet
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(int32_t));
 		case IBACOM_CONF_LDR :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(int32_t));
+		case IBACOM_CONF_DUSTPM25 :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(int32_t));
 		case IBACOM_CONF_DHT22 :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(int32_t));
 		case IBACOM_STATUS_SD :
@@ -777,6 +797,8 @@ namespace packet
 	{
 		switch(command())
 		{
+		case IBACOM_CONF_DUSTPM25 :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(int32_t) + sizeof(int32_t));
 		case IBACOM_CONF_DHT22 :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(int32_t) + sizeof(int32_t));
 		default:
@@ -931,6 +953,8 @@ namespace packet
 		{
 		case IBACOM_CONF_ESP :
 			return (uint32_t *) (payload() + LEN_NAME + INET_ADDRSTRLEN + INET_ADDRSTRLEN + sizeof(uint32_t) + sizeof(uint32_t));
+		case IBACOM_CONF_DUSTPM25 :
+			return (uint32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(uint8_t));
 		case IBACOM_CONF_NET :
 			return (uint32_t *) (payload() + SERIAL_TX_BUFFER_SIZE + INET_ADDRSTRLEN + sizeof(uint32_t));
 		default:
@@ -945,6 +969,8 @@ namespace packet
 		{
 		case IBACOM_CONF_ESP :
 			return (uint32_t *) (payload() + LEN_NAME + INET_ADDRSTRLEN + INET_ADDRSTRLEN + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t));
+		case IBACOM_CONF_DUSTPM25 :
+			return (uint32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t));
 		case IBACOM_CONF_NET :
 			return (uint32_t *) (payload() + SERIAL_TX_BUFFER_SIZE + INET_ADDRSTRLEN + sizeof(uint32_t) + sizeof(uint32_t));
 		default:
@@ -1001,6 +1027,8 @@ namespace packet
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_STATUS_LDR :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_STATUS_DUSTPM25 :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_STATUS_DHT22 :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_STATUS_RELAY :
@@ -1016,7 +1044,7 @@ namespace packet
 		case IBACOM_SYS_DEV_STS :
 			return (uint8_t *) (payload() + LEN_NAME);
 		case IBACOM_ENV_ALARM :
-			return (uint8_t *) (payload() + LEN_NAME + LEN_LABEL + LEN_LABEL + sizeof(uint32_t) + sizeof(int32_t));
+			return (uint8_t *) (payload() + LEN_NAME + LEN_NAME + LEN_LABEL + LEN_LABEL + sizeof(uint32_t) + sizeof(int32_t));
 		case IBACOM_ALARM_DEVSTAT :
 			return (uint8_t *) (payload() + LEN_DEVNAME + LEN_NAME + LEN_NAME + sizeof(int32_t));
 		default:
@@ -1127,6 +1155,8 @@ namespace packet
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_CONF_LDR :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_CONF_DUSTPM25 :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_CONF_DHT22 :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_CONF_RELAY :
@@ -1149,6 +1179,8 @@ namespace packet
 		{
 		case IBACOM_BOARD_VERSION :
 			return (uint8_t *) (payload() + sizeof(int32_t) + sizeof(int32_t) + sizeof(uint32_t) + sizeof(uint8_t));
+		case IBACOM_CONF_DUSTPM25 :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		default:
 			error_packet_call(label());
 			return nullptr;

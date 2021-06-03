@@ -1,3 +1,5 @@
+import datetime
+
 from indoorino.parameters import *
 from common.comtable import *
 
@@ -59,21 +61,21 @@ class DeviceParameters:
                 ),
             }
         )
-        # self.status.dev.update(
-        #     {
-        #         'status': ParameterInt(
-        #             name='status',
-        #             label='device status',
-        #             desc='device connection status',
-        #             value=0
-        #         ),
-        #     }
-        # )
+        self.status.dev.update(
+            {
+                'lastupdate': ParameterDatetime(
+                    name='last',
+                    label='last update ',
+                    desc='system time @ last packet',
+                    value=0
+                ),
+            }
+        )
 
     def update(self):
 
         for key, item in self.config.std.items():
-            if not key == 'devtype':
+            if not key == 'devtype' and not key == 'lastupdate':
                 item.set(self.config.dev.packet.payload[item.name])
 
         for key, item in self.config.dev.items():
@@ -129,7 +131,7 @@ class IndoorinoDevice(DeviceParameters):
         self.status.std['status'].set('OFFLINE')
         Config.flags.update.DEVICES = True
 
-    def set_type(self, packet):
+    def set_type(self, packet):     ## mod this when adding sensors
 
         self.config.dev.update(
             {
@@ -183,6 +185,7 @@ class IndoorinoDevice(DeviceParameters):
                     ),
                 }
             )
+
             self.status.dev.update(
 
                 {
@@ -195,6 +198,59 @@ class IndoorinoDevice(DeviceParameters):
                         name='value2',
                         label='humidity',
                         desc='air humidity',
+                    ),
+                }
+            )
+
+        elif packet.command == IBACOM_CONF_DUSTPM25:
+
+            self.config.std['devtype'].set('DUSTPM25')
+
+            self.config.std.update(
+                {
+                    'analpin': ParameterInt(
+                        name='pin2',
+                        label='analogical pin',
+                        desc='analogical board pin',
+                    ),
+                    'coeffA': ParameterInt(
+                        name='param1',
+                        label='linear K',
+                        desc='voltage to dust density linear constant',
+                    ),
+                    'coeffB': ParameterInt(
+                        name='param2',
+                        label='linear C',
+                        desc='voltage to dust density correction',
+                    ),
+                    'alarm': ParameterInt(
+                        name='param3',
+                        label='dust limit',
+                        desc='dust density alarm limit',
+                    ),
+                    'sampletime': ParameterInt(
+                        name='timeout1',
+                        label='sampling time',
+                        desc='delay between led ON and measure',
+                        unit='us',
+                    ),
+                    'deltatime': ParameterInt(
+                        name='timeout2',
+                        label='rest time',
+                        desc='delay between measure and led OFF',
+                        unit='us',
+                    ),
+                }
+            )
+
+            self.status.dev.update(
+
+                {
+                    'value': ParameterFloat(
+                        name='value1',
+                        label='dust density',
+                        desc='dust density',
+                        unit='ug/m3',
                     ),
                 }
             )
@@ -242,7 +298,7 @@ class IndoorinoDevice(DeviceParameters):
                         info_devices('{}:{} setting config.board to {}'.format(self.boardname, self.name, packet.label))
                         self.config.dev.packet.build(packet.command, packet.source, dict())
                     elif self.config.dev.packet.command != packet.command:
-                        info_devices('illegal replace {} CONFIG type'.format(self.name))
+                        warning_devices('illegal replace {} CONFIG type'.format(self.name))
                         return
 
                     self.config.dev.packet.payload = packet.payload
@@ -257,9 +313,10 @@ class IndoorinoDevice(DeviceParameters):
                         info_devices('{}:{} setting config.device to {}'.format(self.boardname, self.name, packet.label))
                         self.status.dev.packet.build(packet.command, packet.source, dict())
                     elif self.status.dev.packet.command != packet.command:
-                        info_devices('illegal replace {} CONFIG type'.format(self.name))
+                        warning_devices('illegal replace {} CONFIG type'.format(self.name))
                         return
                     self.status.dev.packet.payload = packet.payload
+                    self.status.dev['lastupdate'].set(datetime.datetime.now())
                     self.update()
 
                     if 'status' in packet.payload.keys():

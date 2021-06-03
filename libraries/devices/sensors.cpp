@@ -171,8 +171,7 @@ Sensor_DHT22::~Sensor_DHT22()
     debug_dev("\nDHT22 %s:", _name); 
 }
 
-
-bool                    Sensor_DHT22::reset               (void)
+bool                    Sensor_DHT22::reset                 (void)
 {
     /* Shut down pin */
 
@@ -197,8 +196,6 @@ bool                    Sensor_DHT22::reset               (void)
         _status=4;
         return false;
     }
-    
-//     ( 1522,     'conf_DHT22',       'DHT22 sensor conf',    ('name', 'devname','pin1','param1','param2','param3','param4','param5','param6','param7','param8',)),
 
     pin = *p->p_pin1();
     
@@ -225,12 +222,10 @@ bool                    Sensor_DHT22::reset               (void)
     
     /* Set correction parameters*/
 
-    if (*p->p_param1() == 0)    _tempK = FLOAT2UINT_M;
-    else                        _tempK = *p->p_param1();
+    if (*p->p_param1() != 0)    _tempK = *p->p_param1();
     _tempC = *p->p_param2();
     
-    if (*p->p_param3() == 0)    _humiK = FLOAT2UINT_M;
-    else                        _humiK = *p->p_param3();
+    if (*p->p_param3() == 0)    _humiK = *p->p_param3();
     _humiC= *p->p_param4();
 
     /* Set limits */
@@ -257,13 +252,15 @@ bool                    Sensor_DHT22::reset               (void)
 
     /* Init new DHT class */
 
+    utils::wait(50);
+   
     _dev.init(_pin, DHT22);
     _dev.begin();
     
     utils::wait(50);
     
-    double t = _dev.readTemperature();
-    double h = _dev.readHumidity();
+//     double t = _dev.readTemperature();
+//     double h = _dev.readHumidity();
 
     goto succesfull_reset;
     
@@ -293,7 +290,6 @@ int32_t                 Sensor_DHT22::getHumidity           (void)
     
             error_dev("getHumidity: sensor %s returned NaN", _name);
 //             sendReport(3, m, F("sensor DHT:%s on pin %u OFFLINE"), m, p);
-            this->send_dev_stat();
         }
         return 0;
     }
@@ -306,7 +302,6 @@ int32_t                 Sensor_DHT22::getHumidity           (void)
 
             error_dev("getHumidity: sensor %s returned negative value [%3.3f]", _name, value_raw);
 //             sendReport(3, m, F("sensor DHT:%s on pin %u ERROR"), m, p);
-            this->send_dev_stat();
         }
         return 0;
     }
@@ -332,7 +327,6 @@ int32_t                 Sensor_DHT22::getHumidity           (void)
 
             error_dev("getHumidity: sensor %s returned negative value [%d]", _name, value_int);
 //             sendReport(3, m, F("sensor DHT:%s on pin %u ERROR"), m, p);
-            this->send_dev_stat();
         }        
     }
 
@@ -362,8 +356,6 @@ int32_t                 Sensor_DHT22::getHumidity           (void)
 
 }
 
-
-
 int32_t                 Sensor_DHT22::getTemperature        (void)
 {
     if (_status == 1)
@@ -382,7 +374,6 @@ int32_t                 Sensor_DHT22::getTemperature        (void)
     
             error_dev("getTemperature: sensor %s returned NaN", _name);
 //             sendReport(3, m, F("sensor DHT:%s on pin %u OFFLINE"), m, p);
-            this->send_dev_stat();
         }
         return 0;
     }
@@ -395,7 +386,6 @@ int32_t                 Sensor_DHT22::getTemperature        (void)
 
             error_dev("getTemperature: sensor %s returned negative value [%3.3f]", _name, value_raw);
 //             sendReport(3, m, F("sensor DHT:%s on pin %u ERROR"), m, p);
-            this->send_dev_stat();
         }
         return 0;
     }
@@ -440,8 +430,6 @@ int32_t                 Sensor_DHT22::getTemperature        (void)
 
 }
 
-
-
 void                    Sensor_DHT22::send_dev_stat         (void)
 {
     packet::ipacket p(IBACOM_STATUS_DHT22);
@@ -452,8 +440,7 @@ void                    Sensor_DHT22::send_dev_stat         (void)
         strcpy(p.p_devname(), "INVALID");        
     }
     else    strcpy(p.p_devname(), _name);
-    
-    
+        
     debug_mem("Free heap @ <send_dev_stat> [%u] KB", utils::board::available_ram());
 
     int32_t T = this->getTemperature();
@@ -468,8 +455,235 @@ void                    Sensor_DHT22::send_dev_stat         (void)
         
 }
 
+
+Sensor_PM25dust::Sensor_PM25dust    (uint8_t index):virtualSensor(index)
+{
+    info_dev("init: <%s> points to conf.device[%u]: pin [%u]", _name, _confindex, _pin);
+    this->reset();    
+}
+
+bool                    Sensor_PM25dust::reset              (void)
+{
+    /* Shut down led pin */
+
+    digitalWrite(_pin, HIGH);    
+    pinMode(_pin, INPUT);
+    
+    packet::ipacket c;
+    char buffname[LEN_DEVNAME];
+    uint8_t ledpin;
+    uint8_t i;
+    
+    /* Point config packet */
+    
+    packet::ipacket * p = conf.device(&c, _confindex);
+    strcpy(buffname, p->p_devname());
+        
+    /* Checking packet */
+
+    if (p->command() != IBACOM_CONF_DUSTPM25)
+    {
+        error_dev("init:DUSTPM25 <%s>: cant be set to dev type [%u]!", buffname, p->command());
+        _status=4;
+        return false;
+    }
+    
+    ledpin = *p->p_pin1();
+    
+    if (!utils::board::is_pin(ledpin))
+    {
+        error_dev("init:DHT22 <%s>: invalid pin [%u]!", buffname, ledpin);
+        _status=1;
+        return false;
+    }
+    
+    i = conf.indexFromPin(ledpin);
+    if (i != _confindex)
+    {
+        error_dev("init:RELAY <%s>: pin [%u] already in use for [%u]!", _name, ledpin, i);
+        _status=1;
+        return false;        
+    }
+
+    /* Set pin */
+    
+    _pin = ledpin;
+    _analpin = *p->p_pin2();
+    _status=0;
+    debug_dev("init: device DUSTPM25 <%s> on pins L:[%u] A:[%u]", buffname, _pin, _analpin);
+    
+    /* Set correction parameters*/
+    
+    if (*p->p_timeout1() != 0)  _sampling_time = *p->p_timeout1();
+    if (*p->p_timeout2() != 0)  _delta_time = *p->p_timeout2();
+
+    if (*p->p_param1()   != 0)  _dustK = *p->p_param1();    
+    if (*p->p_param3()   != 0)  _alert = *p->p_param3();
+    _dustC= *p->p_param2();
+
+    pinMode(_pin, OUTPUT);
+//     pinMode(_analpin, INPUT);
+
+    return true;
+}
+
+void                    Sensor_PM25dust::send_dev_stat      (void)
+{
+    packet::ipacket p(IBACOM_STATUS_DUSTPM25);
+    
+    if (_status == 1)
+    {
+        warning_dev("Invalid device name!");
+        strcpy(p.p_devname(), "INVALID");        
+    }
+    else    strcpy(p.p_devname(), _name);
+        
+    alert_mem("Free heap @ <send_dev_stat> [%u] KB", utils::board::available_ram());
+
+    int32_t D = this->value();
+    
+    strcpy(p.p_name(), P2C(BOARD_NAME));
+    memcpy(p.p_status(), &_status, sizeof(uint8_t));
+    memcpy(p.p_value1(), &D, sizeof(int32_t));
+
+    utils::board::io.send(&p);    
+}
+
+// #define ANALPIN 0
+// #define LEDPIN 3
+// #define SAMPLING 280
+// #define DELTATIME 40
+// #define SLEEPTIME 9680
+// 
+// 
+// float voMeasured = 0;
+// float calcVoltage = 0;
+// float dustDensity = 0;
+
+int32_t                 Sensor_PM25dust::value              (void)
+{
+    /*
+        3000 + = Very Bad
+        1050-3000 = Bad
+        300-1050 = Ordinary
+        150-300 = Good
+        75-150 = Very Good
+        0-75 = Tiptop
+    */
+
+    float K = float(_dustK);
+    float C = float(_dustC);
+    float value_raw;
+    
+    if (_status == 1)
+    {
+        warning_dev("Calling %s.getValue() on invalid pin [%u]", _name, _pin);
+        return 0;
+    }
+
+//     SerialDebug.print("ALALOG:READ: pin = ");
+//     SerialDebug.print(_pin);
+//     SerialDebug.print(" - analogical pin = ");
+//     SerialDebug.println(_analpin);
+//     SerialDebug.print("delay sample  = ");
+//     SerialDebug.print(_sampling_time);
+//     SerialDebug.print(" - delta time = ");
+//     SerialDebug.println(_delta_time);
+//     SerialDebug.print(" - dust K = ");
+//     SerialDebug.print(_dustK);
+//     SerialDebug.print(" : ");
+//     SerialDebug.println(float(_dustK/FLOAT2UINT_M));
+//     SerialDebug.print(" - dust C = ");
+//     SerialDebug.print(_dustC);
+//     SerialDebug.print(" : ");
+//     float C = float(_dustC);
+//     C = C / float(FLOAT2UINT_M);
+//     SerialDebug.println(C);
+//     info_dev("C is %e", C);
+
+    digitalWrite(_pin, LOW); // power on the LED
+
+    delayMicroseconds(_sampling_time);
+    value_raw = analogRead(_analpin); // read the dust value
+    delayMicroseconds(_delta_time);
+    
+    digitalWrite(_pin,HIGH); // turn the LED off
+    utils::wait(10);
+    
+    // 0 - 5V mapped to 0 - 1023 integer values
+    // recover voltage
+    
+//     SerialDebug.print("ALALOG:READ: raw = ");
+//     SerialDebug.println(value_raw);
+    
+    C = C / float(FLOAT2UINT_M);
+    K = K / float(FLOAT2UINT_M);
+    
+    float dustDensity = K * (value_raw * (5.0 / 1024.0)) - C;
+
+//     SerialDebug.print("ALALOG:READ: parsed = ");
+//     SerialDebug.println(dustDensity);
+
+    int32_t value_int = FLOAT2UINT_M * dustDensity;
+    
+    if (_alert > 0 && value_int >= _alert * FLOAT2UINT_M)
+    {
+        error_dev("getValue: sensor %s: value [%u] over SYSTEM max [%u]", _name, value_int, _alert*FLOAT2UINT_M);
+        // send alarm
+    }
+
+//     SerialDebug.print("ALALOG:READ: value = ");
+//     SerialDebug.println(value_int);
+
+    
+    if (value_int <= 0)
+    {
+        if (_status != 3)
+        {
+            _status=3;
+
+            error_dev("getValue: sensor %s returned invalid value [%3.3f]", _name, value_raw);
+//             sendReport(3, m, F("sensor DHT:%s on pin %u ERROR"), m, p);
+        }
+    }
+    else
+    {
+        if (_status == 2 || _status == 3)
+        {
+            _status=0;
+            error_dev("getValue: sensor %s is ONLINE", _name);
+        }
+    }
+    
+    return value_int;    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // uint32_t                Sensor_DHT22::getTemperature        (void)
 // {
+
 //     uint32_t a= *_config->p_param1();
 //     uint32_t b= *_config->p_param2();
 //     uint32_t p= *_config->p_pin();

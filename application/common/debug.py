@@ -145,25 +145,25 @@ def info_database(string, **kwargs):
 
 
 def alert_packet(string, **kwargs):
-    _debug_helper('{}ALLERT:PACKET:'.format(_PUR), string, **kwargs)
+    _debug_helper('{}ALERT:PACKET:'.format(_PUR), string, **kwargs)
 
 def alert_connection(string, **kwargs):
-    _debug_helper('{}ALLERT:CONNECTION:'.format(_PUR), string, **kwargs)
+    _debug_helper('{}ALERT:CONNECTION:'.format(_PUR), string, **kwargs)
 
 def alert_network(string, **kwargs):
-    _debug_helper('{}ALLERT:NETWORK:'.format(_PUR), string, **kwargs)
+    _debug_helper('{}ALERT:NETWORK:'.format(_PUR), string, **kwargs)
 
 def alert_os(string, **kwargs):
-    _debug_helper('{}ALLERT:SYSTEM:'.format(_PUR), string, **kwargs)
+    _debug_helper('{}ALERT:SYSTEM:'.format(_PUR), string, **kwargs)
 
 def alert_boards(string, **kwargs):
-    _debug_helper('{}ALLERT:BOARDS:'.format(_PUR), string, **kwargs)
+    _debug_helper('{}ALERT:BOARDS:'.format(_PUR), string, **kwargs)
 
 def alert_devices(string, **kwargs):
-    _debug_helper('{}ALLERT:DEVICES:'.format(_PUR), string, **kwargs)
+    _debug_helper('{}ALERT:DEVICES:'.format(_PUR), string, **kwargs)
 
 def alert_database(string, **kwargs):
-    _debug_helper('{}ALLERT:DATABASE:'.format(_PUR), string, **kwargs)
+    _debug_helper('{}ALERT:DATABASE:'.format(_PUR), string, **kwargs)
 
 print('Loaded common.debug')
 

@@ -12,8 +12,13 @@ class ParameterTemplate:
         self.unit = kwargs.pop('unit','')
         self.value = 'NONE'
 
-        self.tags = kwargs.pop('tags', list())
         self.data = None
+        self.tags = kwargs.pop('tags', list())
+        self._last_update = datetime.datetime.fromtimestamp(0)
+
+    @property
+    def last_update(self):
+        return self._last_update
 
     def set(self, value):
         warning_os('ParameterTemplate None value to [{}]: {}'.format(format_type(value), value))
@@ -45,6 +50,7 @@ class ParameterInt(ParameterTemplate):
         return '{0:<8}'.format('%u' % self.data )
 
     def set(self, value):
+        self._last_update = datetime.datetime.now()
         try:
             self.data = int(value)
             self.value = self.__str__()
@@ -60,9 +66,10 @@ class ParameterFloat(ParameterTemplate):
         self.value = self.__str__()
 
     def __str__(self):
-        return '{0:<8}'.format('%3.3f' % self.data)
+        return '{0:<8}'.format('%3.3f' % (self.data / Config.macros.FLOAT2INT) )
 
     def set(self, value):
+        self._last_update = datetime.datetime.now()
         try:
             self.data = float(value)
             self.value = self.__str__()
@@ -120,6 +127,7 @@ class ParameterDatetime(ParameterTemplate):
             return self.data.__eq__(other)
 
     def set(self, value):
+        self._last_update = datetime.datetime.now()
         if isinstance(value, (int, float)):
             try:
                 self.data = datetime.datetime.fromtimestamp(int(value))
@@ -180,6 +188,7 @@ class ParameterBytes(ParameterTemplate):
 
 
     def set(self, value):
+        self._last_update = datetime.datetime.now()
         try:
             if isinstance(value, str):
                 self.data = bytearray(value.encode())

@@ -62,14 +62,22 @@
         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
         #define INDOORINO_CONTROLLER
 
-//         const char BOARD_NAME[] PROGMEM = "SRV.HSE.BMS";
+//         const char BOARD_NAME[] PROGMEM = "SRV.HOUSE.BEAMS";
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
 //         #define INDOORINO_ROUTER
 
-//         const char BOARD_NAME[] PROGMEM = "KITCHEN.WEATHER";
+
+
+//         const char BOARD_NAME[] PROGMEM = "SRV.KITCHEN.CLIMATE";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
+//         #define INDOORINO_ROUTER
+        
+//         const char BOARD_NAME[] PROGMEM = "KITCHEN.CLIMATE";
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
 //         #define INDOORINO_CONTROLLER
 
+        
+        
 //         const char BOARD_NAME[] PROGMEM = "WEATHER.SOUTH";
 //         #define INDOORINO_SAMPLER
 
@@ -108,7 +116,7 @@
 //     #define DEBUG_SERIAL
 //     #define DEBUG_PARSER
 //     #define DEBUG_TCP 
-//     #define DEBUG_DEVICES
+    #define DEBUG_DEVICES
 //     #define DEBUG_NETWORK
 //     #define DEBUG_SERVER
 //     #define DEBUG_CLIENT

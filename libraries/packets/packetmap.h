@@ -2,7 +2,7 @@
  * packetmap.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: May 08, 2021 - 01:18:33
+ *   Edited on: May 17, 2021 - 23:54:34
  *      Author: n00b
  *  This code is code-generated
  */
@@ -487,6 +487,17 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
+	//    |    IBACOM - 1405 - IBACOM_CONF_DUSTPM25 - PM2.5 dust sensor conf     |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_CONF_DUSTPM25, 9,
+			"PM2.5 dust sensor conf", { 2, 10, 63, 64, 49, 50, 33, 34, 35 } // name, devname, pin1, pin2, timeout1, timeout2, param1, param2, param3
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
 	//    |    IBACOM - 1422 - IBACOM_CONF_DHT22 - DHT22 sensor conf             |
 	//    |______________________________________________________________________|
 	//
@@ -608,7 +619,18 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 2522 - IBACOM_STATUS_DHT22 - DHT22 sensor stat           |
+	//    |    IBACOM - 2405 - IBACOM_STATUS_DUSTPM25 - PM2.5 dust sensor stat   |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_STATUS_DUSTPM25, 4,
+			"PM2.5 dust sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 2422 - IBACOM_STATUS_DHT22 - DHT22 sensor stat           |
 	//    |______________________________________________________________________|
 	//
 		{
@@ -729,12 +751,12 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 3009 - IBACOM_GRID_ALARM - grid load alarm               |
+	//    |    IBACOM - 3009 - IBACOM_GRID_ALARM - power grid alarm              |
 	//    |______________________________________________________________________|
 	//
 		{
 			IBACOM_GRID_ALARM, 4,
-			"grid load alarm", { 4, 10, 16, 25 } // board, devname, epoch, value1
+			"power grid alarm", { 4, 10, 16, 25 } // board, devname, epoch, value1
 		},
 	
 	
@@ -933,12 +955,12 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 7701 - IBACOM_SET_ENV_ALARM - set environment alarm      |
+	//    |    IBACOM - 7701 - IBACOM_SET_ENV_ALARM - enable environment alarm   |
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_SET_ENV_ALARM, 3,
-			"set environment alarm", { 10, 4, 25 } // devname, board, value1
+			IBACOM_SET_ENV_ALARM, 4,
+			"enable environment alarm", { 10, 4, 25, 16 } // devname, board, value1, epoch
 		},
 	
 	
@@ -948,8 +970,8 @@ namespace packet
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_ACK_ENV_ALARM, 2,
-			"alarm acknowledge", { 10, 4 } // devname, board
+			IBACOM_ACK_ENV_ALARM, 3,
+			"alarm acknowledge", { 10, 4, 16 } // devname, board, epoch
 		},
 	
 	
@@ -959,8 +981,8 @@ namespace packet
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_ENV_ALARM, 6,
-			"environment alarm signal", { 12, 5, 6, 16, 25, 54 } // desc1, label1, label2, epoch, value1, status
+			IBACOM_ENV_ALARM, 7,
+			"environment alarm signal", { 12, 13, 5, 6, 16, 25, 54 } // desc1, desc2, label1, label2, epoch, value1, status
 		},
 	
 	

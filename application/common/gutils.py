@@ -213,6 +213,9 @@ class IconPaths:
             @staticmethod
             def OFFLINE():
                 return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/diod-offline.png'))
+            @staticmethod
+            def DISCONNECTED():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/diod-disconnected.png'))
 
         class _Thermometer:
             @staticmethod
@@ -224,16 +227,37 @@ class IconPaths:
             @staticmethod
             def OFFLINE():
                 return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/thermometer-offline.png'))
+            @staticmethod
+            def DISCONNECTED():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/thermometer-disconnected.png'))
 
+        class _AirSensor:
+            @staticmethod
+            def ERROR():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/dust-sensor-error.png'))
+            @staticmethod
+            def ONLINE():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/dust-sensor-online.png'))
+            @staticmethod
+            def OFFLINE():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/dust-sensor-offline.png'))
+            @staticmethod
+            def DISCONNECTED():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/dust-sensor-disconnected.png'))
 
         def __init__(self):
             self.diodes = self._Diodes()
             self.thermometer = self._Thermometer()
+            self.airsensor = self._AirSensor()
             self.default = self._Default()
 
         def __getitem__(self, item):
             if item.lower() == 'relay':
                 return self.diodes
+            elif item.lower() == 'dht22':
+                return self.thermometer
+            elif item.lower() == 'dustpm25':
+                return self.airsensor
             else:
                 return self.default
 

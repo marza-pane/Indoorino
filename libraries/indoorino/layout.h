@@ -13,17 +13,17 @@
 
 #include "../packets/ipacket.h"
 
-#define LYT_DEFAULT_NUM_DEVICES     25
+#define LYT_DEFAULT_NUM_DEVICES     31
 #define LYT_DEFAULT_NUM_LIGHTS      20
-#define LYT_DEFAULT_NUM_ALARMS      4
+#define LYT_DEFAULT_NUM_ALARMS      9
 #define LYT_DEFAULT_DEV_WEATHER     3
 
 #define LYT_NUM_AREAS               10
 #define LYT_NUM_L_HOME              18
 #define LYT_NUM_L_PERIMETER         8
-#define LYT_NUM_DEVTYPES            5
+#define LYT_NUM_DEVTYPES            6
 #define LYT_NUM_ALARMS              6
-#define LYT_NUM_ALARMS_GROUP        15
+#define LYT_NUM_ALARMS_GROUP        16
 
 #define MAX_DEVS_PER_ALARM          10
 #define ALR_DEFAULT_GROUP_NUM       2
@@ -91,19 +91,19 @@ namespace indoorino
         const char global_devtypes[LYT_NUM_DEVTYPES][LEN_DEVNAME]
         {
             "RELAY",
-            "DHT22",
             "SWITCH",
+            "DHT22",
+            "DUSTPM25",
             "LDR",
             "SERVO",
         };
         
         const char global_alarms[LYT_NUM_ALARMS][LEN_NAME]
         {
-            "HEAT",
+            "FIRE",
             "FLOOD",
-            "SMOKE",
-            "POLLUTION",
-            "GRIDLOAD"
+            "HAZARD",
+            "POWERGRID"
             "GENERIC",
         };
         
@@ -111,6 +111,7 @@ namespace indoorino
         {
             "attic fire alarm",
             "kitchen fire alarm",
+            "kitchen gas alarm",
             "studio fire alarm",
             "bedroom fire alarm",
             "workshop fire alarm",
@@ -253,12 +254,21 @@ namespace indoorino
             { "OUTER.BEAMS", "BEAM3", "RELAY", "garden",    "orchard"     },
             { "OUTER.BEAMS", "BEAM4", "RELAY", "garden",    "grow area"   },
              
-            /***    KITCHEN.WEATHER     ***/
+            /***    KITCHEN.CLIMATE     ***/
             
-            { "KITCHEN.WEATHER", "DHT1", "DHT22", "home", "kitchen" },  // 9      
-            { "KITCHEN.WEATHER", "DHT2", "DHT22", "home", "kitchen" },  // 10
-            { "KITCHEN.WEATHER", "DHT3", "DHT22", "home", "kitchen" },  // 11
-            { "KITCHEN.WEATHER", "LDR1", "LDR", "home", "kitchen"   },  // 12
+            { "KITCHEN.CLIMATE", "DHT1", "DHT22",   "home", "kitchen" },
+            { "KITCHEN.CLIMATE", "DHT2", "DHT22",   "home", "kitchen" },
+            { "KITCHEN.CLIMATE", "DHT3", "DHT22",   "home", "kitchen" },
+            { "KITCHEN.CLIMATE", "LDR1", "LDR",     "home", "kitchen" },
+            { "KITCHEN.CLIMATE", "AIR1", "DUSTPM25","home", "kitchen" },
+            
+            /***    PRESCOTT.CLIMATE ***/
+
+            { "PRESCOTT.CLIMATE", "DHT1",   "DHT22",  "home", "heating" },
+            { "PRESCOTT.CLIMATE", "DHT2",   "DHT22",  "home", "heating" },
+            { "PRESCOTT.CLIMATE", "DHT3",   "DHT22",  "home", "heating" },
+            { "PRESCOTT.CLIMATE", "LDR1",   "LDR",    "home", "heating"   },
+            { "PRESCOTT.CLIMATE", "FLOOD1", "SWITCH", "home", "heating"   },
         };
 
     //      _________________________________________
@@ -400,23 +410,52 @@ namespace indoorino
         inline dev_alarm_t      DefaultAlarmsLayout[LYT_DEFAULT_NUM_ALARMS]
         {
           
-            /***    HEAT.ALARMS         ***/
+            /***    ATTIC FIRE.ALARMS           ***/
             {
                "HOUSE.BEAMS", "HEAT1", "DHT22", "home", "attic",
-                "HEAT", "attic fire allarm"
+                "FIRE", "attic fire alarm"
+            },
+
+            /***    KITCHEN FIRE.ALARMS         ***/
+            {
+                "KITCHEN.CLIMATE", "DHT1", "DHT22", "home", "kitchen",
+                "FIRE", "kitchen fire alarm"
             },
             {
-                "KITCHEN.WEATHER", "DHT1", "DHT22", "home", "kitchen",
-                "HEAT", "kitchen fire allarm"
+                "KITCHEN.CLIMATE", "DHT2", "DHT22", "home", "kitchen",
+                "FIRE", "kitchen fire alarm"
             },
             {
-                "KITCHEN.WEATHER", "DHT2", "DHT22", "home", "kitchen",
-                "HEAT", "kitchen fire allarm"
+                "KITCHEN.CLIMATE", "DHT3", "DHT22", "home", "kitchen",
+                "FIRE", "kitchen fire alarm"
             },
             {
-                "KITCHEN.WEATHER", "DHT3", "DHT22", "home", "kitchen",
-                "HEAT", "kitchen fire allarm"
+                "KITCHEN.CLIMATE", "AIR1", "DUSTPM25", "home", "kitchen",
+                "HAZARD", "kitchen gas alarm"
             },
+
+            /***    PRESCOTT FIRE.ALARMS        ***/
+            {
+                "PRESCOTT.CLIMATE", "DHT1", "DHT22", "home", "heating",
+                "FIRE", "heating room fire alarm"
+            },
+            {
+                "PRESCOTT.CLIMATE", "DHT2", "DHT22", "home", "heating",
+                "FIRE", "heating room fire alarm"
+            },
+            {
+                "PRESCOTT.CLIMATE", "DHT3", "DHT22", "home", "heating",
+                "FIRE", "heating room fire alarm"
+            },
+            
+            /***    PRESCOTT FLOOD.ALARMS       ***/
+            
+            {
+                "PRESCOTT.CLIMATE", "FLOOD1", "SWITCH", "home", "heating",
+                "FLOOD", "heating room flood alarm"
+            },
+            
+            
         };
         
         struct dev_weather_t : public linked_dev_t
@@ -427,18 +466,18 @@ namespace indoorino
         inline dev_weather_t    DefaultWeatherStationLayout[LYT_DEFAULT_DEV_WEATHER]
         {
             
-            /***    KITCHEN.WEATHER     ***/
+            /***    KITCHEN.CLIMATE     ***/
             
             {
-                "KITCHEN.WEATHER", "DHT1", "DHT22", "home", "kitchen",
+                "KITCHEN.CLIMATE", "DHT1", "DHT22", "home", "kitchen",
                 "kitchen climate"
             },
             {
-                "KITCHEN.WEATHER", "DHT2", "DHT22", "home", "kitchen",
+                "KITCHEN.CLIMATE", "DHT2", "DHT22", "home", "kitchen",
                 "kitchen climate"
             },
             {
-                "KITCHEN.WEATHER", "DHT3", "DHT22", "home", "kitchen",
+                "KITCHEN.CLIMATE", "DHT3", "DHT22", "home", "kitchen",
                 "kitchen climate"
             }
         };
@@ -454,12 +493,12 @@ namespace indoorino
 //         
 //         inline alarm_group_t    AlarmsDefaultGroups[ALR_DEFAULT_GROUP_NUM]
 //         {
-//             "Attic fire allarm", "HEAT",
+//             "Attic fire allarm", "FIRE",
 //             "home", "attic", 1,
 //             {
 //                 "HOUSE.BEAMS", "HEAT1",
 //                 "home", "attic",
-//                 "HEAT", 2                
+//                 "FIRE", 2                
 //             }
 //             
 //         };

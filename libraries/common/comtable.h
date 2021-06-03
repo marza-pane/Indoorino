@@ -2,7 +2,7 @@
  * comtable.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: May 08, 2021 - 01:18:33
+ *   Edited on: May 17, 2021 - 23:54:34
  *      Author: n00b
  *  This code is code-generated
  */
@@ -18,13 +18,13 @@
 
 
 #if defined (__linux__)
-	#define TOTAL_IBACOM 78
+	#define TOTAL_IBACOM 80
 	#define MAX_PACKET_ENTRIES 13
 #elif defined (ESP8266)
-	#define TOTAL_IBACOM 59
+	#define TOTAL_IBACOM 61
 	#define MAX_PACKET_ENTRIES 13
 #else
-	#define TOTAL_IBACOM 55
+	#define TOTAL_IBACOM 57
 	#define MAX_PACKET_ENTRIES 13
 #endif
 
@@ -68,6 +68,7 @@
 #define	IBACOM_CONF_ASENSOR                 1301
 #define	IBACOM_CONF_SWITCH                  1302
 #define	IBACOM_CONF_LDR                     1310
+#define	IBACOM_CONF_DUSTPM25                1405
 #define	IBACOM_CONF_DHT22                   1422
 #define	IBACOM_CONF_RELAY                   1700
 #define	IBACOM_CONF_DEVSTD                  2000
@@ -85,7 +86,8 @@
 #define	IBACOM_STATUS_ASENSOR               2301
 #define	IBACOM_STATUS_SWITCH                2302
 #define	IBACOM_STATUS_LDR                   2310
-#define	IBACOM_STATUS_DHT22                 2522
+#define	IBACOM_STATUS_DUSTPM25              2405
+#define	IBACOM_STATUS_DHT22                 2422
 #define	IBACOM_STATUS_RELAY                 2700
 #define	IBACOM_STATUS_DEVSTD                3000
 

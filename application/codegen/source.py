@@ -140,63 +140,65 @@ packet_source_standard = (
     ( 18,       'board_version',    'board firmware version',               ('param1','param2','freemem','pin1', 'pin2')),
                                                                             # VERSION, FIRMWR,  TOT SRAM, TOT PINS, BUILTIN LED
 
-    ( 301,      'set_sd',           'sd card setting',      ('command',)),
-    ( 302,      'request_sddrop',   'drop request',         ()),
-    ( 303,      'request_sdclear',  'clear request sd',     ()),
-    ( 304,      'request_sdwipe',   'wipe request sd',      ()),
+    ( 301,      'set_sd',           'sd card setting',                      ('command',)),
+    ( 302,      'request_sddrop',   'drop request',                         ()),
+    ( 303,      'request_sdclear',  'clear request sd',                     ()),
+    ( 304,      'request_sdwipe',   'wipe request sd',                      ()),
 
     # ---#    [00501   - 01000]   :   devices commands
 
-    ( 501,      'set_device',       'device setting',       ('name', 'devname','command','value1')),
-    ( 502,      'set_devname',      'set devname',          ('name', 'devname','newname',)),
-    ( 503,      'set_devpin',       'set devpin',           ('name', 'devname','pin1',)),
-    ( 504,      'rem_device',       'rem device',           ('name', 'devname',)),
-    ( 505,      'req_dev_status',   'dev status request',   ('name', 'devname',)),
-    ( 506,      'req_dev_reset',    'dev status reset',     ('name', 'devname',)),
+    ( 501,      'set_device',       'device setting',                       ('name', 'devname','command','value1')),
+    ( 502,      'set_devname',      'set devname',                          ('name', 'devname','newname',)),
+    ( 503,      'set_devpin',       'set devpin',                           ('name', 'devname','pin1',)),
+    ( 504,      'rem_device',       'rem device',                           ('name', 'devname',)),
+    ( 505,      'req_dev_status',   'dev status request',                   ('name', 'devname',)),
+    ( 506,      'req_dev_reset',    'dev status reset',                     ('name', 'devname',)),
 
     # ---#    [01001   - 01300]   :   boards config
 
-    ( 1001,     'conf_std',         'standard conf',        ('name','type','board','devnum','desc1')),
+    ( 1001,     'conf_std',         'standard conf',                ('name','type','board','devnum','desc1')),
 
-    ( 1005,     'conf_sampler',     'sampler conf',         ('name','stepday1','stephour1',)),                          # probe timestep & cooling time
-    ( 1100,     'conf_esp',         'esp conf',             ('name', 'ip1', 'ip2', 'port1', 'port2',
-                                                             'timeout1', 'timeout2', 'timeout3', 'timeout4',            # timeout client, packet resend delay,
-                                                             'count1', 'count2', 'count3', 'count4')),                  # packet attemps
+    ( 1005,     'conf_sampler',     'sampler conf',                 ('name','stepday1','stephour1',)),                  # probe timestep & cooling time
+    ( 1100,     'conf_esp',         'esp conf',                     ('name', 'ip1', 'ip2', 'port1', 'port2',
+                                                                     'timeout1', 'timeout2', 'timeout3', 'timeout4',    # timeout client, packet resend delay,
+                                                                     'count1', 'count2', 'count3', 'count4')),          # packet attemps
 
-    ( 1300,     'conf_camera',      'camera conf',          ('name',)),
+    ( 1300,     'conf_camera',      'camera conf',                  ('name',)),
 
 
     # ---#    [01301   - 02000]   :   devices config
 
-    ( 1301,     'conf_asensor',     'analog sensor conf',   ('name', 'devname','pin1','param1','param2',)),
-    ( 1302,     'conf_switch',      'switch conf',          ('name', 'devname','pin1')),
-    ( 1310,     'conf_ldr',         'ldr sensor conf',      ('name', 'devname','pin1','param1','param2',)),
-    # ( 1522,     'conf_DHT22',       'DHT22 sensor conf',    ('name', 'devname','pin1','param1','param2','param3','param4','param5','param6','param7','param8',)),
-    ( 1422,     'conf_DHT22',       'DHT22 sensor conf',    ('name', 'devname','pin1','param1','param2','param3','param4',
-                                                             'param5',)),
-    ( 1700,     'conf_relay',       'relay conf',           ('name', 'devname','pin1')),
-    ( 2000,     'conf_devstd',      'device generic conf',  ('name', 'devname','pin1')),
+    ( 1301,     'conf_asensor',     'analog sensor conf',           ('name', 'devname','pin1','param1','param2',)),
+    ( 1302,     'conf_switch',      'switch conf',                  ('name', 'devname','pin1')),
+    ( 1310,     'conf_ldr',         'ldr sensor conf',              ('name', 'devname','pin1','param1','param2',)),
+    ( 1405,     'conf_dustPM25',    'PM2.5 dust sensor conf',       ('name', 'devname','pin1', 'pin2',                  # pin1:LED, pin2:ANAL
+                                                                     'timeout1', 'timeout2', 'param1','param2','param3')),
+    ( 1422,     'conf_DHT22',       'DHT22 sensor conf',            ('name', 'devname','pin1',
+                                                                     'param1','param2','param3','param4','param5',)),
+    ( 1700,     'conf_relay',       'relay conf',                   ('name', 'devname','pin1')),
+    ( 2000,     'conf_devstd',      'device generic conf',          ('name', 'devname','pin1')),
 
     #---#    [02001   - 02300]   :   boards status
 
-    ( 2001,     'status_std',       'standard status',      ('name', 'epoch','looptime','freemem',
-                                                             'errors1','errors2','errors3','errors4')),                 # invalid packets, low ram, mem fatals
-    ( 2005,     'status_sampler',   'sampler status',       ('name', 'stepday1','value1',)),                            # nextprobe & total probes
-    ( 2100,     'status_esp',       'esp status',           ('name', 'serialtx', 'serialrx',
-                                                             'tcptx', 'tcprx',
-                                                             'totaltx', 'totalrx',
-                                                             'errors1','errors2','errors3','errors4')),                 # missing ack, unsent packets, disconnections, net overflows
-    ( 2270,     'status_sd',        'sd statistics',        ('name', 'devname','pin1','param1','param2',)),             # size & free
-    ( 2300,     'status_camera',    'camera status',        ('name',)),
+    ( 2001,     'status_std',       'standard status',              ('name', 'epoch','looptime','freemem',
+                                                                     'errors1','errors2','errors3','errors4')),         # invalid packets, low ram, mem fatals
+    ( 2005,     'status_sampler',   'sampler status',               ('name', 'stepday1','value1',)),                    # nextprobe & total probes
+    ( 2100,     'status_esp',       'esp status',                   ('name', 'serialtx', 'serialrx',
+                                                                     'tcptx', 'tcprx',
+                                                                     'totaltx', 'totalrx',
+                                                                     'errors1','errors2','errors3','errors4')),         # missing ack, unsent packets, disconnections, net overflows
+    ( 2270,     'status_sd',        'sd statistics',                ('name', 'devname','pin1','param1','param2',)),     # size & free
+    ( 2300,     'status_camera',    'camera status',                ('name',)),
 
     #---#    [02301   - 03000]   :   devices status
 
-    ( 2301,     'status_asensor',   'analog sensor stat',   ('name', 'devname','status','value1',)),
-    ( 2302,     'status_switch',    'switch sensor stat',   ('name', 'devname','status','value1',)),
-    ( 2310,     'status_ldr',       'ldr sensor stat',      ('name', 'devname','status','value1',)),
-    ( 2522,     'status_DHT22',     'DHT22 sensor stat',    ('name', 'devname','status','value1','value2',)),
-    ( 2700,     'status_relay',     'relay stat',           ('name', 'devname','status','level',)),
-    ( 3000,     'status_devstd',    'device generic stat',  ('name', 'devname','status',)),
+    ( 2301,     'status_asensor',   'analog sensor stat',           ('name', 'devname','status','value1',)),
+    ( 2302,     'status_switch',    'switch sensor stat',           ('name', 'devname','status','value1',)),
+    ( 2310,     'status_ldr',       'ldr sensor stat',              ('name', 'devname','status','value1',)),
+    ( 2405,     'status_dustPM25',  'PM2.5 dust sensor stat',       ('name', 'devname','status','value1',)),
+    ( 2422,     'status_DHT22',     'DHT22 sensor stat',            ('name', 'devname','status','value1','value2',)),
+    ( 2700,     'status_relay',     'relay stat',                   ('name', 'devname','status','level',)),
+    ( 3000,     'status_devstd',    'device generic stat',          ('name', 'devname','status',)),
 
     #---#    [03001   - 03200]   :   alarms
 
@@ -214,7 +216,7 @@ packet_source_standard = (
     ( 3006,     'smog_alarm',       'smog alarm',           ('board', 'devname', 'epoch', 'value1')),
     ( 3007,     'hazard_alarm',     'hazard alarm',         ('board', 'devname', 'epoch', 'value1')),
     ( 3008,     'smoke_alarm',      'smoke alarm',          ('board', 'devname', 'epoch', 'value1')),
-    ( 3009,     'grid_alarm',       'grid load alarm',      ('board', 'devname', 'epoch', 'value1')),
+    ( 3009,     'grid_alarm',       'power grid alarm',     ('board', 'devname', 'epoch', 'value1')),
     ( 3050,     'generic_alarm',    'generic alarm',        ('board', 'devname', 'epoch', 'value1', 'type')),
 
     #---#    [03201   - 03500]   :   requests
@@ -257,9 +259,9 @@ packet_source_server = (
 
     ( 7100,     'sys_req',          'system request',                       ('command','value1','value2','value3','value4')),
 
-    ( 7701,     'set_env_alarm',    'set environment alarm',                ('devname','board','value1')),
-    ( 7702,     'ack_env_alarm',    'alarm acknowledge',                    ('devname','board')),
-    ( 7703,     'env_alarm',        'environment alarm signal',             ('desc1', 'label1', 'label2', 'epoch', 'value1', 'status')),
+    ( 7701,     'set_env_alarm',    'enable environment alarm',             ('devname','board','value1', 'epoch')),
+    ( 7702,     'ack_env_alarm',    'alarm acknowledge',                    ('devname','board', 'epoch')),
+    ( 7703,     'env_alarm',        'environment alarm signal',             ('desc1', 'desc2', 'label1', 'label2', 'epoch', 'value1', 'status')),
     ( 7705,     'alarm_devstat',    'device alarm status',                  ('devname','board', 'desc1', 'value1', 'status')),
 
     ( 8008,     'lyt_conf',         'layout config command',                ('command','board', 'devname',)),

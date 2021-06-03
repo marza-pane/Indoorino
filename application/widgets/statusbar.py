@@ -203,44 +203,60 @@ class StatusBar(PanedTemplate):
         self._status_flags = [True, True, False]
         self._status_str = tk.StringVar()
         self._status_str.set('Initializing...')
+        self.buttons = dict()
 
         fnt_butts = Fonts.mono(10)
 
-        self.btn_exit = ButtonTemplate(self,
-                                       text='Exit',
-                                       font=fnt_butts,
-                                       command=self.clb_on_exit
-                                       )
-        self.btn_connect = ButtonTemplate(self,
-                                          text='Connect',
-                                          font=fnt_butts,
-                                          command=self.clb_connect
-                                          )
-        self.btn_disconnect = ButtonTemplate(self,
-                                             text='Stop',
-                                             font=fnt_butts,
-                                             command=self.clb_disconnect
-                                             )
-        self.btn_login = ButtonTemplate(self,
-                                        text='Login',
-                                        font=fnt_butts,
-                                        command=self.clb_login
-                                        )
-        self.btn_option = ButtonTemplate(self,
-                                         text='Options',
-                                         font=fnt_butts,
-                                         command=self.clb_option
-                                         )
-        self.btn_update = ButtonTemplate(self,
-                                         text='Update',
-                                         font=fnt_butts,
-                                         command=self.clb_update
-                                         )
-        self.btn_refresh = ButtonTemplate(self,
-                                          text='Refresh',
-                                          font=fnt_butts,
-                                          command=self.clb_refresh
-                                          )
+        button_list = ( 'connect', 'stop', 'login', 'update', 'refresh', 'options', 'load', 'save', 'exit')
+
+        for key in button_list:
+            self.buttons.update(
+                {
+                    key : ButtonTemplate(
+                        self,
+                        font=Fonts.mono(10),
+                        text=key.capitalize(),
+                        command=lambda c=key: self.callback(c)
+                    )
+                }
+            )
+
+        # self.btn_exit = ButtonTemplate(self,
+        #                                text='Exit',
+        #                                font=fnt_butts,
+        #                                command=self.clb_on_exit
+        #                                )
+        # self.btn_connect = ButtonTemplate(self,
+        #                                   text='Connect',
+        #                                   font=fnt_butts,
+        #                                   command=self.clb_connect
+        #                                   )
+        # self.btn_disconnect = ButtonTemplate(self,
+        #                                      text='Stop',
+        #                                      font=fnt_butts,
+        #                                      command=self.clb_disconnect
+        #                                      )
+        # self.btn_login = ButtonTemplate(self,
+        #                                 text='Login',
+        #                                 font=fnt_butts,
+        #                                 command=self.clb_login
+        #                                 )
+        # self.btn_option = ButtonTemplate(self,
+        #                                  text='Options',
+        #                                  font=fnt_butts,
+        #                                  command=self.clb_option
+        #                                  )
+        # self.btn_update = ButtonTemplate(self,
+        #                                  text='Update',
+        #                                  font=fnt_butts,
+        #                                  command=self.clb_update
+        #                                  )
+        # self.btn_refresh = ButtonTemplate(self,
+        #                                   text='Refresh',
+        #                                   font=fnt_butts,
+        #                                   command=self.clb_refresh
+        #                                   )
+
         self.lbl_status = LabelTemplate(self,
                                         textvariable=self._status_str,
                                         font=Fonts.monobold(11),
@@ -289,6 +305,62 @@ class StatusBar(PanedTemplate):
 
         self.lbl_status.settooltip(self.message.get_all())
 
+    def callback(self, command):
+
+        if command == 'connect':
+
+            if not System.io.is_online():
+                tkinter.messagebox.showwarning('NETWORK', 'No network connection')
+                return
+
+            elif not System.io.is_connected():
+                System.io.begin()
+                timeout = time.perf_counter() + 0.5
+                while time.perf_counter() < timeout:
+                    System.io.loop()
+                    if System.io.is_connected():
+                        return
+                tkinter.messagebox.showwarning('NETWORK', 'Server seems to be offline')
+            else:
+                tkinter.messagebox.showinfo('NETWORK', 'Already connected')
+
+            return
+
+        elif command == 'stop':
+            System.io.stop()
+            return
+
+        elif command == 'update':
+            if not System.io.is_connected():
+                tkinter.messagebox.showwarning('NETWORK', 'Please connect first')
+
+            System.io.send_server_request('UPDATE:ALL')
+            return
+
+        elif command == 'login':
+            tkinter.messagebox.showinfo('Sorry', '{} not implemented yet'.format(command.capitalize()))
+            return
+
+        elif command == 'refresh':
+            self.master.on_update()
+            self.master.on_resize()
+            return
+
+        elif command == 'options':
+            tkinter.messagebox.showinfo('Sorry', '{} not implemented yet'.format(command.capitalize()))
+            return
+
+        elif command == 'load':
+            System.load_session()
+            return
+
+        elif command == 'save':
+            System.save_session()
+            return
+
+        elif command == 'exit':
+            self.master.master.on_closing()
+
     def clb_connect(self, *evt):
 
         if not System.io.is_online():
@@ -318,31 +390,13 @@ class StatusBar(PanedTemplate):
             tkinter.messagebox.showinfo('Sorry', 'Only connects, login not implemented yet')
             # client.login(Config.username, Config.password)
 
-    def clb_option(self, *evt):
-        pass
-
-    def clb_update(self, *evt):
-        info_network('Requesting update ### TO IMPLEMENT')
-        # client.serverequest("UPDATE:ALL")
-
-    def clb_refresh(self, *evt):
-        self.master.on_update()
-        self.master.on_resize()
-
-    def clb_on_exit(self, *args):
-        self.on_closing()
-
     def on_resize(self, *args, **kwargs):
         w, h = super(PanedTemplate, self).on_resize()
         w_btn = 80
-        widget_list = (self.btn_connect,
-                       self.btn_disconnect,
-                       self.btn_login,
-                       self.btn_option,
-                       self.btn_update,
-                       self.btn_refresh)
 
-        for off, item in enumerate(widget_list):
+        for off, item in enumerate(self.buttons.values()):
+            if off == 6:
+                break
             item.place(
                 x=off * w_btn,
                 y=0,
@@ -351,15 +405,19 @@ class StatusBar(PanedTemplate):
             )
 
         self.lbl_status.place(
-            x=len(widget_list) * w_btn + 5,
+            x=(len(self.buttons) - 3) * w_btn + 15,
             y=0,
-            width=w - (w_btn * (len(widget_list) + 1) + 10),
+            width=w - (w_btn * len(self.buttons) + 30),
             heigh=h
         )
-        self.btn_exit.place(
-            x=w - w_btn,
-            y=0,
-            width=w_btn,
-            heigh=h
-        )
+
+        for off, item in enumerate(self.buttons.values()):
+            if off <= 5:
+                continue
+            item.place(
+                x=w + (off - 9) * w_btn,
+                y=0,
+                width=w_btn,
+                heigh=h
+            )
 

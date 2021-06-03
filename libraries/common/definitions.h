@@ -291,22 +291,23 @@ typedef struct {
         *  Table parameters are: <device name>, <pin>, <device type>
         */
 
-        #define DEFAULT_DEVNUM      2
+        #define DEFAULT_DEVNUM      9
 
         const device_conf_template DEFAULT_DEVCONF[DEFAULT_DEVNUM] PROGMEM = 
         {
-            "DHT1",  6, IBACOM_CONF_DHT22,
-            "DHT2",  7, IBACOM_CONF_DHT22,
-
-//             "HEAT1",  7, IBACOM_CONF_DHT22,
-//             "BEAM1", 28, IBACOM_CONF_RELAY,
-//             "BEAM2", 30, IBACOM_CONF_RELAY,
-//             "BEAM3", 32, IBACOM_CONF_RELAY,
-//             "BEAM4", 34, IBACOM_CONF_RELAY,
-//             "BEAM5", 36, IBACOM_CONF_RELAY,
-//             "BEAM6", 38, IBACOM_CONF_RELAY,
-//             "BEAM7", 40, IBACOM_CONF_RELAY,
-//             "BEAM8", 42, IBACOM_CONF_RELAY
+//             "AIR1",  3, IBACOM_CONF_DUSTPM25,
+//             "DHT1",  5, IBACOM_CONF_DHT22,
+//             "DHT2",  6, IBACOM_CONF_DHT22,
+//             "DHT3",  7, IBACOM_CONF_DHT22,
+            "HEAT1",  7, IBACOM_CONF_DHT22,
+            "BEAM1", 28, IBACOM_CONF_RELAY,
+            "BEAM2", 30, IBACOM_CONF_RELAY,
+            "BEAM3", 32, IBACOM_CONF_RELAY,
+            "BEAM4", 34, IBACOM_CONF_RELAY,
+            "BEAM5", 36, IBACOM_CONF_RELAY,
+            "BEAM6", 38, IBACOM_CONF_RELAY,
+            "BEAM7", 40, IBACOM_CONF_RELAY,
+            "BEAM8", 42, IBACOM_CONF_RELAY
             
         };
 

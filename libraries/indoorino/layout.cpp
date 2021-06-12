@@ -67,7 +67,6 @@ namespace indoorino
             }
             return false;
         }
-        
 
         void    Layout::clear       (void)
         {            
@@ -310,6 +309,7 @@ namespace indoorino
                  * GET
                  * LOAD
                  * SAVE
+                 * RESET
                  * CLEAR    BOARDS
                  *          LIGHTS
                  *          ALARMS
@@ -322,17 +322,21 @@ namespace indoorino
                 {
                     if (strcmp(c[0], "GET") == 0)
                     {
-                        alert_os("sending layout");
+                        alert_os("layout:parse:broadcasting to clients");
                         this->send_config();
                     }
                     else if (strcmp(c[0], "LOAD") == 0)
                     {
-                        alert_os("Loading layout");
+                        alert_os("layout:parse:loading from file");
                         this->load();
+                    }
+                    else if (strcmp(c[0], "RESET") == 0)
+                    {
+                        this->reset();
                     }
                     else if (strcmp(c[0], "SAVE") == 0)
                     {
-                        alert_os("Saving layout");
+                        alert_os("layout:parse:saving to file");
                         this->save();
                     }
                     
@@ -342,29 +346,29 @@ namespace indoorino
                 {
                     if (strcmp(c[0], "CLEAR") == 0)
                     {
-                        if (strcmp(c[1], "BOARDS") == 0)
+                        if (strcmp(c[1], "DEVICES") == 0)
                         {
-                            alert_os("Clearing boards layout");
+                            alert_os("layout:parse:clearing boards layout");
                             _devices.clear();
                         }
                         else if (strcmp(c[1], "LIGHTS") == 0)
                         {
-                            alert_os("Clearing lights layout");
+                            alert_os("layout:parse:clearing lights layout");
                             _lights.clear();
                         }
                         else if (strcmp(c[1], "ALARMS") == 0)
                         {
-                            alert_os("Clearing lights layout");
+                            alert_os("layout:parse:clearing lights layout");
                             _alarms.clear();
                         }
                         else if (strcmp(c[1], "WEATHER") == 0)
                         {
-                            alert_os("Clearing weather layout");
+                            alert_os("layout:parse:clearing weather layout");
                             _weather.clear();
                         }
                         else
                         {
-                            warning_os("layout:parse: invalid command %s", p->p_command());
+                            warning_os("layout:parse: invalid CLEAR command %s", p->p_command());
                         }
 
                     }
@@ -374,10 +378,11 @@ namespace indoorino
                     }
                     
                 }
-                else if ( n == 4 && strcmp(c[0], "REM") )
+                else if ( n == 4 && strcmp(c[0], "REM") == 0 )
                 {
                     int index;
-                    if (strcmp(c[1], "BOARDS") == 0)
+                    
+                    if (strcmp(c[1], "DEVICES") == 0)
                     {
                         index = is_device(c[2], c[3]);
                         if ( index == -1 )
@@ -387,9 +392,9 @@ namespace indoorino
                         else
                         {
                             _devices.erase(_devices.begin() + index);
+                            alert_os("layout:parse:removing global device %s:%s", c[2], c[3]);
                         }
                     }
-                        
                     else if (strcmp(c[1], "LIGHTS") == 0)
                     {
                         index = is_light(c[2], c[3]);
@@ -399,6 +404,7 @@ namespace indoorino
                         }
                         else
                         {
+                            alert_os("layout:parse:removing light device %s:%s", c[2], c[3]);
                             _lights.erase(_lights.begin() + index);
                         }
                     }
@@ -411,6 +417,7 @@ namespace indoorino
                         }
                         else
                         {
+                            alert_os("layout:parse:removing alarm device %s:%s", c[2], c[3]);
                             _alarms.erase(_alarms.begin() + index);
                         }
                     }
@@ -423,6 +430,7 @@ namespace indoorino
                         }
                         else
                         {
+                            alert_os("layout:parse:removing weather device %s:%s", c[2], c[3]);
                             _weather.erase(_weather.begin() + index);
                         }
                     }
@@ -455,12 +463,14 @@ namespace indoorino
                     strcpy(d.type,      p->p_type());
                     strcpy(d.area,      p->p_label1());
                     strcpy(d.location,  p->p_label2());
+                    alert_os("layout:parse:adding new global device %s:%s", p->p_board(), p->p_devname());
 
                     _devices.push_back(d);
                 }
                 else
                 {
                     linked_dev_t &d = _devices.at(index);
+                    alert_os("layout:parse:editing GLOBAL device %s:%s", p->p_board(), p->p_devname());
 
                     strcpy(d.type,      p->p_type());
                     strcpy(d.area,      p->p_label1());
@@ -479,12 +489,14 @@ namespace indoorino
                     strcpy(d.devname,   p->p_devname());
                     strcpy(d.lightype,  p->p_type());
                     strcpy(d.group,     p->p_label1());
+                    alert_os("layout:parse:adding new LIGHT device %s:%s", p->p_board(), p->p_devname());
 
                     _lights.push_back(d);
                 }
                 else
                 {
                     dev_light_t &d = _lights.at(index);
+                    alert_os("layout:parse:editing LIGHT device %s:%s", p->p_board(), p->p_devname());
 
                     strcpy(d.lightype,  p->p_type());
                     strcpy(d.group,     p->p_label1());
@@ -502,14 +514,39 @@ namespace indoorino
                     strcpy(d.devname,   p->p_devname());
                     strcpy(d.alarmtype, p->p_type());
                     strcpy(d.group,     p->p_label1());
+                    alert_os("layout:parse:adding new ALARM device %s:%s", p->p_board(), p->p_devname());
 
                     _alarms.push_back(d);
                 }                
                 else
                 {
                     dev_alarm_t &d = _alarms.at(index);
+                    alert_os("layout:parse:editing ALARM device %s:%s", p->p_board(), p->p_devname());
 
                     strcpy(d.alarmtype, p->p_type());
+                    strcpy(d.group,     p->p_label1());
+                }
+            }
+
+            else if (p->command() == IBACOM_LYT_WEATHER)
+            {
+                int index = is_weather(p->p_board(), p->p_devname());
+            
+                if (index == -1)
+                {
+                    dev_weather_t d;
+                    strcpy(d.boardname, p->p_board());
+                    strcpy(d.devname,   p->p_devname());
+                    strcpy(d.group,     p->p_label1());
+                    alert_os("layout:parse:adding new WEATHER device %s:%s", p->p_board(), p->p_devname());
+
+                    _weather.push_back(d);
+                }                
+                else
+                {
+                    dev_weather_t &d = _weather.at(index);
+                    alert_os("layout:parse:editing WEATHER device %s:%s", p->p_board(), p->p_devname());
+
                     strcpy(d.group,     p->p_label1());
                 }
             }

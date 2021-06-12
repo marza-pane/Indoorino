@@ -23,24 +23,31 @@
 #include <string.h>
 
 #if defined(__ARDUINO_X86__) || (defined (__linux) || defined (linux))
-  #undef PROGMEM
-  #define PROGMEM __attribute__(( section(".progmem.data") ))
-  #define pgm_read_byte(p) (*(p))
-  typedef unsigned char byte;
-  #define printf_P printf
-  #define PSTR(x) (x)
-#else
-  #if (defined(__AVR__))
-    #include <avr/pgmspace.h>
-  #else
-  #if !defined(__x86_64)
-    #include <pgmspace.h> // probably ESP's PGMSPACE, needs to be mocked for testing
-  #else
-    // disable the PROGMEM definition in test environment
+
     #undef PROGMEM
-    #define PROGMEM
-  #endif
-  #endif
+    #define PROGMEM __attribute__(( section(".progmem.data") ))
+    #define pgm_read_byte(p) (*(p))
+  
+    typedef unsigned char byte;
+    
+    #define printf_P printf
+    #define PSTR(x) (x)
+
+#else
+  
+    #if (defined(__AVR__))
+        #include <avr/pgmspace.h>
+    #else
+        #if defined(ARDUINO_SAM_DUE)
+            #warning "Hope you have a pgmspace"
+        #elif !defined(__x86_64)
+            #include <pgmspace.h> // probably ESP's PGMSPACE, needs to be mocked for testing
+        #else
+            // disable the PROGMEM definition in test environment
+            #undef PROGMEM
+            #define PROGMEM
+        #endif
+    #endif
 #endif
 
 #define N_ROW                   4

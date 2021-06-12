@@ -121,7 +121,9 @@ Indoorino_module    = Extension('IndoorinoModule',
 
                                 # language='c++',
                                 language='gnu++17',
-                                sources=source)
+                                sources=source,
+                                extra_compile_args=['-std=gnu++17'],
+                                )
 
 #ipstools_module = Extension('tools',
                       #define_macros=[('PYIMODULE', '')],

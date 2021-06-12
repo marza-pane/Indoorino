@@ -1,59 +1,40 @@
-/* How to use the DHT-22 sensor with Arduino uno
-   Temperature and humidity sensor
-   More info: http://www.ardumotive.com/how-to-use-dht-22-sensor-en.html
-   Dev: Michalis Vasilakis // Date: 1/7/2015 // www.ardumotive.com */
-
-//Libraries
-#include "utils.h"
-
-/*
- Dust Sensor project for arduino
- sensor GP2Y1010AU0F
- www.keyestudio.com
-*/
-
-#define ANALPIN 0
-#define LEDPIN 3
-#define SAMPLING 280
-#define DELTATIME 40
-#define SLEEPTIME 9680
-
-
-float voMeasured = 0;
-float calcVoltage = 0;
-float dustDensity = 0;
-
+#include <Arduino.h>
+#include "definitions.h"
 void setup()
 {
-    SerialDebug.begin(SERIAL_DEFAULT_BAUDRATE);
-//     utils::board::debug_init();
     
-    pinMode(LEDPIN, OUTPUT);
-    SerialDebug.println("Dust sensor START: ");
 
 }
 void loop(){
 
-    digitalWrite(LEDPIN, LOW); // power on the LED
+    Serial.begin(SERIAL_DEFAULT_BAUDRATE);
+    Serial.print("\n\n\t*** SERIAL PORT START ***\nNow writing pins...\n");
 
-    delayMicroseconds(SAMPLING);
-    voMeasured = analogRead(ANALPIN); // read the dust value
-    delayMicroseconds(DELTATIME);
-    
-    digitalWrite(LEDPIN,HIGH); // turn the LED off
-//     delayMicroseconds(SLEEPTIME);
-    
-  // 0 - 5V mapped to 0 - 1023 integer values
-  // recover voltage
-    calcVoltage = voMeasured * (5.0 / 1024.0);
-    dustDensity = 170 * calcVoltage - 0.1;
-    SerialDebug.print("Analog value = ");
-    SerialDebug.println(voMeasured);
-    SerialDebug.print("Mapped value = ");
-    SerialDebug.println(calcVoltage);
-    SerialDebug.print("The dust concentration is: ");
-    SerialDebug.print(dustDensity);
-    SerialDebug.print(" ug/m3\n");  
+    for (int i=2; i<64; i++)
+    {
 
-    delay(1000); //Delay 2 sec.
+        SoftwareSerial  SerialDebug(i, i+1, false);
+        Serial.print("INIT SoftwareSerial(");
+        Serial.print(i);
+        Serial.print(", ");
+        Serial.print(i+1);
+        Serial.println("); not begin ...");
+
+        SerialDebug.begin(SERIAL_DEFAULT_BAUDRATE);
+        delay(100);
+        SerialDebug.print("==> RX PIN #");
+        SerialDebug.print(i);
+        SerialDebug.print(" - TX PIN #");
+        SerialDebug.println(i+1);
+
+        Serial.print("WROTE to pin ");
+        Serial.println(i+1);
+        
+        SerialDebug.end();        
+    }
+
+    delay(2000); //Delay 2 sec.
 }
+
+// n00b/.arduino15/packages/esp8266/tools/xtensa-lx106-elf-gcc/3.0.0-newlib4.0.0-gnu23-48f7b08/bin/../lib/gcc/xtensa-lx106-elf/10.2.0/../../../../xtensa-lx106-elf/bin/ld: /tmp/arduino_build_365271/libraries/common/utils.cpp.o:(.bss.SerialDebug+0x0): multiple definition of `SerialDebug'; /tmp/arduino_build_365271/sketch/esprouter.ino.cpp.o:(.bss.SerialDebug+0x0): first defined here
+// collect2: error: ld returned 1 exit status

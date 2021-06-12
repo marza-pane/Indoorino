@@ -352,6 +352,7 @@ class StatusBar(PanedTemplate):
 
         elif command == 'load':
             System.load_session()
+            self.master.on_update()
             return
 
         elif command == 'save':

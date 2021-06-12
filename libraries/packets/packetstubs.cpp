@@ -2,7 +2,7 @@
  * packetStub.cpp
  *
  *  Created on: Apr 25, 2020
- *   Edited on: May 17, 2021 - 23:54:34
+ *   Edited on: Jun 11, 2021 - 02:14:00
  *      Author: n00b
  *  This code is code-generated
  */
@@ -99,6 +99,10 @@ namespace packet
 			return (char *) (payload());
 		case IBACOM_CONF_SWITCH :
 			return (char *) (payload());
+		case IBACOM_CONF_FLOODSWITCH :
+			return (char *) (payload());
+		case IBACOM_CONF_RAINSWITCH :
+			return (char *) (payload());
 		case IBACOM_CONF_LDR :
 			return (char *) (payload());
 		case IBACOM_CONF_DUSTPM25 :
@@ -122,6 +126,10 @@ namespace packet
 		case IBACOM_STATUS_ASENSOR :
 			return (char *) (payload());
 		case IBACOM_STATUS_SWITCH :
+			return (char *) (payload());
+		case IBACOM_STAT_FLOODSWITCH :
+			return (char *) (payload());
+		case IBACOM_STAT_RAINSWITCH :
 			return (char *) (payload());
 		case IBACOM_STATUS_LDR :
 			return (char *) (payload());
@@ -317,6 +325,10 @@ namespace packet
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_CONF_SWITCH :
 			return (char *) (payload() + LEN_NAME);
+		case IBACOM_CONF_FLOODSWITCH :
+			return (char *) (payload() + LEN_NAME);
+		case IBACOM_CONF_RAINSWITCH :
+			return (char *) (payload() + LEN_NAME);
 		case IBACOM_CONF_LDR :
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_CONF_DUSTPM25 :
@@ -332,6 +344,10 @@ namespace packet
 		case IBACOM_STATUS_ASENSOR :
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_STATUS_SWITCH :
+			return (char *) (payload() + LEN_NAME);
+		case IBACOM_STAT_FLOODSWITCH :
+			return (char *) (payload() + LEN_NAME);
+		case IBACOM_STAT_RAINSWITCH :
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_STATUS_LDR :
 			return (char *) (payload() + LEN_NAME);
@@ -622,6 +638,10 @@ namespace packet
 		case IBACOM_STATUS_ASENSOR :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		case IBACOM_STATUS_SWITCH :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
+		case IBACOM_STAT_FLOODSWITCH :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
+		case IBACOM_STAT_RAINSWITCH :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		case IBACOM_STATUS_LDR :
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
@@ -1025,6 +1045,10 @@ namespace packet
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_STATUS_SWITCH :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_STAT_FLOODSWITCH :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_STAT_RAINSWITCH :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_STATUS_LDR :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_STATUS_DUSTPM25 :
@@ -1152,6 +1176,10 @@ namespace packet
 		case IBACOM_CONF_ASENSOR :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_CONF_SWITCH :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_CONF_FLOODSWITCH :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_CONF_RAINSWITCH :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_CONF_LDR :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME);

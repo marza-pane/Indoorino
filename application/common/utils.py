@@ -273,142 +273,152 @@ class AppConfig:
 
     class Layout:
 
-        class Lights(dict):
-            """
-             [group-name]   [board-name1]    [device1]      [ 'icon_type ]'
-            """
-            def __init__(self):
-                dict.__init__(self, {})
+        # class Lights(dict):
+        #     """
+        #      [group-name]   [board-name1]    [device1]      [ 'icon_type ]'
+        #     """
+        #     def __init__(self):
+        #         dict.__init__(self, {})
+        #
+        #
+        #     def parse(self, packet):
+        #         bname=packet.payload['board']
+        #         dname=packet.payload['devname']
+        #
+        #         data = []
+        #         if packet.payload['type'] == 'LEDBEAM':
+        #             data.append('beam-spot')
+        #
+        #         if not packet.payload['label1'] in self.keys():
+        #             self.update({ packet.payload['label1'] : dict() })
+        #
+        #         # self.__getitem__(packet.payload['label1'])
+        #         if not bname in self.__getitem__(packet.payload['label1']).keys():
+        #             self.__getitem__(packet.payload['label1']).update({ bname : dict() })
+        #
+        #         self.__getitem__(packet.payload['label1'])[bname].update({ dname : data })
+        #
+        # class Sensors(dict):
+        #     """
+        #      [group-name]   [board-name1]    [device1]      [ 'icon_type ]'
+        #     """
+        #
+        #     def __init__(self):
+        #         dict.__init__(self, {})
+        #         self.update(
+        #             {
+        #                 'weather': {
+        #                     # """ Outer perimeter boards """
+        #                     'WEATHER.GARDEN': {
+        #                         'DHT1': ['termometer', ],
+        #                         'DHT2': ['termometer', ],
+        #                         'DHT3': ['termometer', ],
+        #                         'RAIN1': ['beam-spot', ],
+        #                         'WIND1': ['beam-spot', ],
+        #                         'LDR1': ['beam-spot', ],
+        #                         'LDR2': ['beam-spot', ],
+        #                     }
+        #                 },
+        #                 'home climate': {
+        #                     # """ Inner perimeter boards """
+        #                     'KITCHEN.WEATHER': {
+        #                         'DHT1': ['termometer', ],
+        #                         'DHT2': ['termometer', ],
+        #                         'DHT3': ['termometer', ],
+        #                     },
+        #                     'BEDROOM.WEATHER': {
+        #                         'DHT1': ['termometer', ],
+        #                         'DHT2': ['termometer', ],
+        #                         'DHT3': ['termometer', ],
+        #                     }
+        #                 },
+        #                 'heat sensors': {
+        #                     # """ Garden boards """
+        #                     'HOUSE.BEAMS': {
+        #                         'HEAT1': ['termometer', 'HEAT', ],
+        #                     },
+        #                     'BEDROOM.WEATHER': {
+        #                         'HEAT1': ['termometer', 'HEAT', ],
+        #                         'HEAT2': ['termometer', 'HEAT', ],
+        #                         'HEAT3': ['termometer', 'HEAT', ],
+        #                     },
+        #                     'KITCHEN.WEATHER': {
+        #                         'HEAT1': ['termometer', 'HEAT', ],
+        #                         'HEAT2': ['termometer', 'HEAT', ],
+        #                         'HEAT3': ['termometer', 'HEAT', ],
+        #                     },
+        #                     'WEATHER.GARDEN': {
+        #                         'HEAT1': ['termometer', 'HEAT', ],
+        #                         'HEAT2': ['termometer', 'HEAT', ],
+        #                         'HEAT3': ['termometer', 'HEAT', ],
+        #                     },
+        #                     'HOME.LIGHTS': {
+        #                         'HEAT1': ['termometer', 'HEAT', ],
+        #                     },
+        #                     'GARDEN.LIGHTS': {
+        #                         'HEAT1': ['termometer', 'HEAT', ],
+        #                     },
+        #                 },
+        #
+        #             }
+        #         )
+        #
+        # class Alarms(dict):
+        #     """
+        #      [alarm-type] [group-name] [board-name1] [device1]      [ 'icon_type ]'
+        #     """
+        #
+        #     def __init__(self):
+        #         dict.__init__(self, {})
+        #         # self.update(
+        #         #     {
+        #         #         'FLOOD': {
+        #         #             'attic fire alarm': {
+        #         #                 'HOUSE.BEAMS': {
+        #         #                     'HEAT1': ['dht22',],
+        #         #             },},},
+        #         #     }
+        #         # )
+        #
+        #     def parse(self, packet):
+        #         bname=packet.payload['board']
+        #         dname=packet.payload['devname']
+        #
+        #         group = packet.payload['label1']
+        #         almtype = packet.payload['type']
+        #
+        #         data = []
+        #
+        #         if not packet.payload['type'] in self.keys():
+        #             self.update( { almtype: dict() } )
+        #
+        #         if not group in self.__getitem__(almtype).keys():
+        #             self.__getitem__(almtype).update( { group: dict() } )
+        #
+        #         if not bname in self.__getitem__(almtype)[group].keys():
+        #             self.__getitem__(almtype)[group].update( { bname : dict() } )
+        #
+        #         self.__getitem__(almtype)[group][bname].update( { dname : data } )
 
+        def __init__(self, data):
 
-            def parse(self, packet):
-                bname=packet.payload['board']
-                dname=packet.payload['devname']
+            self.areas = data['area'] # list
+            self.devtypes = data['devtypes'] #list
+            self.location = dict()
 
-                data = []
-                if packet.payload['type'] == 'LEDBEAM':
-                    data.append('beam-spot')
-
-                if not packet.payload['label1'] in self.keys():
-                    self.update({ packet.payload['label1'] : dict() })
-
-                # self.__getitem__(packet.payload['label1'])
-                if not bname in self.__getitem__(packet.payload['label1']).keys():
-                    self.__getitem__(packet.payload['label1']).update({ bname : dict() })
-
-                self.__getitem__(packet.payload['label1'])[bname].update({ dname : data })
-
-        class Sensors(dict):
-            """
-             [group-name]   [board-name1]    [device1]      [ 'icon_type ]'
-            """
-
-            def __init__(self):
-                dict.__init__(self, {})
-                self.update(
-                    {
-                        'weather': {
-                            # """ Outer perimeter boards """
-                            'WEATHER.GARDEN': {
-                                'DHT1': ['termometer', ],
-                                'DHT2': ['termometer', ],
-                                'DHT3': ['termometer', ],
-                                'RAIN1': ['beam-spot', ],
-                                'WIND1': ['beam-spot', ],
-                                'LDR1': ['beam-spot', ],
-                                'LDR2': ['beam-spot', ],
-                            }
-                        },
-                        'home climate': {
-                            # """ Inner perimeter boards """
-                            'KITCHEN.WEATHER': {
-                                'DHT1': ['termometer', ],
-                                'DHT2': ['termometer', ],
-                                'DHT3': ['termometer', ],
-                            },
-                            'BEDROOM.WEATHER': {
-                                'DHT1': ['termometer', ],
-                                'DHT2': ['termometer', ],
-                                'DHT3': ['termometer', ],
-                            }
-                        },
-                        'heat sensors': {
-                            # """ Garden boards """
-                            'HOUSE.BEAMS': {
-                                'HEAT1': ['termometer', 'HEAT', ],
-                            },
-                            'BEDROOM.WEATHER': {
-                                'HEAT1': ['termometer', 'HEAT', ],
-                                'HEAT2': ['termometer', 'HEAT', ],
-                                'HEAT3': ['termometer', 'HEAT', ],
-                            },
-                            'KITCHEN.WEATHER': {
-                                'HEAT1': ['termometer', 'HEAT', ],
-                                'HEAT2': ['termometer', 'HEAT', ],
-                                'HEAT3': ['termometer', 'HEAT', ],
-                            },
-                            'WEATHER.GARDEN': {
-                                'HEAT1': ['termometer', 'HEAT', ],
-                                'HEAT2': ['termometer', 'HEAT', ],
-                                'HEAT3': ['termometer', 'HEAT', ],
-                            },
-                            'HOME.LIGHTS': {
-                                'HEAT1': ['termometer', 'HEAT', ],
-                            },
-                            'GARDEN.LIGHTS': {
-                                'HEAT1': ['termometer', 'HEAT', ],
-                            },
-                        },
-
-                    }
-                )
-
-        class Alarms(dict):
-            """
-             [alarm-type] [group-name] [board-name1] [device1]      [ 'icon_type ]'
-            """
-
-            def __init__(self):
-                dict.__init__(self, {})
-                # self.update(
-                #     {
-                #         'FLOOD': {
-                #             'attic fire alarm': {
-                #                 'HOUSE.BEAMS': {
-                #                     'HEAT1': ['dht22',],
-                #             },},},
-                #     }
-                # )
-
-            def parse(self, packet):
-                bname=packet.payload['board']
-                dname=packet.payload['devname']
-
-                group = packet.payload['label1']
-                almtype = packet.payload['type']
-
-                data = []
-
-                if not packet.payload['type'] in self.keys():
-                    self.update( { almtype: dict() } )
-
-                if not group in self.__getitem__(almtype).keys():
-                    self.__getitem__(almtype).update( { group: dict() } )
-
-                if not bname in self.__getitem__(almtype)[group].keys():
-                    self.__getitem__(almtype)[group].update( { bname : dict() } )
-
-                self.__getitem__(almtype)[group][bname].update( { dname : data } )
-
-        def __init__(self):
-            self.devtypes = (
-                'ANALOG',
-                'RELAY',
-                'DUSTPM25'
-                'DHT22',
-                'TIMER',
-                'STEPPER',
-                'SERVO'
+            self.location.update(
+                {
+                    'home' : data['area_home'],
+                    'perimeter' : data['area_perimeter'],
+                    # 'garden' : data['area_garden'],
+                    # 'forset' : data['area_forset'],
+                    # 'sheds' : data['area_sheds'],
+                    # 'gate' : data['area_gate'],
+                    # 'pool' : data['area_pool'],
+                    # 'barbie' : data['area_barbie'],
+                    # 'woodshed' : data['area_woodshed'],
+                    # 'sauna' : data['area_sauna'],
+                }
             )
             # self.devices = dict()
             # self.lights=self.Lights()
@@ -448,8 +458,6 @@ class AppConfig:
         #             warning_os('Layout:lights: could not find {} in device dict'.format(key))
 
                 # self.alarms.parse(packet)
-
-
 
     class Flags:
 
@@ -525,9 +533,9 @@ class AppConfig:
         ### If you want to load some option/conf do it here
 
         self.macros=self.Macros(appconf)
+        self.layout=self.Layout(appconf['const'])
         self.options=self.Options()
         self.flags=self.Flags()
-        self.layout=self.Layout()
 
         self.username='ANNSATSU'
         self.password='ONAKAGASUITA'

@@ -55,54 +55,53 @@ public:
 
 
 
+class   Sensor_Switch       : public virtualSensor
+{
+public:
 
-// class   Sensor_Analog       : public virtualSensor
-// {
-// public:
-// 
-//     
-//      Sensor_Analog      (uint8_t);
-//     ~Sensor_Analog      ();
-//     
-//     bool        reset               (uint8_t);
-//     ipacket *   status              (ipacket *);
-//     ipacket **  probe               (ipacket **);
-// 
-//     uint32_t    value               (void);
-// };
-// 
-// 
-// 
-// class   Sensor_switch       : public virtualSensor
-// {
-// public:
-// 
-//     
-//      Sensor_switch      (uint8_t);
-//     ~Sensor_switch      ();
-//     
-//     bool        reset               (uint8_t);
-//     ipacket *   status              (ipacket *);
-//     ipacket **  probe               (ipacket **);
-// 
-//     uint32_t    value               (void);
-// };
-// 
-// 
-// 
-// 
-// class   Sensor_LDR          : public Sensor_Analog
-// {
-// public:    
-//      Sensor_LDR (uint8_t);
-//     ~Sensor_LDR ();
-//         
-//     bool        reset               (uint8_t);
-//     ipacket *   status              (ipacket *);
-//     ipacket **  probe               (ipacket **);
-//     
-//     uint32_t    value               (void);
-// };
+    
+     Sensor_Switch      (uint8_t);
+    ~Sensor_Switch      ();
+    
+    bool        reset               (void);
+    void        send_dev_stat       (void);
+    int32_t     value               (void);
+};
+
+
+class SwitchSensor_Flood    : public Sensor_Switch
+{
+public:
+    SwitchSensor_Flood(uint8_t i):Sensor_Switch(i) {};
+    
+    void        loop                (void);
+    void        send_dev_stat       (void);
+    int32_t     value               (void);
+};
+
+
+class SwitchSensor_Rain     : public Sensor_Switch
+{
+public:
+    SwitchSensor_Rain(uint8_t i):Sensor_Switch(i) {};
+    void        loop                (void);
+    void        send_dev_stat       (void);
+    int32_t     value               (void);
+    
+};
+
+
+class   Sensor_LDR          : public virtualSensor
+{
+public:    
+     Sensor_LDR (uint8_t);
+    ~Sensor_LDR ();
+        
+    bool        reset               (void);
+    void        send_dev_stat       (void);
+
+    int32_t     value               (void);
+};
 
 
 class   Sensor_DHT22        : public virtualSensor
@@ -140,7 +139,15 @@ public:
 class   Sensor_PM25dust     : public virtualSensor
 {
 protected:
-    
+    /*
+        values:
+        3000 + = Very Bad
+        1050-3000 = Bad
+        300-1050 = Ordinary
+        150-300 = Good
+        75-150 = Very Good
+        0-75 = Tiptop
+    */    
     uint8_t     _analpin=0;
     
     int32_t     _sampling_time = 40;
@@ -160,7 +167,6 @@ public:
     void        send_dev_stat       (void);
     
     int32_t     value               (void);
-//     float       read_sensor         (void);
     
 };
 
@@ -168,3 +174,36 @@ public:
 #endif /* INDOORINO_DEVS */
 
 #endif /* SENSORS_H_ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// class   Sensor_Analog       : public virtualSensor
+// {
+// public:
+// 
+//     
+//      Sensor_Analog      (uint8_t);
+//     ~Sensor_Analog      ();
+//     
+//     bool        reset               (uint8_t);
+//     ipacket *   status              (ipacket *);
+//     ipacket **  probe               (ipacket **);
+// 
+//     uint32_t    value               (void);
+// };
+// 
+// 
+// 

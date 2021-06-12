@@ -7,7 +7,7 @@
  */
 
 #if defined (ARDUINO)
-#include "common.h"
+#include "icommon.h"
 
 
 //      _____________________________________________________________________

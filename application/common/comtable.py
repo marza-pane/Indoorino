@@ -7,7 +7,7 @@
 #    |______________________________________________________________________|
 #
 
-TOTAL_IBACOM = 61
+TOTAL_IBACOM = 65
 
 
 
@@ -50,6 +50,8 @@ IBACOM_CONF_CAMERA                  = 1300
 
 IBACOM_CONF_ASENSOR                 = 1301
 IBACOM_CONF_SWITCH                  = 1302
+IBACOM_CONF_FLOODSWITCH             = 1303
+IBACOM_CONF_RAINSWITCH              = 1304
 IBACOM_CONF_LDR                     = 1310
 IBACOM_CONF_DUSTPM25                = 1405
 IBACOM_CONF_DHT22                   = 1422
@@ -68,6 +70,8 @@ IBACOM_STATUS_CAMERA                = 2300
 
 IBACOM_STATUS_ASENSOR               = 2301
 IBACOM_STATUS_SWITCH                = 2302
+IBACOM_STAT_FLOODSWITCH             = 2303
+IBACOM_STAT_RAINSWITCH              = 2304
 IBACOM_STATUS_LDR                   = 2310
 IBACOM_STATUS_DUSTPM25              = 2405
 IBACOM_STATUS_DHT22                 = 2422

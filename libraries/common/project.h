@@ -39,9 +39,10 @@
  *
  * How to: Map new sensor into the system
  
-    - add public virtualSensor/virtualActuator class into indoorino source (sensor.h and sensor.cpp)
+    - add public virtualSensor/virtualActuator class into board source (devices/sensor.h and devices/sensor.cpp)
     - add class init into device list (sensor.h and sensor.cpp)
-    - add sensor status and config packet 
+    - add sensor status and config packet (application/codegen/source.py)
+    - add public templates in indoorino (indoorino/devices.h and indoorino/devices.cpp)
     - 
  * 
 /*/
@@ -58,9 +59,9 @@
 
         /* MANDATORY FOR ARDUINO: choose a unique board name */
 
-        const char BOARD_NAME[] PROGMEM = "HOUSE.BEAMS";
-        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
-        #define INDOORINO_CONTROLLER
+//         const char BOARD_NAME[] PROGMEM = "HOUSE.BEAMS";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
+//         #define INDOORINO_CONTROLLER
 
 //         const char BOARD_NAME[] PROGMEM = "SRV.HOUSE.BEAMS";
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
@@ -76,6 +77,14 @@
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
 //         #define INDOORINO_CONTROLLER
 
+
+        const char BOARD_NAME[] PROGMEM = "SRV.PRESCOTT.CLIMATE";
+        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
+        #define INDOORINO_ROUTER
+        
+//         const char BOARD_NAME[] PROGMEM = "PRESCOTT.CLIMATE";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
+//         #define INDOORINO_CONTROLLER
         
         
 //         const char BOARD_NAME[] PROGMEM = "WEATHER.SOUTH";

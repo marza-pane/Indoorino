@@ -86,11 +86,20 @@ class PaletteManager:
             self.LDR='gold'
             self.RELAY='cornflower blue'
 
+    class Frames:
+        def __init__(self):
+            self.DEVICES='DarkOliveGreen1'
+            self.LAYOUT='light sky blue'
+            self.LIGHTS='light goldenrod'
+            self.ALARMS='light coral'
+
+
     def __init__(self):
         self.generic=self.GenericPalette()
         self.report=self.ReportPalette()
         self.board=self.BoardPalette()
         self.device=self.DevicePalette()
+        self.frames=self.Frames()
 
 class ScreenMonitor:
 
@@ -180,8 +189,23 @@ class IconPaths:
             return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/collapse-close.png'))
 
         @staticmethod
+        def COLLAPSE_SIDE():
+            return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/collapse-close-side.png'))
+
+        @staticmethod
         def RESTORE():
             return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/collapse-open.png'))
+
+    class _Layout:
+        @staticmethod
+        def ALARM():
+            return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/group-alarm.png'))
+        @staticmethod
+        def LIGHTS():
+            return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/group-lights.png'))
+        @staticmethod
+        def WEATHER():
+            return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/group-weather.png'))
 
     class _Devices:
 
@@ -304,6 +328,7 @@ class IconPaths:
     def __init__(self):
 
         self.system = self._System()
+        self.layout = self._Layout()
         self.devices = self._Devices()
         self.lights = self._Lights()
     # class _IconHelper:

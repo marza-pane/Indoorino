@@ -779,7 +779,6 @@ class   ScrollableFrameTemplate(GenericUiTemplate, tk.PanedWindow):
         self._scroll.pack(fill=tk.Y, side=tk.RIGHT, expand=tk.FALSE)
         self._canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
 
-
         for item in self.widgetlist:
             item.on_resize()
 

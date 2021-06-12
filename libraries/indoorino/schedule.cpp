@@ -7,7 +7,7 @@
 
 #if defined (__linux__)
 
-#include "../common/common.h"
+#include "../common/icommon.h"
 namespace indoorino
 {
     

@@ -53,8 +53,8 @@
                 16: GPIO4               32: EXT_RSBT
             */
 
-        #define DEBUG_PIN_RX 16 
-        #define DEBUG_PIN_TX 24
+        #define DEBUG_PIN_RX 3 
+        #define DEBUG_PIN_TX 4
         
         /* On ESP8266, if I try 
         * <static inline SoftwareSerial SerialDebug(DEBUG_PIN_RX, DEBUG_PIN_TX, false);>,
@@ -97,10 +97,9 @@
                 D10 = GPIO1;
                 LED_BUILTIN = GPIO16    
             */
-
-        #define DEBUG_PIN_RX D5
-        #define DEBUG_PIN_TX D6
-
+ 
+        #define DEBUG_PIN_RX 3 
+        #define DEBUG_PIN_TX 4
         
         extern SoftwareSerial  SerialDebug;
         #define SerialDebugPrint(S,...) SerialDebug.print(S, ## __VA_ARGS__)

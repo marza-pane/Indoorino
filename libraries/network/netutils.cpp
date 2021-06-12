@@ -5,7 +5,7 @@
  *      Author: n00b
  */
 
-#include "../common/common.h"
+#include "../common/icommon.h"
 #if defined(INDOORINO_NETWORK)
 
 #if defined(__linux__)

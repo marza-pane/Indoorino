@@ -21,7 +21,7 @@
 #define LYT_NUM_AREAS               10
 #define LYT_NUM_L_HOME              18
 #define LYT_NUM_L_PERIMETER         8
-#define LYT_NUM_DEVTYPES            6
+#define LYT_NUM_DEVTYPES            9
 #define LYT_NUM_ALARMS              6
 #define LYT_NUM_ALARMS_GROUP        16
 
@@ -92,12 +92,15 @@ namespace indoorino
         {
             "RELAY",
             "SWITCH",
+            "FLOODSW",
+            "RAINSW",
             "DHT22",
             "DUSTPM25",
             "LDR",
             "SERVO",
+            "STEPPER",
         };
-        
+
         const char global_alarms[LYT_NUM_ALARMS][LEN_NAME]
         {
             "FIRE",

@@ -274,7 +274,7 @@ class IndoorinoDevice(DeviceParameters):
 
         else:
             warning_os('Could not set device {}:{} with packet {}'.format(
-                self.config.std['boardname'].value, self.config.std['name'].value, packet.description()))
+                self.config.std['boardname'].value, self.config.std['name'].value, packet.description))
 
     def loop(self):
         if self.is_connected() and time.perf_counter() > self._timeout:
@@ -333,6 +333,7 @@ class IndoorinoDevice(DeviceParameters):
                             self.status.std['status'].set('TYPE ERROR')
                         else:
                             self.status.std['status'].set('UNDEFINED')
+
                 return True
 
         return False

@@ -1,4 +1,4 @@
-#include "common.h"
+#include "icommon.h"
 
 ConfController  conf;
 IndoorinoDeviceList devices;
@@ -39,7 +39,9 @@ void loop()
     blinker.loop();
     rtc.loop();
     utils::board::io.loop();
+    devices.loop();
     
+    /* This manage serial IO */
     if (!utils::board::io.incoming().is_empty())
     {
         packet::netpacket * p = utils::board::io.incoming().pop_front();
@@ -74,5 +76,7 @@ void loop()
         SerialDebug.print(".");
 //         info_mem("free heap @ <mainloop> [%u] KB", utils::board::available_ram());
     }
+    
+    
 }
 

@@ -160,7 +160,7 @@ class IndoorinoCore:
                     self._boards[name].parse(packet)
                 except TypeError as error:
                     error_os('board:parse: invalid <name:{}> parameter. Packet {}'.format(name, packet))
-                    error_os(error)
+                    error_os(error.__repr__())
 
         def clear(self):
             self._boards.clear()
@@ -194,7 +194,6 @@ class IndoorinoCore:
                 return self._device
 
         class LightEntry(DeviceEntry):
-
             def __init__(self, board, device, **kwargs):
                 IndoorinoCore.Layout.DeviceEntry.__init__(self, board, device, **kwargs)
                 self.lightype=kwargs.pop('lightype','none')
@@ -203,6 +202,7 @@ class IndoorinoCore:
         class WeatherEntry(DeviceEntry):
             def __init__(self, board, device, **kwargs):
                 IndoorinoCore.Layout.DeviceEntry.__init__(self, board, device, **kwargs)
+                self.weathertype=kwargs.pop('weathertype','none')
                 self.group=kwargs.pop('group','none')
 
         def __init__(self):
@@ -243,6 +243,7 @@ class IndoorinoCore:
                             group=packet.payload['label1'],
                             )
                         } )
+
             elif packet.command == IBACOM_LYT_WEATHER:
                 key = (packet.payload['board'], packet.payload['devname'])
 
@@ -257,8 +258,14 @@ class IndoorinoCore:
                             location=self.devices[key].location,
                             area=self.devices[key].area,
                             group=packet.payload['label1'],
+                            weathertype=packet.payload['type'],
                             )
                         } )
+
+        def clear(self):
+            self.devices.clear()
+            self.lights.clear()
+            self.weather.clear()
 
     class Alarms:
 
@@ -266,13 +273,21 @@ class IndoorinoCore:
 
             class AlarmDev:
 
-                def __init__(self, board_name, dev_name):
+                def __init__(self, board_name, dev_name, dev_group, dev_type):
                     self._boardname = board_name
                     self._devname = dev_name
+                    self._group=dev_group
+                    self._alarmtype=dev_type
                     self._enabled=False
                     self._on_alarm=False
                     self._events=list()
 
+                @property
+                def group(self):
+                    return self._group
+                @property
+                def alarmtype(self):
+                    return self._alarmtype
                 @property
                 def is_enabled(self):
                     return self._enabled
@@ -345,11 +360,16 @@ class IndoorinoCore:
                 if packet.command == IBACOM_LYT_ALARMS:
 
                     if packet.payload['label1'] == self._name:
-                        name = '{}:{}'.format(packet.payload['board'], packet.payload['devname'])
+                        name = (packet.payload['board'], packet.payload['devname'])
                         if not name in self._devices.keys():
                             self._devices.update(
                                 {
-                                    name : self.AlarmDev(packet.payload['board'], packet.payload['devname'])
+                                    name : self.AlarmDev(
+                                        packet.payload['board'],
+                                        packet.payload['devname'],
+                                        self._name,
+                                        self._alarm_type
+                                    )
                                 }
                             )
                     Config.flags.update.SYSTEM=True
@@ -377,6 +397,13 @@ class IndoorinoCore:
         def __init__(self):
             self.groups = dict()
 
+        def devices(self):
+            data = dict()
+            for g in self.groups.values():
+                for key, dev in g.devices.items():
+                    data.update( { key:dev } )
+            return data
+
         def parse(self, packet):
 
             if packet.command == IBACOM_LYT_ALARMS:
@@ -392,6 +419,9 @@ class IndoorinoCore:
 
             for group in self.groups.values():
                 group.parse(packet)
+
+        def clear(self):
+            self.groups.clear()
 
     class Session:
 
@@ -511,7 +541,6 @@ class IndoorinoCore:
             handler.close()
         except (FileNotFoundError, FileExistsError, IOError) as error:
             error_os('Can not save! error:{}'.format(error))
-
 
     def load_session(self):
         # per lo stimato ed illustre collega FRENZ detto biggus dickus

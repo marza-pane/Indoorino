@@ -431,13 +431,13 @@ class UiAlarms(PanedTemplate):
 
                 def on_update(self, *args, **kwargs):
 
-                    if System.alarms.groups[self._group].devices['{}:{}'.format(self.board, self.device)].is_onalarm:
+                    if System.alarms.groups[self._group].devices[(self.board, self.device)].is_onalarm:
                         self.labels['state'].configure(
                             text='ON ALARM',
                             fg=Palette.generic.WHITE
                         )
                     else:
-                        if System.alarms.groups[self._group].devices['{}:{}'.format(self.board, self.device)].is_enabled:
+                        if System.alarms.groups[self._group].devices[(self.board, self.device)].is_enabled:
                             self.labels['state'].configure(
                                 text='ENABLED',
                                 fg=Palette.generic.WHITE

@@ -1,14 +1,15 @@
 #include "xbase64.h"
 
 #if (defined(__AVR__))
-#include <avr/pgmspace.h>
+    #include <avr/pgmspace.h>
 #else
-#if !defined(__x86_64)
-#include <pgmspace.h>
-#else
-#undef PROGMEM
-#define PROGMEM
-#endif
+    #if defined(ARDUINO_SAM_DUE)
+    #elif !defined(__x86_64)
+        #include <pgmspace.h>
+    #else
+        #undef PROGMEM
+        #define PROGMEM
+    #endif
 #endif
 
 const char PROGMEM b64_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

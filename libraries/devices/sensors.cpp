@@ -5,7 +5,7 @@
  *      Author: n00b
  */
 
-#include "../common/common.h"
+#include "../common/icommon.h"
 
     /*
      * STATUS:
@@ -152,6 +152,135 @@ void                    Actuator_Relay::send_dev_stat       (void)
     utils::board::io.send(&p);
         
 }
+
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       SWITCH SENSORS                                              |
+//      |___________________________________________________________________|
+//
+
+Sensor_Switch::Sensor_Switch(uint8_t index):virtualSensor(index)
+{
+    if (_status == 0)
+    {
+        info_dev("init:SWITCH <%s> points to conf.device[%u]: pin[%u]", _name, _confindex, _pin);
+        this->reset();
+    }
+}
+
+Sensor_Switch::~Sensor_Switch() {}
+
+bool                    Sensor_Switch::reset               (void)
+{
+    uint8_t i;
+    uint8_t pin;
+    
+    packet::ipacket c;
+    packet::ipacket * p = conf.device(&c, _confindex);
+    
+    if ( (p->command() != IBACOM_CONF_SWITCH) || 
+         (p->command() != IBACOM_CONF_FLOODSWITCH) ||
+         (p->command() != IBACOM_CONF_RAINSWITCH) )
+    {
+        error_dev("init:SWITCH <%s>: cant be set to dev type [%u].", _name, p->command());
+        _status=4;
+        goto fail_reset;
+    }
+    
+    
+    pin = *p->p_pin1();
+    i = conf.indexFromPin(pin);
+    
+    if (!utils::board::is_pin(pin))
+    {
+        error_dev("init:SWITCH <%s>: invalid pin [%u]!", _name, pin);
+        _status=1;
+        goto fail_reset;
+    }
+    
+    if (i != _confindex)
+    {
+        error_dev("init:SWITCH <%s>: pin [%u] already in use for [%u]!", _name, pin, i);
+        _status=1;
+        goto fail_reset;        
+    }
+    
+    _pin = pin;
+    _status=0;
+    debug_dev("reset:device SWITCH <%s>: pin [%u]", _name, _pin);
+    pinMode(_pin, INPUT);
+
+    fail_reset:
+    {
+        if (_pin)
+            pinMode(_pin, INPUT);
+        return false;
+    }
+}
+
+void                    Sensor_Switch::send_dev_stat        (void)
+{
+    packet::ipacket p(IBACOM_STATUS_SWITCH);
+
+    if (_status == 1)
+    {
+        warning_dev("Invalid device name!");
+        strcpy(p.p_devname(), "INVALID");        
+    }
+    else    strcpy(p.p_devname(), _name);
+    
+    int32_t R=this->value();
+    
+    strcpy(p.p_name(), P2C(BOARD_NAME));
+    memcpy(p.p_status(), &_status, sizeof(uint8_t));
+    memcpy(p.p_value1(), &R, sizeof(int32_t));
+    
+    utils::board::io.send(&p);
+}
+
+int32_t                 Sensor_Switch::value                (void)
+{    
+    return int32_t(digitalRead(_pin));    
+}
+
+
+
+void                    SwitchSensor_Flood::loop            (void)
+{
+    this->value();
+}
+
+void                    SwitchSensor_Flood::send_dev_stat   (void)
+{
+    packet::ipacket p(IBACOM_STAT_FLOODSWITCH);
+
+    if (_status == 1)
+    {
+        warning_dev("Invalid device name!");
+        strcpy(p.p_devname(), "INVALID");        
+    }
+    else    strcpy(p.p_devname(), _name);
+    
+    int32_t R=this->value();
+    
+    strcpy(p.p_name(), P2C(BOARD_NAME));
+    memcpy(p.p_status(), &_status, sizeof(uint8_t));
+    memcpy(p.p_value1(), &R, sizeof(int32_t));
+    
+    utils::board::io.send(&p);    
+}
+
+int32_t                 SwitchSensor_Flood::value           (void)
+{
+    int32_t R = int32_t(digitalRead(_pin));    
+    if (R)
+    {
+        SerialDebug.println("FLOOD!!!");
+    }
+    return R;
+}
+
+
 
 
 //      _____________________________________________________________________
@@ -452,9 +581,13 @@ void                    Sensor_DHT22::send_dev_stat         (void)
     memcpy(p.p_value2(), &H, sizeof(int32_t));
 
     utils::board::io.send(&p);
-        
 }
 
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       PM25 DUST SENSOR                                            |
+//      |___________________________________________________________________|
+//
 
 Sensor_PM25dust::Sensor_PM25dust    (uint8_t index):virtualSensor(index)
 {
@@ -548,17 +681,6 @@ void                    Sensor_PM25dust::send_dev_stat      (void)
 
     utils::board::io.send(&p);    
 }
-
-// #define ANALPIN 0
-// #define LEDPIN 3
-// #define SAMPLING 280
-// #define DELTATIME 40
-// #define SLEEPTIME 9680
-// 
-// 
-// float voMeasured = 0;
-// float calcVoltage = 0;
-// float dustDensity = 0;
 
 int32_t                 Sensor_PM25dust::value              (void)
 {
@@ -872,77 +994,7 @@ int32_t                 Sensor_PM25dust::value              (void)
 // 
 // 
 // 
-// //      _____________________________________________________________________
-// //      |                                                                   |
-// //      |       SWITCH SENSORS                                              |
-// //      |___________________________________________________________________|
-// //
-// 
-// Sensor_switch::Sensor_switch(uint8_t index):virtualSensor(index)
-// {
-//     
-//     uint8_t p = *_config->p_pin();
-//     pinMode(p, INPUT);
-//     _mode=2;
-//     
-//     debug_dev("SWITCH %s on pin %u",_config->p_devname(), p);
-// }
-// 
-// Sensor_switch::~Sensor_switch()
-// {
-//     debug_dev("\nSwitch %s:", _config->p_devname()); 
-// }
-// 
-// ipacket         *       Sensor_switch::status               (ipacket * ptr)
-// {
-//     ptr = reallocPacket(ptr, IBACOM_STATUS_SWITCH);
-// 
-//     strcpy(ptr->p_devname(), _config->p_devname());
-//     *ptr->p_svalue1() = value();
-//     *ptr->p_status()  = _mode;
-//     
-//     return ptr;    
-// }
-// 
-// bool                    Sensor_switch::reset               (uint8_t index)
-// {
-//     ipacket * p=nullptr;
-//     p = conf.device(p, index);
-//     if (p->command() == _config->command())
-//     {
-//         _index=index;
-//         
-//         memcpy(_config->payload(), p->payload(), p->data_size());
-//         delete p;
-//         
-//         uint8_t pin = *_config->p_pin();
-//         pinMode(pin, INPUT);
-//         debug_dev("\nSwitch %s: device resetted!",_config->p_devname());
-//         return true;
-//     }
-//     if (p) delete p;
-//     return false;
-// }
-// 
-// ipacket         **      Sensor_switch::probe                (ipacket ** ptr)
-// {
-//     return ptr;
-// }
-// 
-// uint32_t                Sensor_switch::value                (void)
-// {
-//     uint32_t p= *_config->p_pin();
-//     digitalRead(p);
-//     return p;    
-// }
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+
 
     #endif /* INDOORINO_DEVS */
 

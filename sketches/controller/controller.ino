@@ -1,7 +1,8 @@
-#include "common.h"
+#include "icommon.h"
 
 ConfController  conf;
 IndoorinoDeviceList devices;
+
 #define DOTTING_PERIOD 1000
 
 void setup()
@@ -38,6 +39,7 @@ void loop()
     blinker.loop();
     rtc.loop();
     utils::board::io.loop();
+    devices.loop();
     
     if (!utils::board::io.incoming().is_empty())
     {

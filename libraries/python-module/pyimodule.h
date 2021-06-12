@@ -10,8 +10,9 @@
 
 #if defined (INDOORINO_CLIENT)
     
-#include "../common/common.h"
+#include "../common/icommon.h"
 #include "../network/client.h"
+#include "../indoorino/layout.h"
 
 PyObject    *   pyi_begin               (PyObject *, PyObject *);
 PyObject    *   pyi_stop                (PyObject *, PyObject *);

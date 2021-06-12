@@ -3,6 +3,7 @@ from common.templates import *
 from indoorino.packet import IndoorinoPacket
 import numpy as np
 
+
 class UiDeviceWidgetTemplate(CanvasTemplate, DeviceLinkTemplate):
     def __init__(self, parent, board, device, option, **kwargs):
         CanvasTemplate.__init__(self, parent, **kwargs)
@@ -327,12 +328,12 @@ class UiHomeLights(CanvasTemplate):
 
             resize_flag = False
 
-            for key in self.devices.keys():
-                if not key in [i.group for i in System.layout.lights.values()]:
-                    self.devices[key].on_closing()
-                    self.devices.pop(key)
-                    self.on_update()
-                    return
+            # for key in self.devices.keys():
+            #     if not key in [i.group for i in System.layout.lights.values()]:
+            #         self.devices[key].on_closing()
+            #         self.devices.pop(key)
+            #         self.on_update()
+            #         return
 
             for key, light in System.layout.lights.items():
                 if not light.devname in self.devices.keys() \
@@ -429,7 +430,6 @@ class UiHomeLights(CanvasTemplate):
             self.compact.bind("<ButtonPress-1>", self.on_press)
             self.compact.bind("<ButtonRelease-1>", self.on_release)
 
-
         def on_press(self, *event):
             super(UiHomeLights.Group, self).on_press()
             self.compact.configure( relief=tk.SUNKEN)
@@ -449,12 +449,12 @@ class UiHomeLights(CanvasTemplate):
 
             resize_flag = False
 
-            for key in self.boards.keys():
-                if not key in [i.group for i in System.layout.lights.values()]:
-                    self.boards[key].on_closing()
-                    self.boards.pop(key)
-                    self.on_update()
-                    return
+            # for key in self.boards.keys():
+            #     if not key in [i.group for i in System.layout.lights.values()]:
+            #         self.boards[key].on_closing()
+            #         self.boards.pop(key)
+            #         self.on_update()
+            #         return
 
             for key, light in System.layout.lights.items():
                 if not light.boardname in self.boards.keys():
@@ -537,22 +537,31 @@ class UiHomeLights(CanvasTemplate):
 
     def __init__(self, parent, **kwargs):
         CanvasTemplate.__init__(self, parent, **kwargs)
+        self.label = LabelTemplate(self)
         self.widgets = dict()
 
     def build(self, *args, **kwargs):
         super(UiHomeLights, self).build()
+        self.label.configure(
+            font=Fonts.monobold(16),
+            text='LIGHTS',
+            anchor=tk.W,
+            padx=30,
+            fg=Palette.frames.LIGHTS,
+            bg=Palette.generic.BLACK
+        )
         self.on_update()
 
     def on_update(self, *args, **kwargs):
 
         resize_flag=False
 
-        for key in self.widgets.keys():
-            if not key in [i.group for i in System.layout.lights.values()]:
-                self.widgets[key].on_closing()
-                self.widgets.pop(key)
-                self.on_update()
-                return
+        # for key in self.widgets.keys():
+        #     if not key in [i.group for i in System.layout.lights.values()]:
+        #         self.widgets[key].on_closing()
+        #         self.widgets.pop(key)
+        #         self.on_update()
+        #         return
 
 
         for key, light in System.layout.lights.items():
@@ -581,6 +590,13 @@ class UiHomeLights(CanvasTemplate):
 
     def on_resize(self, *args, **kwargs):
         w, h = super(UiHomeLights, self).on_resize()
+        h_label = 35
+        self.label.place(
+            x=0,
+            y=0,
+            width=w,
+            heigh=h_label,
+        )
 
         n_group = len(self.widgets)
 
@@ -594,7 +610,7 @@ class UiHomeLights(CanvasTemplate):
 
             widget.place(
                 x=0,
-                y=off,
+                y=off + h_label,
                 width=w,
                 heigh=hgroup
             )

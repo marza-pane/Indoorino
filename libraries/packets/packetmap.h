@@ -2,7 +2,7 @@
  * packetmap.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: May 17, 2021 - 23:54:34
+ *   Edited on: Jun 11, 2021 - 02:14:00
  *      Author: n00b
  *  This code is code-generated
  */
@@ -476,6 +476,28 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
+	//    |    IBACOM - 1303 - IBACOM_CONF_FLOODSWITCH - flood switch sensor conf|
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_CONF_FLOODSWITCH, 3,
+			"flood switch sensor conf", { 2, 10, 63 } // name, devname, pin1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 1304 - IBACOM_CONF_RAINSWITCH - rain switch sensor conf  |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_CONF_RAINSWITCH, 3,
+			"rain switch sensor conf", { 2, 10, 63 } // name, devname, pin1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
 	//    |    IBACOM - 1310 - IBACOM_CONF_LDR - ldr sensor conf                 |
 	//    |______________________________________________________________________|
 	//
@@ -603,6 +625,28 @@ namespace packet
 		{
 			IBACOM_STATUS_SWITCH, 4,
 			"switch sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 2303 - IBACOM_STAT_FLOODSWITCH - flood switch sensor stat|
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_STAT_FLOODSWITCH, 4,
+			"flood switch sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 2304 - IBACOM_STAT_RAINSWITCH - rain switch sensor stat  |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_STAT_RAINSWITCH, 4,
+			"rain switch sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
 		},
 	
 	

@@ -1,4 +1,4 @@
-#include "common.h"
+#include "icommon.h"
 
 NetworkConnection   network;
 IndoorinoEspClient  client;
@@ -36,14 +36,14 @@ void loop()
     if (millis() > timeout)
     {
         SerialDebug.print(".");
-//         debug_os("[RAM: %u KB] ", utils::board::available_ram());
+        debug_os("[RAM: %u KB] ", utils::board::available_ram());
         timeout = millis() + 1000;
     }
     
     while (!client.incoming().is_empty())
     {
         packet::netpacket * p = client.incoming().pop_front();
-//         debug_client("NAME COMPARE: <%s>|<%s>",p->target, P2C(BOARD_NAME));
+        debug_client("NAME COMPARE: <%s>|<%s>",p->target, P2C(BOARD_NAME));
         if (strcmp_P(p->target, BOARD_NAME) == 0)
         {
             p->eval();

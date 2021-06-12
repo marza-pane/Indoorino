@@ -8,7 +8,7 @@
  */
 
 #if defined(ARDUINO)
-#include "common.h"
+#include "icommon.h"
 #if defined(INDOORINO_DEVS)
 
 //      _____________________________________________________________________
@@ -115,6 +115,14 @@ void                IndoorinoDeviceList::begin                  (void)
     }
 }
 
+void                IndoorinoDeviceList::loop                   (void)
+{
+    for (uint8_t i=0; i<_devices.count(); i++)
+    {
+        _devices[i]->loop();
+    }
+}
+
 void                IndoorinoDeviceList::reset                  (void)
 {
     for(uint8_t i=0; i<conf.devnum(); i++)
@@ -160,12 +168,20 @@ bool                IndoorinoDeviceList::_alloc_type            (uint8_t index)
 //             info_dev("devlist:alloc_type: init Analog Sensor");
 //             break;
 //         }
-//         case IBACOM_CONF_SWITCH:
-//         {
-//             _devices[index] = new Sensor_switch(index);
-//             info_dev("devlist:alloc_type: init Switch");
-//             break;
-//         }
+        case IBACOM_CONF_SWITCH:
+        {
+            Sensor_Switch * p = new Sensor_Switch(index);
+            _devices.append(p);
+            info_dev("devlist:alloc_type: init Switch");
+            break;
+        }
+        case IBACOM_CONF_FLOODSWITCH:
+        {
+            SwitchSensor_Flood * p = new SwitchSensor_Flood(index);
+            _devices.append(p);
+            info_dev("devlist:alloc_type: init Flood Switch");
+            break;
+        }
         case IBACOM_CONF_RELAY:
         {
             Actuator_Relay * p = new Actuator_Relay(index);

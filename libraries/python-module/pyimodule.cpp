@@ -541,6 +541,59 @@ PyObject    *   pyi_commit          (PyObject *self, PyObject *args)
     
     PyObject * constants = PyDict_New();
     
+    PyObject * list_area        = PyList_New(0);
+    PyObject * list_sub_home    = PyList_New(0);
+    PyObject * list_sub_perim   = PyList_New(0);
+    PyObject * list_devtype     = PyList_New(0);
+    
+    PyObject * list_alarmtype   = PyList_New(0);
+    PyObject * list_alarmgroup  = PyList_New(0);
+    
+    for (int i=0; i<LYT_NUM_AREAS; i++)
+    {
+        PyList_Append(list_area, PyUnicode_FromString(indoorino::layout::global_area[i]));
+    }
+    
+    for (int i=0; i<LYT_NUM_L_HOME; i++)
+    {
+        PyList_Append(list_sub_home, PyUnicode_FromString(indoorino::layout::global_home[i]));
+    }
+
+    for (int i=0; i<LYT_NUM_L_PERIMETER; i++)
+    {
+        PyList_Append(list_sub_perim, PyUnicode_FromString(indoorino::layout::global_perimeter[i]));
+    }
+
+    for (int i=0; i<LYT_NUM_DEVTYPES; i++)
+    {
+        PyList_Append(list_devtype, PyUnicode_FromString(indoorino::layout::global_devtypes[i]));
+    }
+
+    for (int i=0; i<LYT_NUM_ALARMS; i++)
+    {
+        PyList_Append(list_alarmtype, PyUnicode_FromString(indoorino::layout::global_alarms[i]));
+    }
+    
+    for (int i=0; i<LYT_NUM_ALARMS_GROUP; i++)
+    {
+        PyList_Append(list_alarmgroup, PyUnicode_FromString(indoorino::layout::global_alarms_group[i]));
+    }
+    
+    PyDict_SetItemString(constants, "area",             list_area);
+    PyDict_SetItemString(constants, "area_home",        list_sub_home);
+    PyDict_SetItemString(constants, "area_perimeter",   list_sub_perim);
+    PyDict_SetItemString(constants, "devtypes",         list_devtype);
+    PyDict_SetItemString(constants, "alarmtypes",       list_alarmtype);
+    PyDict_SetItemString(constants, "alarmgroup",       list_alarmgroup);
+
+//     PyDict_SetItemString(constants, "num_area",             PyLong_FromUnsignedLong(LYT_NUM_AREAS));
+//     PyDict_SetItemString(constants, "num_area_home",        PyLong_FromUnsignedLong(LYT_NUM_L_HOME));
+//     PyDict_SetItemString(constants, "num_area_perimeter",   PyLong_FromUnsignedLong(LYT_NUM_L_PERIMETER));
+//     PyDict_SetItemString(constants, "num_devtypes",         PyLong_FromUnsignedLong(LYT_NUM_DEVTYPES));
+//     PyDict_SetItemString(constants, "num_alarmtypes",       PyLong_FromUnsignedLong(LYT_NUM_ALARMS));
+//     PyDict_SetItemString(constants, "num_alarmgroup",       PyLong_FromUnsignedLong(LYT_NUM_ALARMS_GROUP));
+
+    
     PyDict_SetItemString(data, "version", PyUnicode_FromString(INDOORINO_VERSION));    
     PyDict_SetItemString(data, "macros", macros);
     PyDict_SetItemString(data, "const", constants);

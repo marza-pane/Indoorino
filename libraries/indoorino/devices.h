@@ -65,9 +65,7 @@ namespace indoorino
             uint8_t         _relay_stat=0;
         public:
             Relay(packet::ipacket *);
-
 //             void            parse           (packet::ipacket *);
-
             uint8_t         relay_status()  { return _relay_stat; }
         };
         
@@ -75,9 +73,35 @@ namespace indoorino
         {
         private:
         public:
-            DHT22(packet::ipacket *);            
+            DHT22(packet::ipacket *);
+            double          temperature     (void);
+            double          humidity        (void);
         };
 
+        
+        class GenericSwitch : public DeviceTemplate
+        {
+        private:
+        public:
+            GenericSwitch(packet::ipacket *);  
+            bool            state           (void);
+        };
+
+        class FloodSwitch : public GenericSwitch
+        {
+        private:
+        public:
+            FloodSwitch(packet::ipacket *);            
+        };
+        
+        class RainSwitch : public GenericSwitch
+        {
+        private:
+        public:
+            RainSwitch(packet::ipacket *);            
+        };
+
+        
         class DustPM25 : public DeviceTemplate
         {
         private:

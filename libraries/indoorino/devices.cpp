@@ -19,7 +19,7 @@
 
 #if defined (INDOORINO_SERVER)
 
-#include "../common/common.h"
+#include "../common/icommon.h"
 #include "devices.h"
 static indoorino::DeviceTemplate invalid_device(nullptr);
 
@@ -126,6 +126,39 @@ namespace indoorino
         
         //      _________________________________________
         //      |                                       |
+        //      |       Device : Switch                 |
+        //      |_______________________________________|
+
+        GenericSwitch::GenericSwitch(packet::ipacket * p):DeviceTemplate(p)
+        {
+            strcpy(_type, "SWITCH");
+            _stat.init(IBACOM_STATUS_SWITCH);
+        }
+        
+        //      _________________________________________
+        //      |                                       |
+        //      |       Device : FloodSwitch            |
+        //      |_______________________________________|
+
+        FloodSwitch::FloodSwitch(packet::ipacket * p):GenericSwitch(p)
+        {
+            strcpy(_type, "FLOODSW");
+            _stat.init(IBACOM_STAT_FLOODSWITCH);
+        }
+        
+        //      _________________________________________
+        //      |                                       |
+        //      |       Device : RainSwitch             |
+        //      |_______________________________________|
+
+        RainSwitch::RainSwitch(packet::ipacket * p):GenericSwitch(p)
+        {
+            strcpy(_type, "RAINSW");
+            _stat.init(IBACOM_STAT_RAINSWITCH);
+        }
+        
+        //      _________________________________________
+        //      |                                       |
         //      |       Device : PM25 dust sensor       |
         //      |_______________________________________|
 
@@ -212,11 +245,28 @@ namespace indoorino
             }
             case IBACOM_CONF_SWITCH:
             {
+                debug_board("adding SWITCH <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                _list.push_back(devices::GenericSwitch(p));
+                _list.back().parse(p);
+                break;
+            }
+            case IBACOM_CONF_FLOODSWITCH:
+            {
+                debug_board("adding FLOODSWITCH <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                _list.push_back(devices::FloodSwitch(p));
+                _list.back().parse(p);
+                break;
+            }
+            case IBACOM_CONF_RAINSWITCH:
+            {
+                debug_board("adding RAINSWITCH <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                _list.push_back(devices::RainSwitch(p));
+                _list.back().parse(p);
                 break;
             }
             case IBACOM_CONF_RELAY:
             {
-//                 alert_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                debug_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
                 _list.push_back(devices::Relay(p));
                 _list.back().parse(p);
                 break;
@@ -227,20 +277,21 @@ namespace indoorino
             }
             case IBACOM_CONF_DUSTPM25:
             {
-//                 alert_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                debug_board("adding DUST PM25 <%s> on pin %u", p->p_devname(), *p->p_pin1());
                 _list.push_back(devices::DustPM25(p));
                 _list.back().parse(p);
                 break;
             }
             case IBACOM_CONF_DHT22:
             {
-//                 alert_board("adding DHT22 <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                debug_board("adding DHT22 <%s> on pin %u", p->p_devname(), *p->p_pin1());
                 _list.push_back(devices::DHT22(p));
                 _list.back().parse(p);
-                break;            }
+                break;            
+            }
             case IBACOM_CONF_DEVSTD:
             {
-//                 warning_dev("adding generic device <%s> on pin %u", p->p_devname(), *p->p_pin1());
+                debug_board("adding generic device <%s> on pin %u", p->p_devname(), *p->p_pin1());
                 _list.push_back(DeviceTemplate(p));
                 _list.back().parse(p);
                 break;

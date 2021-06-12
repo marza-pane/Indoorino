@@ -6,7 +6,7 @@
  */
 
 #if defined(ESP8266)
-#include "../common/common.h"
+#include "../common/icommon.h"
 
 /* 
  * Questo è il nome della boaard attaccata al seriale.

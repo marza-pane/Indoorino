@@ -7,7 +7,7 @@
  *  This code is code-generated
  */
 
-#include "../common/common.h"
+#include "../common/icommon.h"
 
 namespace packet
 {

@@ -170,6 +170,8 @@ packet_source_standard = (
 
     ( 1301,     'conf_asensor',     'analog sensor conf',           ('name', 'devname','pin1','param1','param2',)),
     ( 1302,     'conf_switch',      'switch conf',                  ('name', 'devname','pin1')),
+    ( 1303,     'conf_floodswitch', 'flood switch sensor conf',     ('name', 'devname','pin1')),
+    ( 1304,     'conf_rainswitch',  'rain switch sensor conf',      ('name', 'devname','pin1')),
     ( 1310,     'conf_ldr',         'ldr sensor conf',              ('name', 'devname','pin1','param1','param2',)),
     ( 1405,     'conf_dustPM25',    'PM2.5 dust sensor conf',       ('name', 'devname','pin1', 'pin2',                  # pin1:LED, pin2:ANAL
                                                                      'timeout1', 'timeout2', 'param1','param2','param3')),
@@ -194,6 +196,8 @@ packet_source_standard = (
 
     ( 2301,     'status_asensor',   'analog sensor stat',           ('name', 'devname','status','value1',)),
     ( 2302,     'status_switch',    'switch sensor stat',           ('name', 'devname','status','value1',)),
+    ( 2303,     'stat_floodswitch', 'flood switch sensor stat',     ('name', 'devname','status','value1',)),
+    ( 2304,     'stat_rainswitch',  'rain switch sensor stat',      ('name', 'devname','status','value1',)),
     ( 2310,     'status_ldr',       'ldr sensor stat',              ('name', 'devname','status','value1',)),
     ( 2405,     'status_dustPM25',  'PM2.5 dust sensor stat',       ('name', 'devname','status','value1',)),
     ( 2422,     'status_DHT22',     'DHT22 sensor stat',            ('name', 'devname','status','value1','value2',)),

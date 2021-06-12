@@ -11,7 +11,7 @@
 #if defined (ARDUINO)
 
 #if defined (ARDUINO)
-#include "common.h"
+#include "icommon.h"
 
 
 namespace utils

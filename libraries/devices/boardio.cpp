@@ -334,7 +334,7 @@ namespace utils
             p.dump();
 
             
-            debug_io("send_config: STD");
+            debug_dev("send_config: STD");
             io.send(&p);
 
         #if defined (INDOORINO_SAMPLER)
@@ -372,7 +372,7 @@ namespace utils
             *p.p_timeout2() = (uint32_t)conf.timeout_packet();            
             *p.p_count1()   = (uint8_t)conf.attemps_packet();
 
-            debug_io("send_config: ESP");
+            debug_dev("send_config: ESP");
             p.dump();
 
             io.send(&p);
@@ -411,7 +411,7 @@ namespace utils
             *p.p_errors3()  = 0;
             *p.p_errors4()  = 0;
                 
-            debug_io("send_status STD");
+            debug_dev("send_status STD");
             p.dump();
             
             io.send(&p);
@@ -457,7 +457,7 @@ namespace utils
             *p.p_serialtx()    =   (uint32_t)io.total_tx();
             *p.p_serialrx()    =   (uint32_t)io.total_tx();
 
-            debug_io("send_status: ESP");
+            debug_dev("send_status: ESP");
             p.dump();
             
             io.send(&p);
@@ -465,11 +465,11 @@ namespace utils
         #endif /* PROJECTS */
                         
             #if defined (INDOORINO_DEVS)
-            if (conf.devnum() > 0)
+            if (devices.devnum() > 0)
             {
-                debug_dev("packet:sendStatus: [%u] devices",conf.devnum());
+                debug_dev("packet:sendStatus: [%u] devices",devices.devnum());
                         
-                for (uint8_t i=0; i<conf.devnum(); i++)
+                for (uint8_t i=0; i<devices.devnum(); i++)
                 {
                     devices[i]->send_dev_stat();
                 }

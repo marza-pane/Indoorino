@@ -266,7 +266,7 @@ namespace packet
     class bufpacket : public netpacket 
     {
     public:
-         char   *   txdata;
+         char   *   txdata=nullptr;
          bufpacket(netpacket * p):netpacket(p)  {};
         ~bufpacket();
     };

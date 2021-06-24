@@ -410,7 +410,9 @@ namespace packet
     { 
         if (txdata != nullptr)
         {
+//             std::cout << "FREE!" << std::endl;
             free(txdata);
+            txdata = nullptr;
         }
     }
     

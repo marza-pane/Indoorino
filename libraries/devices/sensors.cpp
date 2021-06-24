@@ -153,6 +153,7 @@ void                    Actuator_Relay::send_dev_stat       (void)
         
 }
 
+
 //      _____________________________________________________________________
 //      |                                                                   |
 //      |       SWITCH SENSORS                                              |
@@ -178,9 +179,9 @@ bool                    Sensor_Switch::reset               (void)
     packet::ipacket c;
     packet::ipacket * p = conf.device(&c, _confindex);
     
-    if ( (p->command() != IBACOM_CONF_SWITCH) || 
-         (p->command() != IBACOM_CONF_FLOODSWITCH) ||
-         (p->command() != IBACOM_CONF_RAINSWITCH) )
+    
+    
+    if (!((p->command() == IBACOM_CONF_SWITCH) || (p->command() == IBACOM_CONF_FLOODSWITCH) || (p->command() == IBACOM_CONF_RAINSWITCH) ))
     {
         error_dev("init:SWITCH <%s>: cant be set to dev type [%u].", _name, p->command());
         _status=4;
@@ -229,11 +230,11 @@ void                    Sensor_Switch::send_dev_stat        (void)
     }
     else    strcpy(p.p_devname(), _name);
     
-    int32_t R=this->value();
+    uint8_t R=this->value();
     
     strcpy(p.p_name(), P2C(BOARD_NAME));
     memcpy(p.p_status(), &_status, sizeof(uint8_t));
-    memcpy(p.p_value1(), &R, sizeof(int32_t));
+    memcpy(p.p_level(), &R, sizeof(uint8_t));
     
     utils::board::io.send(&p);
 }
@@ -244,10 +245,40 @@ int32_t                 Sensor_Switch::value                (void)
 }
 
 
-
 void                    SwitchSensor_Flood::loop            (void)
 {
-    this->value();
+    
+    int32_t R = this->value();
+    
+    if (_on_alarm)
+    {
+//         if ( (R) && (millis() > _last_alarm + DELAY_ALARM_REPEAT))
+        if ( (R) && (millis() > _last_alarm + 3000))
+        {
+            _last_alarm=millis();
+            this->send_alarm();
+            alert_dev("Repeating FLOOD alarm!");
+        }
+//         else if ( (!R) && (millis() > _last_alarm + DELAY_ALARM_COOLDOWN) )
+        else if ( (!R) && (millis() > _last_alarm + 3000) )
+        {
+            _on_alarm = false;
+            _last_alarm=millis();
+            this->send_dev_stat();
+            alert_dev("Clearing FLOOD alarm!");
+        }
+    }
+    else
+    {
+        if (R)
+        {
+            alert_dev("Sending FLOOD alarm!");
+            _on_alarm = true;
+            _last_alarm=millis();
+            this->send_alarm();            
+        }
+        
+    }
 }
 
 void                    SwitchSensor_Flood::send_dev_stat   (void)
@@ -261,28 +292,41 @@ void                    SwitchSensor_Flood::send_dev_stat   (void)
     }
     else    strcpy(p.p_devname(), _name);
     
-    int32_t R=this->value();
+    uint8_t R=this->value();
     
     strcpy(p.p_name(), P2C(BOARD_NAME));
     memcpy(p.p_status(), &_status, sizeof(uint8_t));
-    memcpy(p.p_value1(), &R, sizeof(int32_t));
+    memcpy(p.p_level(), &R, sizeof(uint8_t));
     
     utils::board::io.send(&p);    
 }
 
 int32_t                 SwitchSensor_Flood::value           (void)
 {
-    int32_t R = int32_t(digitalRead(_pin));    
-    if (R)
-    {
-        SerialDebug.println("FLOOD!!!");
-    }
-    return R;
+    return int32_t(digitalRead(_pin));
 }
 
+void                    SwitchSensor_Flood::send_alarm      (void)
+{
+    if (_status != 0)
+    {
+        warning_dev("Invalid device for ALARM!");
+        return;
+    }
 
+    packet::ipacket p(IBACOM_FLOOD_ALARM);
 
+    strcpy(p.p_board(), P2C(BOARD_NAME));
+    strcpy(p.p_devname(), _name);
+        
+    int32_t     value=1;
+    uint32_t    epoch=rtc.epoch();
+    
+    memcpy(p.p_epoch(), &epoch, sizeof(uint32_t));
+    memcpy(p.p_value1(), &value, sizeof(int32_t));
 
+    utils::board::io.send(&p);        
+}
 //      _____________________________________________________________________
 //      |                                                                   |
 //      |       DHT22 SENSOR                                                |
@@ -387,17 +431,9 @@ bool                    Sensor_DHT22::reset                 (void)
     _dev.begin();
     
     utils::wait(50);
-    
-//     double t = _dev.readTemperature();
-//     double h = _dev.readHumidity();
 
-    goto succesfull_reset;
-    
-    succesfull_reset :
-    {
-        info_dev("DHT22 sensor <%s> ready on pin [%u]!", buffname, _pin);
-        return true;        
-    }
+    debug_dev("DHT22 sensor <%s> ready on pin [%u]!", buffname, _pin);
+    return true;        
     
 }
 
@@ -582,6 +618,7 @@ void                    Sensor_DHT22::send_dev_stat         (void)
 
     utils::board::io.send(&p);
 }
+
 
 //      _____________________________________________________________________
 //      |                                                                   |

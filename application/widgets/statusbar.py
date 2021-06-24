@@ -334,6 +334,9 @@ class StatusBar(PanedTemplate):
             if not System.io.is_connected():
                 tkinter.messagebox.showwarning('NETWORK', 'Please connect first')
 
+            # System.io.send_system_request('GET:PACKET', IBACOM_ENV_ALARM)
+
+            System.io.send_system_request('GET:ALL')
             System.io.send_server_request('UPDATE:ALL')
             return
 

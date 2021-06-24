@@ -147,6 +147,7 @@ public:
     bool                rem             (const char *);
     bool                setName         (const char *, const char *);
     bool                setPin          (const char *, iPin_t);
+    uint8_t             devnum          (void) { return _devices.count(); }
 
 
     virtualDevice  *    operator[]      (const char *);

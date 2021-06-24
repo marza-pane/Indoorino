@@ -79,7 +79,7 @@ namespace indoorino
             return;
         }
         
-        info_board("%s: parsing %s", name(), p->description());
+        debug_board("%s: parsing %s", name(), p->description());
         
         /* packet is a BOARD CONFIG */
         if (packet::is_boardconf(p->command()))

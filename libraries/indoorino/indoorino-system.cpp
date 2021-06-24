@@ -69,14 +69,13 @@ namespace indoorino
             // parse from shell
             if (incoming->command() == IBACOM_SYS_REQ)
             {
-                parse_request(incoming->p_command());
+                parse_request(incoming);
             }
+
         }
-
-
         layout.parse(incoming);
-        alarms.parse(incoming);
-        
+        alarms.parse(incoming);        
+
     }
 
     void    IndoorinoSystem::loop            (void)
@@ -107,8 +106,11 @@ namespace indoorino
         return flag;
     }
 
-void        IndoorinoSystem::parse_request   (const char * command)
+void        IndoorinoSystem::parse_request   (packet::netpacket * incoming)
 {
+    
+    const char * command = incoming->p_command();
+    
     if (strlen(command) == 0)
     {
         warning_os("parse:sys:request: empty command!");
@@ -170,7 +172,8 @@ void        IndoorinoSystem::parse_request   (const char * command)
 
     /*  Command must be one of the following strings
         
-        GET:ALL 
+        GET:    ALL
+                PACKET (value1 = packet command)
         
         BOARDS: GET
                 SAVE
@@ -178,12 +181,11 @@ void        IndoorinoSystem::parse_request   (const char * command)
                 CLEAR
                 REM:<boardname>:<devname>
         
-        LAYOUT: GET
-                SAVE
-                LOAD
-                CLEAR
-                DEVICE: REM:<boardname>:<devname>
-                        ADD:<boardname>:<devname>
+        LAYOUT: is managed in layput.cpp by IBACOM_LYT_CONF
+
+        ALARMS: GET
+                UPDATE
+                
         
     */
     
@@ -192,6 +194,8 @@ void        IndoorinoSystem::parse_request   (const char * command)
         warning_os("Incomplete sys:command <%s>", command);
         return;
     }
+    
+    /*** BOARDS ***/
     
     if (strcmp(c[0], "BOARDS") == 0)
     {
@@ -237,16 +241,57 @@ void        IndoorinoSystem::parse_request   (const char * command)
             return;
         }
     }    
-    else if ( (strcmp(c[0], "GET") == 0) && (strcmp(c[1], "ALL") == 0) )
-    {
-        warning_os("Parsing sys: getting ALL");
-        for (auto & b : boards._blist)
+
+    /*** ALARMS ***/
+    
+     if (strcmp(c[0], "ALARMS") == 0)
+     {
+        if (strcmp(c[1], "GET") == 0)
         {
-            b.send_config();
-            b.send_status();
+            info_os("Parsing sys: getting alarms");
+            alarms.send_status();
         }
-        layout.send_config();
-        alarms.send_status();
+        else if (strcmp(c[1], "UPDATE") == 0)
+        {
+            info_os("sys:command: updating alarms!");
+            alarms.load_layout();
+        }
+     }
+    
+    
+    else if ( strcmp(c[0], "GET") == 0 )
+    {
+        
+        if ( strcmp(c[1], "ALL") == 0)
+        {
+            warning_os("Parsing sys: getting ALL");
+            for (auto & b : boards._blist)
+            {
+                b.send_config();
+                b.send_status();
+            }
+            layout.send_config();
+            alarms.send_status();
+        }
+        else if ( strcmp(c[1], "PACKET") == 0)
+        {
+            int32_t pcom;
+            memcpy(&pcom, incoming->p_value1(), sizeof(int32_t));
+            warning_os("Parsing sys: Generating test packet %d", pcom);
+            if ( packet::payloadsize(pcom > 0) != -1 )
+            {                
+                packet::ipacket q(pcom);
+                warning_os("Parsing sys: Generating test packet %s", q.label());                
+                std::cout << "\t*** TEST START *** " << std::endl;
+
+                std::cout << "Packet description " << q.description() << std::endl;
+                std::cout << "Payload size       <" << q.data_size() << ">" << std::endl;
+                std::cout << "Full size          <" << q.full_size() << ">" << std::endl;
+                
+                std::cout << "\t*** TEST END *** " << std::endl;
+                Server.shell.broadcast(&q);
+            }
+        }
     }
     
     for (uint8_t i=0; i<n; i++)

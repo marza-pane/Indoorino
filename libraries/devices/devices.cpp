@@ -105,7 +105,7 @@ IndoorinoDeviceList::~IndoorinoDeviceList()
 
 void                IndoorinoDeviceList::begin                  (void)
 {
-    info_dev("Initializing dev list (size = %u)", conf.devnum());
+    debug_dev("Initializing dev list (size = %u)", conf.devnum());
 
     _devices.clear();
     
@@ -125,12 +125,11 @@ void                IndoorinoDeviceList::loop                   (void)
 
 void                IndoorinoDeviceList::reset                  (void)
 {
-    for(uint8_t i=0; i<conf.devnum(); i++)
+    for(uint8_t i=0; i<_devices.count(); i++)
     {
         if (! _devices[i]->reset())
         {
             error_dev("Can not reset device [%u]", i);
-//             sendReport(3, F("DEVICES"), F("Can not reset %s"), P2C(_devptr[i]->config()->p_devname()));
         }
     }
 }
@@ -172,14 +171,14 @@ bool                IndoorinoDeviceList::_alloc_type            (uint8_t index)
         {
             Sensor_Switch * p = new Sensor_Switch(index);
             _devices.append(p);
-            info_dev("devlist:alloc_type: init Switch");
+            debug_dev("devlist:alloc_type: init Switch");
             break;
         }
         case IBACOM_CONF_FLOODSWITCH:
         {
             SwitchSensor_Flood * p = new SwitchSensor_Flood(index);
             _devices.append(p);
-            info_dev("devlist:alloc_type: init Flood Switch");
+            debug_dev("devlist:alloc_type: init Flood Switch");
             break;
         }
         case IBACOM_CONF_RELAY:
@@ -282,7 +281,13 @@ bool                IndoorinoDeviceList::setPin                 (const char * na
 
 
 virtualDevice   *   IndoorinoDeviceList::operator[]             (uint8_t index)
-{    
+{   
+    if (index >= _devices.count())
+    {
+        error_dev("FATAL:device list: index %u out of range %u", index, _devices.count());
+        return nullptr;
+    }
+    
     return _devices[index];
 }
 

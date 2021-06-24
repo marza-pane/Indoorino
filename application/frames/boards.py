@@ -1,4 +1,3 @@
-from common.comtable import *
 from common.templates import *
 from indoorino.parameters import ParameterDatetime
 
@@ -1302,44 +1301,24 @@ class UiBoards(PanedTemplate):
                 def build(self):
                     super(UiBoards.Devices.Header.Relay, self).build()
 
-                #     if not self.exist():
-                #         error_os('<{}:{}> does not exist'.format(self.board, self.device))
-                #         return
-                #
-                #     device = System.boards()[self.board].device[self.device]
-                #     alert_os('Requesting SET {} for {}:{}'.format(int(device.relay_state()), self.board, self.device))
-                #     payload = {
-                #         'name': self.board,
-                #         'devname': self.device,
-                #         'command': 'SET',
-                #         'value1': 0
-                #     }
-                #     if device.relay_state() == 0:
-                #         payload['value1'] = 1
-                #
-                #     p = IndoorinoPacket(
-                #         name=self.board,
-                #         command=IBACOM_SET_DEVICE,
-                #         data=payload)
-                #
-                #     client.send_board(self.board, p.dictionary())
-
                 def on_update(self, *args, **kwargs):
                     super(UiBoards.Devices.Header.Relay, self).on_update()
-                    if not self.exist():
-                        self.icon.replace_image(Icons.system.NOT_FOUND())
-                        return
-
-                    device = System.boards()[self.board].device[self.device]
-
-                    if not System.io.is_connected() or not device.is_connected():
-                        self.icon.replace_image(Icons.devices.diodes.OFFLINE())
-                        return
-
-                    if device.status.dev['relay_state'].data:
-                        self.icon.replace_image(Icons.devices.diodes.ON())
+                    if self.exist():
+                        if System.io.is_connected():
+                            device = System.boards()[self.board].device[self.device]
+                            if device.is_connected():
+                                if device.status.dev['relay_state'].data:
+                                    self.icon.replace_image(Icons.devices.diodes.ON())
+                                else:
+                                    self.icon.replace_image(Icons.devices.diodes.OFF())
+                            else:
+                                self.icon.replace_image(Icons.devices.diodes.DISCONNECTED())
+                        else:
+                            self.icon.replace_image(Icons.devices.diodes.OFFLINE())
                     else:
-                        self.icon.replace_image(Icons.devices.diodes.OFF())
+                        self.icon.replace_image(Icons.system.NOT_FOUND())
+
+
 
             class DHT22(Template):
                 def __init__(self, parent, board, sensor, **kwargs):
@@ -1348,20 +1327,20 @@ class UiBoards(PanedTemplate):
 
                 def on_update(self, *args, **kwargs):
                     super(UiBoards.Devices.Header.DHT22, self).on_update()
-                    if not self.exist():
-                        self.icon.replace_image(Icons.system.NOT_FOUND())
-                        return
-
-                    device = System.boards()[self.board].device[self.device]
-
-                    if not System.io.is_connected() or not device.is_connected():
-                        self.icon.replace_image(Icons.devices.thermometer.OFFLINE())
-                        return
-
-                    if device.status.std['status'].data == 'ONLINE':
-                        self.icon.replace_image(Icons.devices.thermometer.ONLINE())
+                    if self.exist():
+                        if System.io.is_connected():
+                            device = System.boards()[self.board].device[self.device]
+                            if device.is_connected():
+                                if device.status.std['status'].data == 'ONLINE':
+                                    self.icon.replace_image(Icons.devices.thermometer.ONLINE())
+                                else:
+                                    self.icon.replace_image(Icons.devices.thermometer.ERROR())
+                            else:
+                                self.icon.replace_image(Icons.devices.thermometer.DISCONNECTED())
+                        else:
+                            self.icon.replace_image(Icons.devices.thermometer.OFFLINE())
                     else:
-                        self.icon.replace_image(Icons.devices.thermometer.ERROR())
+                        self.icon.replace_image(Icons.system.NOT_FOUND())
 
             class DustPM25sensor(Template):
                 def __init__(self, parent, board, sensor, **kwargs):
@@ -1370,20 +1349,42 @@ class UiBoards(PanedTemplate):
 
                 def on_update(self, *args, **kwargs):
                     super(UiBoards.Devices.Header.DustPM25sensor, self).on_update()
-                    if not self.exist():
-                        self.icon.replace_image(Icons.system.NOT_FOUND())
-                        return
-
-                    device = System.boards()[self.board].device[self.device]
-
-                    if not System.io.is_connected() or not device.is_connected():
-                        self.icon.replace_image(Icons.devices.airsensor.OFFLINE())
-                        return
-
-                    if device.status.std['status'].data == 'ONLINE':
-                        self.icon.replace_image(Icons.devices.airsensor.ONLINE())
+                    if self.exist():
+                        if System.io.is_connected():
+                            device = System.boards()[self.board].device[self.device]
+                            if device.is_connected():
+                                if device.status.std['status'].data == 'ONLINE':
+                                    self.icon.replace_image(Icons.devices.airsensor.ONLINE())
+                                else:
+                                    self.icon.replace_image(Icons.devices.airsensor.ERROR())
+                            else:
+                                self.icon.replace_image(Icons.devices.airsensor.DISCONNECTED())
+                        else:
+                            self.icon.replace_image(Icons.devices.airsensor.OFFLINE())
                     else:
-                        self.icon.replace_image(Icons.devices.airsensor.ERROR())
+                        self.icon.replace_image(Icons.system.NOT_FOUND())
+
+            class FloodSwitch(Template):
+                def __init__(self, parent, board, sensor, **kwargs):
+                    UiBoards.Devices.Header.Template.__init__(self, parent, board, sensor, **kwargs)
+                    self.icon = PictureTemplate(self, Icons.devices.floodswitch.OFFLINE())
+
+                def on_update(self, *args, **kwargs):
+                    super(UiBoards.Devices.Header.FloodSwitch, self).on_update()
+                    if self.exist():
+                        if System.io.is_connected():
+                            device = System.boards()[self.board].device[self.device]
+                            if device.is_connected():
+                                if device.status.dev['switch_state'].data:
+                                    self.icon.replace_image(Icons.devices.floodswitch.ON_ALARM())
+                                else:
+                                    self.icon.replace_image(Icons.devices.floodswitch.ONLINE())
+                            else:
+                                self.icon.replace_image(Icons.devices.floodswitch.DISCONNECTED())
+                        else:
+                            self.icon.replace_image(Icons.devices.floodswitch.OFFLINE())
+                    else:
+                        self.icon.replace_image(Icons.system.NOT_FOUND())
 
         class DeviceList(ScrollableFrameTemplate, BoardLinkTemplate):
 
@@ -1409,6 +1410,8 @@ class UiBoards(PanedTemplate):
                                 self.add(UiBoards.Devices.Header.DHT22, board.name, device.name)
                             elif device.devtype == 'DUSTPM25':
                                 self.add(UiBoards.Devices.Header.DustPM25sensor, board.name, device.name)
+                            elif device.devtype == 'FLOODSW':
+                                self.add(UiBoards.Devices.Header.FloodSwitch, board.name, device.name)
                             else:
                                 error_ui('No valid class for <{}>'.format(device.devtype))
                                 self.add(UiBoards.Devices.Header.Template, board.name, device.name)
@@ -1483,7 +1486,6 @@ class UiBoards(PanedTemplate):
 
                         return False
 
-
                 class Relay(Template):
 
                     def __init__(self, parent, board, sensor, **kwargs):
@@ -1544,7 +1546,6 @@ class UiBoards(PanedTemplate):
                         self.on_update()
 
                     def on_update(self, *args, **kwargs):
-
                         if not self.exist():
                             self._status = 4
                             for widget in self.buttons.values():
@@ -1823,6 +1824,36 @@ class UiBoards(PanedTemplate):
                                 heigh=h_butt
                             )
 
+                class FloodSwitch(Template):
+                    def __init__(self, parent, board, sensor, **kwargs):
+                        UiBoards.Devices.DeviceDisplay.Widgets.Template.__init__(self, parent, board, sensor, **kwargs)
+
+                    def on_update(self):
+                        if self.exist():
+                            if System.io.is_connected():
+                                for entry in self.buttons.values():
+                                    entry.configure(
+                                        state=tk.NORMAL
+                                    )
+                                    return
+
+                        for entry in self.buttons.values():
+                            entry.configure(
+                                state=tk.DISABLED
+                            )
+
+                    def on_resize(self):
+                        w,h = super(UiBoards.Devices.DeviceDisplay.Widgets.FloodSwitch, self).on_resize()
+                        w_butt = int(0.75 * w / len(self.buttons))
+                        h_butt = 28
+                        for count, widget in enumerate(self.buttons.values()):
+                            widget.place(
+                                x=10 + count * w_butt,
+                                y=h - (h_butt + 5),
+                                width= w_butt,
+                                heigh=h_butt
+                            )
+
             class Header(CanvasTemplate, DeviceLinkTemplate):
 
                 class Template(CanvasTemplate, DeviceLinkTemplate):
@@ -1902,14 +1933,15 @@ class UiBoards(PanedTemplate):
                     def on_update(self):
                         super(UiBoards.Devices.DeviceDisplay.Header.Relay, self).on_update()
                         if self.exist():
-                            device = self.get_device()
-
-                            if device.is_connected() and System.io.is_connected():
-
-                                if device.status.dev['relay_state'].data:
-                                    self.icon.replace_image(Icons.devices.diodes.ON())
+                            if System.io.is_connected():
+                                device = self.get_device()
+                                if device.is_connected():
+                                    if device.status.dev['relay_state'].data:
+                                        self.icon.replace_image(Icons.devices.diodes.ON())
+                                    else:
+                                        self.icon.replace_image(Icons.devices.diodes.OFF())
                                 else:
-                                    self.icon.replace_image(Icons.devices.diodes.OFF())
+                                    self.icon.replace_image(Icons.devices.diodes.DISCONNECTED())
                             else:
                                 self.icon.replace_image(Icons.devices.diodes.OFFLINE())
                         else:
@@ -1923,19 +1955,20 @@ class UiBoards(PanedTemplate):
                     def on_update(self):
                         super(UiBoards.Devices.DeviceDisplay.Header.DHT22, self).on_update()
                         if self.exist():
-                            device = self.get_device()
-
-                            if device.is_connected() and System.io.is_connected():
-
-                                if device.status.std['status'].data == 'ONLINE':
-                                    self.icon.replace_image(Icons.devices.thermometer.ONLINE())
+                            if System.io.is_connected():
+                                device = self.get_device()
+                                if device.is_connected():
+                                    if device.status.std['status'].data == 'ONLINE':
+                                        self.icon.replace_image(Icons.devices.thermometer.ONLINE())
+                                    else:
+                                        self.icon.replace_image(Icons.devices.thermometer.ERROR())
                                 else:
-                                    self.icon.replace_image(Icons.devices.thermometer.ERROR())
-
+                                    self.icon.replace_image(Icons.devices.thermometer.DISCONNECTED())
                             else:
                                 self.icon.replace_image(Icons.devices.thermometer.OFFLINE())
                         else:
                             self.icon.replace_image(Icons.system.NOT_FOUND())
+
                 class DustPM25sensor(Template):
                     def __init__(self, parent, board, sensor, **kwargs):
                         UiBoards.Devices.DeviceDisplay.Header.Template.__init__(self, parent, board, sensor, **kwargs)
@@ -1944,10 +1977,9 @@ class UiBoards(PanedTemplate):
                     def on_update(self):
                         super(UiBoards.Devices.DeviceDisplay.Header.DustPM25sensor, self).on_update()
                         if self.exist():
-                            device = self.get_device()
-
-                            if device.is_connected():
-                                if System.io.is_connected():
+                            if System.io.is_connected():
+                                device = self.get_device()
+                                if device.is_connected():
                                     if device.status.std['status'].data == 'ONLINE':
                                         self.icon.replace_image(Icons.devices.airsensor.ONLINE())
                                     else:
@@ -1956,6 +1988,28 @@ class UiBoards(PanedTemplate):
                                     self.icon.replace_image(Icons.devices.airsensor.DISCONNECTED())
                             else:
                                 self.icon.replace_image(Icons.devices.airsensor.OFFLINE())
+                        else:
+                            self.icon.replace_image(Icons.system.NOT_FOUND())
+
+                class FloodSwitch(Template):
+                    def __init__(self, parent, board, sensor, **kwargs):
+                        UiBoards.Devices.DeviceDisplay.Header.Template.__init__(self, parent, board, sensor, **kwargs)
+                        self.icon = PictureTemplate(self, Icons.devices.floodswitch.OFFLINE())
+
+                    def on_update(self):
+                        super(UiBoards.Devices.DeviceDisplay.Header.FloodSwitch, self).on_update()
+                        if self.exist():
+                            if System.io.is_connected():
+                                device = self.get_device()
+                                if device.is_connected():
+                                    if device.status.dev['switch_state'].data:
+                                        self.icon.replace_image(Icons.devices.floodswitch.ON_ALARM())
+                                    else:
+                                        self.icon.replace_image(Icons.devices.floodswitch.ONLINE())
+                                else:
+                                    self.icon.replace_image(Icons.devices.floodswitch.DISCONNECTED())
+                            else:
+                                self.icon.replace_image(Icons.devices.floodswitch.OFFLINE())
                         else:
                             self.icon.replace_image(Icons.system.NOT_FOUND())
 
@@ -2089,6 +2143,9 @@ class UiBoards(PanedTemplate):
                 elif dev.devtype == 'DUSTPM25':
                     self.devwidget=self.Widgets.DustPM25sensor(self, board, sensor)
                     self.header = self.Header.DustPM25sensor(self, board, sensor)
+                elif dev.devtype == 'FLOODSW':
+                    self.devwidget=self.Widgets.FloodSwitch(self, board, sensor)
+                    self.header = self.Header.FloodSwitch(self, board, sensor)
                 else:
                     self.devwidget = PanedTemplate(self, bg=Palette.generic.ERROR_GUI)
                     self.header = self.Header.Template(self, board, sensor)
@@ -2544,6 +2601,7 @@ class UiBoards(PanedTemplate):
     def __init__(self, parent, **kwargs):
         PanedTemplate.__init__(self, parent, **kwargs)
 
+        self.title=LabelTemplate(self)
         self.boardlist = self.BoardList(self)
         self.frames=dict()
         self.current=''
@@ -2551,6 +2609,14 @@ class UiBoards(PanedTemplate):
 
     def build(self, *args, **kwargs):
 
+        self.title.configure(
+            font=Fonts.monobold(16),
+            text='DEVICES',
+            anchor=tk.W,
+            padx=30,
+            fg=Palette.frames.DEVICES,
+            bg=Palette.generic.BLACK
+        )
         self.boardlist.build()
         self.on_update()
 
@@ -2610,37 +2676,31 @@ class UiBoards(PanedTemplate):
     def on_resize(self, *args, **kwargs):
         w,h=super(UiBoards, self).on_resize()
 
-        print('resizing for {}'.format(self.current))
+        # print('resizing for {}'.format(self.current))
+        off = 5
+        h_label = 35
+
+        self.title.place(
+            x=0,
+            y=0,
+            width=w,
+            heigh=h_label,
+        )
 
         w_list=350
         self.boardlist.place(
-            x=5,
-            y=5,
+            x=off,
+            y=h_label + off,
             width=w_list,
-            heigh=h-10
+            heigh=h - (h_label + 2 * off)
         )
         self.boardlist.on_resize()
 
         if self.current in self.frames.keys():
             self.frames[self.current].place(
-                x=w_list +10,
-                y=5,
+                x=w_list + 2 * off,
+                y=h_label + off,
                 width=w - w_list,
-                heigh=h - 10
+                heigh=h - (h_label + 2 * off)
             )
             self.frames[self.current].on_resize()
-
-        # try:
-        #     z=self.Devices.Header.Relay(self, 'HOUSE.BEAMS', 'BEAM1', bg='blue')
-        #     z.build()
-        #     z.on_update()
-        #     z.place(
-        #         x=w_list + w_display + 20,
-        #         y=5,
-        #         width=300,
-        #         heigh=100
-        #     )
-        #     z.on_resize()
-        # except KeyError:
-        #     pass
-

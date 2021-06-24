@@ -8,6 +8,7 @@
 
 #include "../common/utils.h"
 #include "../network/server.h"
+#include "indoorino-system.h"
 
 #if defined (INDOORINO_NETWORK)
 
@@ -329,10 +330,15 @@ namespace indoorino
                     {
                         alert_os("layout:parse:loading from file");
                         this->load();
+                        System.alarms.clear();
+                        System.alarms.load_layout();
                     }
                     else if (strcmp(c[0], "RESET") == 0)
                     {
+                        alert_os("layout:parse:restoring defaualt layout");
                         this->reset();
+                        System.alarms.clear();
+                        System.alarms.load_layout();
                     }
                     else if (strcmp(c[0], "SAVE") == 0)
                     {
@@ -360,6 +366,7 @@ namespace indoorino
                         {
                             alert_os("layout:parse:clearing lights layout");
                             _alarms.clear();
+                            System.alarms.clear();
                         }
                         else if (strcmp(c[1], "WEATHER") == 0)
                         {
@@ -419,6 +426,8 @@ namespace indoorino
                         {
                             alert_os("layout:parse:removing alarm device %s:%s", c[2], c[3]);
                             _alarms.erase(_alarms.begin() + index);
+                            System.alarms.clear();
+                            System.alarms.load_layout();
                         }
                     }
                     else if (strcmp(c[1], "WEATHER") == 0)
@@ -517,6 +526,8 @@ namespace indoorino
                     alert_os("layout:parse:adding new ALARM device %s:%s", p->p_board(), p->p_devname());
 
                     _alarms.push_back(d);
+                    System.alarms.load_layout();
+
                 }                
                 else
                 {

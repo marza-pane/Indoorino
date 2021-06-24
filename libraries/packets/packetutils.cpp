@@ -19,14 +19,12 @@ namespace packet
     int16_t     payloadsize         (iCom_t command)
     {
         int16_t s;
-        ipacket * p=new ipacket(command);
+        ipacket p(command);
         
-        if (p->command() > 0)   {   s=p->data_size();   }
+        if (p.command() > 0)    {   s=p.data_size();    }
         else                    {   s = -1;             }
         
-        delete p;
         return s;
-
     }
     
     int16_t      packetsize         (iCom_t command)

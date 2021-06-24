@@ -7,6 +7,7 @@
  */
 
 #include "alarms.h"
+#include "indoorino-system.h"
 #include "../network/server.h"
 
 #if defined (INDOORINO_NETWORK)
@@ -15,143 +16,156 @@ namespace indoorino
 {
     namespace alarms
     {
-        AlarmDevice::AlarmDevice(layout::dev_alarm_t& p):_layout(p)
+        AlarmDevice::AlarmDevice(const layout::dev_alarm_t& p):_layout(p)
         {}
         
+        void        AlarmDevice::send_alarm     (void)
+        {
+            packet::ipacket q(IBACOM_ENV_ALARM);
+            
+            uint32_t epoch  = utils::epoch_now();
+            uint32_t value  = _on_alarm;
+            
+            strcpy(q.p_desc1(),   _layout.group);
+            strcpy(q.p_desc2(),   _layout.alarmtype);
+            strcpy(q.p_label1(),  _layout.area);
+            strcpy(q.p_label2(),  _layout.location);
+            memcpy(q.p_epoch(),     &epoch, sizeof(uint32_t));
+            memcpy(q.p_value1(),    &value, sizeof(int32_t));
+
+            Server.shell.broadcast(&q);
+        }
+        
+        void        AlarmDevice::parse_alarm    (packet::netpacket * p)
+        {
+            std::cout << "\t*** Now matching names: ***" << std::endl;
+            info_os("board p=%s l=%s\ndevice p=%s, l=%s",p->p_board(), _layout.boardname, p->p_devname(), _layout.devname);
+           
+            if ( (strcmp(p->p_board(), _layout.boardname) == 0) && (strcmp(p->p_devname(), _layout.devname) == 0) )
+            {
+                warning_os(" %s from <%s:%s>", p->label(), p->p_board(), p->p_devname());
+                
+                _on_alarm = 1;
+                
+                if (_enabled)
+                {
+                    warning_os("ALARM <%s:%s> is enabled!" , _layout.boardname, _layout.devname);
+                                        
+                        /** se vuoi mandare una mail/azionare un device/pregare la madonna/ per un certo allarme devi farlo qui ! **/
+
+                    if (strcmp(_layout.alarmtype, layout::global_alarms[0]) == 0) // fire
+                    {
+                        switch (p->command())
+                        {
+
+                            case (IBACOM_HEAT_ALARM):
+                            {
+                                _on_alarm = 1;
+                                break;
+                            }
+                            case (IBACOM_OVERH_ALARM):
+                            {
+                                _on_alarm = 2;
+                                break;
+                            }
+                            case (IBACOM_FIRE_ALARM):
+                            {
+                                _on_alarm = 3;
+                                break;
+                            }
+                            default:
+                            {
+                                goto unmatched_packet;
+                            }
+                        }
+                    }
+                    else if (strcmp(_layout.alarmtype, layout::global_alarms[1]) == 0) // flood
+                    {
+                        switch (p->command())
+                        {
+
+                            case (IBACOM_MOIST_ALARM):
+                            {
+                                _on_alarm = 1;
+                                break;
+                            }
+                            case (IBACOM_FLOOD_ALARM):
+                            {
+                                _on_alarm = 2;
+                                break;
+                            }
+                            default:
+                            {
+                                goto unmatched_packet;
+                            }
+                        }
+                    }
+                    else if (strcmp(_layout.alarmtype, layout::global_alarms[2]) == 0) // hazard
+                    {                        
+                        switch (p->command())
+                        {
+
+                            case (IBACOM_SMOG_ALARM):
+                            {
+                                _on_alarm = 1;
+                                break;
+                            }
+                            case (IBACOM_HAZARD_ALARM):
+                            {
+                                _on_alarm = 2;
+                                break;
+                            }
+                            case (IBACOM_SMOKE_ALARM):
+                            {
+                                _on_alarm = 3;
+                                break;
+                            }
+                            default:
+                            {
+                                goto unmatched_packet;
+                            }
+                        }
+                    }
+                    else if (strcmp(_layout.alarmtype, layout::global_alarms[3]) == 0) // grid
+                    {                        
+                        switch (p->command())
+                        {
+                            case (IBACOM_GRID_ALARM):
+                            {
+                                _on_alarm = 2;
+                                break;
+                            }
+                            default:
+                            {
+                                goto unmatched_packet;
+                            }
+                        
+                        }
+                    }
+                    else
+                    {
+                        unmatched_packet:
+                        {
+                            warning_os("ALARM: Unmatched %s for device %s:%s [%s:%s]",
+                                    p->label(), _layout.boardname, _layout.devname, _layout.type, _layout.group);
+                        }
+                    }
+
+                    
+                    warning_os("ALARM: *** <%s> alarm at <%s> ***", p->label(), _layout.group);
+                    send_alarm();
+                }
+                _signals.push_back(packet::netpacket(p));
+                this->send_updates();
+            }
+
+        }
         void        AlarmDevice::parse          (packet::netpacket * p)
         {
+            
             if ( (p->command() >= IBACOM_HEAT_ALARM) && (p->command() <= IBACOM_GENERIC_ALARM) )
             {
-                if ( (strcmp(p->p_board(), _layout.boardname) == 0) && (strcmp(p->p_devname(), _layout.devname) == 0) )
-                {
-                    std::locale local;
-                    std::string alarmstring=std::string(p->label());
-                    for (uint i=0; i<alarmstring.length(); i++)
-                        alarmstring.at(i) = std::toupper(alarmstring.at(i));
-                    
-                    warning_os(" %s from <%s:%s>", alarmstring.c_str(), p->p_board(), p->p_devname());
-                    if (_enabled)
-                    {
-                        warning_os("ALARM <%s:%s> is enabled!" , _layout.boardname, _layout.devname);
-                        
-                        packet::ipacket q(IBACOM_ENV_ALARM);
-                        iEpoch_t epoch=utils::epoch_now();
-                        
-                        strcpy(q.p_desc2(),   p->label());
-                        strcpy(q.p_desc1(),   _layout.group);
-                        strcpy(q.p_label1(),  _layout.area);
-                        strcpy(q.p_label2(),  _layout.location);
-                        memcpy(q.p_epoch(), &epoch, sizeof(uint32_t));
-                        
-                            /** se vuoi mandare una mail/azionare un device/pregare la madonna/ per un certo allarme devi farlo qui ! **/
-
-                        if (strcmp(_layout.alarmtype, layout::global_alarms[0]) == 0) // fire
-                        {
-                            switch (p->command())
-                            {
-
-                                case (IBACOM_HEAT_ALARM):
-                                {
-                                    *q.p_value1() = 1;
-                                    break;
-                                }
-                                case (IBACOM_OVERH_ALARM):
-                                {
-                                    *q.p_value1() = 2;
-                                    break;
-                                }
-                                case (IBACOM_FIRE_ALARM):
-                                {
-                                    *q.p_value1() = 3;
-                                    break;
-                                }
-                                default:
-                                {
-                                    goto unmatched_packet;
-                                }
-                            }
-                        }
-                        else if (strcmp(_layout.alarmtype, layout::global_alarms[1]) == 0) // flood
-                        {
-                            switch (p->command())
-                            {
-
-                                case (IBACOM_MOIST_ALARM):
-                                {
-                                    *q.p_value1() = 1;
-                                    break;
-                                }
-                                case (IBACOM_FLOOD_ALARM):
-                                {
-                                    *q.p_value1() = 2;
-                                    break;
-                                }
-                                default:
-                                {
-                                    goto unmatched_packet;
-                                }
-                            }
-                        }
-                        else if (strcmp(_layout.alarmtype, layout::global_alarms[2]) == 0) // hazard
-                        {                        
-                            switch (p->command())
-                            {
-
-                                case (IBACOM_SMOG_ALARM):
-                                {
-                                    *q.p_value1() = 1;
-                                    break;
-                                }
-                                case (IBACOM_HAZARD_ALARM):
-                                {
-                                    *q.p_value1() = 2;
-                                    break;
-                                }
-                                case (IBACOM_SMOKE_ALARM):
-                                {
-                                    *q.p_value1() = 3;
-                                    break;
-                                }
-                                default:
-                                {
-                                    goto unmatched_packet;
-                                }
-                            }
-                        }
-                        else if (strcmp(_layout.alarmtype, layout::global_alarms[3]) == 0) // hazard
-                        {                        
-                            switch (p->command())
-                            {
-                                case (IBACOM_GRID_ALARM):
-                                {
-                                    *q.p_value1() = 2;
-                                    break;
-                                }
-                                default:
-                                {
-                                    goto unmatched_packet;
-                                }
-                           
-                            }
-                        }
-                        else
-                        {
-                            unmatched_packet:
-                            {
-                                *q.p_value1() = 1;
-                                warning_os("ALARM: Unmatched %s for device %s:%s [%s:%s]",
-                                        p->label(), _layout.boardname, _layout.devname, _layout.type, _layout.group);                                
-                            }
-                        }
-
-                        
-                        warning_os("ALARM: *** <%s> alarm at <%s> ***", p->label(), _layout.group);
-                        Server.shell.broadcast(&q);
-                    }
-                    _on_alarm=true;
-                    _signals.push_back(packet::netpacket(p));
-                    this->send_updates();
-                }
+                parse_alarm(p);
             }
             else if ( p->command() == IBACOM_ACK_ENV_ALARM )
             {
@@ -161,7 +175,7 @@ namespace indoorino
                     alert_os("ALARM:parsing ACK for <%s:%s>", p->p_board(), p->p_devname());
                     if (_on_alarm)
                     {
-                        _on_alarm=false;
+                        _on_alarm=0;
                         _alarm_ack.push_back(std::chrono::system_clock::now());
                         alert_os("ALARM:ACK for <%s:%s>", p->p_board(), p->p_devname());
                     }
@@ -199,30 +213,56 @@ namespace indoorino
             
             memcpy(p.p_status(), &_enabled, sizeof(uint8_t));
             memcpy(p.p_value1(), &value, sizeof(uint32_t));
-
+            
             // *p.p_value1() = uint32_t(_on_alarm);
             // if (_on_alarm)  *p.p_value1() = 1;
             // else            *p.p_value1() = 0;
 
             Server.shell.broadcast(&p);
+            
+            if ((_enabled) && (_on_alarm > 0))
+                send_alarm();
         }
+        
         
         void        Alarms::begin               (void)
         {
+            this->clear();
             this->load_layout();
         }
         
         void        Alarms::load_layout         (void)
         {
-            this->clear();        
-            for (uint i=0; i<LYT_DEFAULT_NUM_ALARMS; i++)
+            for (uint i=0; i<System.layout.alarms().size(); i++)
             {
-                _classlist.push_back(AlarmDevice(layout::DefaultAlarmsLayout[i]));
+                bool flag=false;
+                auto &entry = System.layout.alarms()[i];
+                for (auto &item : _classlist)
+                {
+                    if ( strcmp(item._layout.boardname, entry.boardname) == 0 && strcmp(item._layout.devname, entry.devname) == 0 )
+                    {
+                        flag=true;
+                        break;
+                    }
+                }
+                
+                if (!flag)
+                {
+                    info_os("ALARM: adding %s:%s", entry.boardname, entry.devname);
+                    _classlist.push_back(AlarmDevice(System.layout.alarms()[i]));
+                }
             }
+            
+//             for (uint i=0; i<indoorino::IndoorinoSystem.layout.alarms().size(); i++)
+//             {
+//                 for (uint j=0; j<_classlist.size();
+//                 _classlist.push_back(AlarmDevice(layout::DefaultAlarmsLayout[i]));
+//             }
         }
         
         void        Alarms::send_status         (void)
         {
+            this->load_layout();
             for (auto& a: _classlist)
             {
                 a.send_updates();

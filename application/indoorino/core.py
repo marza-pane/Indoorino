@@ -1,3 +1,4 @@
+import datetime
 import pickle
 
 from common.utils import *
@@ -102,9 +103,21 @@ class IndoorinoCore:
             self._tx.append(packet)
             Client.send(packet.dictionary())
 
-        def send_server_request(self, command):
+        @staticmethod
+        def send_server_request(command):
             Client.serverequest(command)
-            pass
+
+        @staticmethod
+        def send_system_request(command, param1=0, param2=0, param3=0, param4=0):
+            p = IndoorinoPacket()
+            p.build(IBACOM_SYS_REQ, 'SERVER', {
+                'command': command,
+                'value1' : param1,
+                'value2' : param2,
+                'value3' : param3,
+                'value4' : param4,
+            })
+            System.io.send(p)
 
         def ready(self):
             return len(self._buffer) > 0
@@ -280,7 +293,7 @@ class IndoorinoCore:
                     self._alarmtype=dev_type
                     self._enabled=False
                     self._on_alarm=False
-                    self._events=list()
+                    self._events=dict()
 
                 @property
                 def group(self):
@@ -315,21 +328,33 @@ class IndoorinoCore:
                                 self._enabled = bool(packet.payload['status'])
                             if not self._on_alarm == bool(packet.payload['value1']):
                                 self._on_alarm = bool(packet.payload['value1'])
-                            self._events.append(packet)
+                            self._events.update({
+                                datetime.datetime.now(): packet
+                            })
+                            Config.flags.update.SYSTEM = True
 
                     elif packet.command == IBACOM_SET_ENV_ALARM:
                         if packet.payload['board'] == self._boardname and packet.payload['devname'] == self._devname:
-                            self._events.append(packet)
+                            self._events.update({
+                                datetime.datetime.now(): packet
+                            })
+                            Config.flags.update.SYSTEM = True
                             # should not recv this
 
                     elif packet.command == IBACOM_ACK_ENV_ALARM:
                         if packet.payload['board'] == self._boardname and packet.payload['devname'] == self._devname:
-                            self._events.append(packet)
+                            self._events.update({
+                                datetime.datetime.now(): packet
+                            })
+                            Config.flags.update.SYSTEM = True
                             # should not recv this
 
                     elif IBACOM_HEAT_ALARM <= packet.command <= IBACOM_GENERIC_ALARM:
                         if packet.payload['board'] == self._boardname and packet.payload['devname'] == self._devname:
-                           self._events.append(packet)
+                            self._events.update({
+                                datetime.datetime.now(): packet
+                            })
+                            Config.flags.update.SYSTEM = True
 
             def __init__(self, name, alarm_type):
                 self._name = name
@@ -337,7 +362,7 @@ class IndoorinoCore:
                 self._devices = dict()
                 self._state = 0
                 self._waitforack = 0
-                self._events = list()
+                self._events = dict()
 
             @property
             def name(self):
@@ -377,22 +402,25 @@ class IndoorinoCore:
 
                 if packet.command == IBACOM_ENV_ALARM:
 
-                    self._events.append(packet)
-                    Config.flags.update.SYSTEM=True
-                    if packet.payload['desc1'] == self._alarm_type:
+                    print('\n*** ALARM DEBUG:\n\t_name={} _alarm_type={}\n\tdesc1={} desc2={}'.format(
+                        self._name, self._alarm_type, packet.payload['desc1'], packet.payload['desc2']
+                    ))
+                    if packet.payload['desc1'] == self._name:
+                        self._events.update({
+                            datetime.datetime.now() : packet
+                        })
+
+                    if packet.payload['desc1'] == self._name:
                         if packet.payload['value1'] > 0:
                             self._state = packet.payload['value1']
-
-                    # (7703, 'env_alarm', 'environment alarm signal',
-                    #  ('desc1', 'desc2', 'label1', 'label2', 'epoch', 'value1', 'status')),
+                            Config.flags.update.SYSTEM = True
+                            # Here we have an alarm!
 
                 for dev in self._devices.values():
                     dev.parse(packet)
 
-                if self._waitforack:
-                    if not all( [dev.is_onalarm for dev in self._devices.values()] ):
-                        self._state=0
-                        self._waitforack=0
+                if not any( [dev.is_onalarm for dev in self._devices.values()] ):
+                    self._state=0
 
         def __init__(self):
             self.groups = dict()

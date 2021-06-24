@@ -43,7 +43,9 @@
     - add class init into device list (sensor.h and sensor.cpp)
     - add sensor status and config packet (application/codegen/source.py)
     - add public templates in indoorino (indoorino/devices.h and indoorino/devices.cpp)
-    - 
+    - add type to Layout (indoorino/layout.h)
+    - add devtype to Application in System.indoorino.devices.set_type()
+    - add header and widgets to Application.frames.boards.py
  * 
 /*/
 
@@ -63,9 +65,9 @@
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
 //         #define INDOORINO_CONTROLLER
 
-//         const char BOARD_NAME[] PROGMEM = "SRV.HOUSE.BEAMS";
-//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
-//         #define INDOORINO_ROUTER
+        const char BOARD_NAME[] PROGMEM = "SRV.HOUSE.BEAMS";
+        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
+        #define INDOORINO_ROUTER
 
 
 
@@ -78,10 +80,10 @@
 //         #define INDOORINO_CONTROLLER
 
 
-        const char BOARD_NAME[] PROGMEM = "SRV.PRESCOTT.CLIMATE";
-        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
-        #define INDOORINO_ROUTER
-        
+//         const char BOARD_NAME[] PROGMEM = "SRV.PRESCOTT.CLIMATE";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
+//         #define INDOORINO_ROUTER
+
 //         const char BOARD_NAME[] PROGMEM = "PRESCOTT.CLIMATE";
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
 //         #define INDOORINO_CONTROLLER
@@ -125,7 +127,7 @@
 //     #define DEBUG_SERIAL
 //     #define DEBUG_PARSER
 //     #define DEBUG_TCP 
-    #define DEBUG_DEVICES
+//     #define DEBUG_DEVICES
 //     #define DEBUG_NETWORK
 //     #define DEBUG_SERVER
 //     #define DEBUG_CLIENT

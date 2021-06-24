@@ -18,10 +18,7 @@ void setup()
     rtc.begin();
 //     conf.factory();
     conf.begin(); /* must be run only once! */
-    
-// // //     sendReport(1, FPSTR(BOARD_NAME), F("Board %s:%s booting"), P2C(BOARD_NAME), P2C(INDOORINO_TYPE));    
         
-    
     utils::board::send_boot_signal();
     
     utils::board::send_config();
@@ -33,7 +30,7 @@ void setup()
 
 void loop()
 {
-    static iEpoch_t timeout_stat=0;
+    static iEpoch_t timeout_stat=millis() + RATE_UPDATE;
     static iEpoch_t timeout_conf=millis() + RATE_BEACON;
 
     blinker.loop();

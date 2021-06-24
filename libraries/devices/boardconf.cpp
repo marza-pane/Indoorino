@@ -905,7 +905,7 @@ void        ConfSampler::cool               (uint32_t value)
             staticspace.put(ndx, dev.type);
             ndx+=sizeof(iCom_t);
 
-            debug_dev("Writing device %u: %u - %s - on pin %u", i, dev.type, dev.name, dev.pin);
+            info_dev("Writing device %u: %u - %s - on pin %u", i, dev.type, dev.name, dev.pin);
             
             strcpy(data.p_name(), P2C(BOARD_NAME));
             strcpy(data.p_devname(), dev.name);

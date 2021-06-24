@@ -37,7 +37,7 @@ namespace indoorino
         void            begin           (void);
         void            loop            (void);
         void            parse           (packet::netpacket *);
-        void            parse_request   (const char *);
+        void            parse_request   (packet::netpacket *);
         
         bool            save_state      (void);
         bool            load_state      (void);

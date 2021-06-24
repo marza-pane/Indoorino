@@ -208,7 +208,6 @@ class IconPaths:
             return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/group-weather.png'))
 
     class _Devices:
-
         class _Default:
             @staticmethod
             def ERROR():
@@ -269,10 +268,28 @@ class IconPaths:
             def DISCONNECTED():
                 return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/dust-sensor-disconnected.png'))
 
+        class _FloodSwitch:
+            @staticmethod
+            def ERROR():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/flood-error.png'))
+            @staticmethod
+            def ONLINE():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/flood-online.png'))
+            @staticmethod
+            def OFFLINE():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/flood-offline.png'))
+            @staticmethod
+            def DISCONNECTED():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/flood-disconnected.png'))
+            @staticmethod
+            def ON_ALARM():
+                return str(pathlib.Path(PATH_APP).joinpath('pictures/icons/flood-on-alarm.png'))
+
         def __init__(self):
             self.diodes = self._Diodes()
             self.thermometer = self._Thermometer()
             self.airsensor = self._AirSensor()
+            self.floodswitch = self._FloodSwitch()
             self.default = self._Default()
 
         def __getitem__(self, item):
@@ -282,6 +299,8 @@ class IconPaths:
                 return self.thermometer
             elif item.lower() == 'dustpm25':
                 return self.airsensor
+            elif item.lower() == 'floodsw':
+                return self.floodswitch
             else:
                 return self.default
 

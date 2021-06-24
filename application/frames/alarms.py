@@ -1,4 +1,7 @@
+import tkinter.messagebox
+
 from common.templates import *
+from indoorino.packet import IndoorinoPacket
 # from widgets.tools import AlarmGroupWidget
 
 class UiAlarms(PanedTemplate):
@@ -85,17 +88,16 @@ class UiAlarms(PanedTemplate):
 
             def loop(self):
 
-                self.after(750, self.loop)
-
                 if not self._alarm:
                     return
 
+                self.after(750, self.loop)
                 if self._taskstate:
-                    self.status.configure(
+                    self.button.configure(
                         fg=Palette.generic.ERROR_GUI
                     )
                 else:
-                    self.status.configure(
+                    self.button.configure(
                         fg=Palette.generic.WHITE
                     )
                 self._taskstate = not self._taskstate
@@ -125,30 +127,84 @@ class UiAlarms(PanedTemplate):
                 #         self._enabled = True
                 # self.on_update()
 
-            def set_alarm(self):
-                self._alarm = True
-                self._total_events += 1
-                self.status.configure(
-                    text='ALARM'
-                )
-                self.loop()
+            def activate(self, value):
 
-            def parse(self, packet):
-
-                if packet.command() == 10:
+                if value and not self._alarm:
+                    self._alarm = True
                     self._total_events += 1
+                    self.button.configure(
+                        text='ALARM'
+                    )
+                    self.frame.configure(
+                        bg=Palette.generic.ERROR_GUI
+                    )
+                    info = 'UNKNOWN'
+                    bg=Palette.generic.WHITE
+                    for item in System.alarms.groups.values():
+                        if item.name == self.group:
+                            # "FIRE",
+                            # "FLOOD",
+                            # "HAZARD",
+                            # "POWERGRID"
+                            # "GENERIC",
+                            if item.alarmtype == 'FIRE':
+                                if value == 1:
+                                    info = 'HEAT'
+                                if value == 2:
+                                    info = 'OVERHEAT'
+                                    bg = Palette.generic.WARNING
+                                if value == 3:
+                                    info = 'FIRE'
+                                    bg = Palette.generic.OFFLINE
+                            elif item.alarmtype == 'FLOOD':
+                                if value == 1:
+                                    info = 'MOIST'
+                                if value == 2:
+                                    info = 'FLOOD'
+                                    bg = Palette.generic.WARNING
+                            elif item.alarmtype == 'HAZARD':
+                                if value == 1:
+                                    info = 'SMOG'
+                                if value == 2:
+                                    info = 'HAZARD'
+                                    bg = Palette.generic.WARNING
+                                if value == 3:
+                                    info = 'SMOKE'
+                                    bg = Palette.generic.OFFLINE
+                            break
+
+                    self.status.configure(
+                        text=info,
+                        fg=bg
+                    )
+
+                    # if value == 1:
+                    self.loop()
+
+                elif not value and self._alarm:
+                    self._alarm = False
+                    self._total_events += 1
+                    self.on_update()
+
+                return self._alarm
 
             def on_update(self, *args, **kwargs):
 
-                if System.alarms.groups[self.group].is_onalarm:
-                    self.set_alarm()
+                # n_events = len(System.alarms.groups[self.group].events)
+                # for dev in System.alarms.groups[self.group].devices.values():
+                #     n_events += len(dev.events)
+
+                self.label_count.configure( text = 'Events: {}'.format(self._total_events))
+
+                # if on alarm just play alarm
+                if self.activate(System.alarms.groups[self.group].is_onalarm):
+                    return
 
                 count_ex = 0
                 count_cn = 0
                 count_en = 0
 
-                self.label_count.configure( text = 'Events: {}'.format(self._total_events))
-
+                # counting devices in group to self.devlist
                 for entry in [item for item in System.alarms.groups.values() if item.name == self.group]:
                     for device in entry.devices.values():
                         if not any([c.board == device.boardname and c.device == device.devname for c in self.devlist]):
@@ -171,6 +227,7 @@ class UiAlarms(PanedTemplate):
                         if entry.get_device().is_connected():
                             count_cn += 1
 
+                # no actual devices found!
                 if count_ex == 0:
                     self.button.configure(
                         bg=Palette.generic.BG_DEFAULT,
@@ -186,6 +243,7 @@ class UiAlarms(PanedTemplate):
                     )
                     return
 
+                # System is offline!
                 if not System.io.is_connected():
                     self.button.configure(
                         bg=Palette.generic.BG_DEFAULT,
@@ -201,6 +259,7 @@ class UiAlarms(PanedTemplate):
                     )
                     return
 
+                # all devices are offline
                 if count_cn == 0:
                     self.button.configure(
                         bg=Palette.generic.BG_DEFAULT,
@@ -216,13 +275,36 @@ class UiAlarms(PanedTemplate):
                     )
                     return
 
+                if count_cn != len(self.devlist) or count_ex != len(self.devlist):
+                    self.button.configure(
+                        text='WARNING',
+                    )
+                    if count_ex != len(self.devlist):
+                        self.frame.configure( bg=Palette.generic.WARNING )
+                        self.button.configure( fg=Palette.generic.WARNING )
+                    else:
+                        self.frame.configure( bg=Palette.generic.R_TITLE )
+                        self.button.configure( fg=Palette.generic.R_TITLE )
+                else:
+                    self.button.configure(
+                        text='IDLE',
+                        bg = Palette.generic.BLACK,
+                        fg = Palette.generic.ONLINE,
+                    )
+
+                    if not count_en:
+                        self.frame.configure(
+                            bg=Palette.generic.DISABLED
+                        )
+                    else:
+                        self.frame.configure(
+                            bg=Palette.generic.ONLINE
+                        )
+
                 if count_en > 0:
                     self.status.configure(
                         fg=Palette.generic.WHITE,
                         text='ARMED',
-                    )
-                    self.frame.configure(
-                        bg=Palette.generic.ONLINE
                     )
 
                 else:
@@ -230,35 +312,6 @@ class UiAlarms(PanedTemplate):
                         fg=Palette.generic.DISABLED,
                         text='DISABLED',
                     )
-                    self.frame.configure(
-                        bg=Palette.generic.DISABLED
-                    )
-
-                if self._alarm:
-                    self.button.configure(
-                        bg=Palette.generic.BLACK,
-                        fg=Palette.generic.ERROR_GUI,
-                        text='ALARM'
-                    )
-                else:
-                    self.button.configure(
-                        text='IDLE'
-                    )
-                    if count_ex < self.devlist.__len__():
-                        self.button.configure(
-                            bg=Palette.generic.BLACK,
-                            fg=Palette.generic.WARNING,
-                        )
-                    elif count_cn < self.devlist.__len__():
-                        self.button.configure(
-                            bg=Palette.generic.BLACK,
-                            fg=Palette.generic.R_TITLE,
-                        )
-                    else:
-                        self.button.configure(
-                            bg=Palette.generic.BLACK,
-                            fg=Palette.generic.ONLINE,
-                        )
 
             def on_resize(self, *args, **kwargs):
                 w, h = super(UiAlarms.AlarmGroupList.AlarmWidget, self).on_resize()
@@ -425,22 +478,121 @@ class UiAlarms(PanedTemplate):
                                     self,
                                     font=Fonts.monobold(10),
                                     text=key.capitalize(),
+                                    command=lambda c=key:self.callback(c)
                                 )
                             }
                         )
 
+                def callback(self, command):
+
+                    if command == 'disable':
+                        value = 1
+                        if System.alarms.groups[self._group].devices[(self.board, self.device)].is_enabled:
+                            value=0
+                        p = IndoorinoPacket()
+                        p.build(IBACOM_SET_ENV_ALARM, 'SERVER', {
+                            'board': self.board,
+                            'devname': self.device,
+                            'value1':value,
+                            'epoch':int(time.mktime(datetime.datetime.now().timetuple()))
+                        })
+                        System.io.send(p)
+
+                    elif command == 'update':
+                        System.io.send_system_request('ALARMS:GET')
+
+                    elif command == 'acknowledge':
+                        p = IndoorinoPacket()
+                        p.build(IBACOM_ACK_ENV_ALARM, 'SERVER', {
+                            'board': self.board,
+                            'devname': self.device,
+                            'epoch':int(time.mktime(datetime.datetime.now().timetuple()))
+                        })
+                        System.io.send(p)
+
                 def on_update(self, *args, **kwargs):
+
+                    if self.exist() and 'status' in self.get_device().status.dev.packet.payload.keys():
+                        status = self.get_device().status.dev.packet.payload['status']
+                        statustring=self.get_device().status.std['status'].value
+                    else:
+                        status = 5 # generic undefined error
+                        statustring='not exist'
+
+                    if self.exist():
+
+                        if System.io.is_connected():
+                            dev = self.get_device()
+                            self.enable_buttons()
+                            for entry in self.labels.values():
+                                entry.configure(fg=Palette.generic.FG_DEFAULT)
+
+                            if dev.is_connected():
+
+                                if status == 0:
+
+                                    try:
+                                        self.icon.replace_image(Icons.devices[self.get_device().devtype].ONLINE())
+                                    except AttributeError:
+                                        self.icon.replace_image(Icons.BOARD_GREEN())  # questa icona è messa così per
+
+                                    self.labels['conn'].configure(
+                                        text='CONNECTED',
+                                        fg=Palette.generic.ONLINE
+                                    )
+
+                                else: # status error
+                                    try:
+                                        self.icon.replace_image(Icons.devices[self.get_device().devtype].ERROR())
+                                    except AttributeError:
+                                        self.icon.replace_image(Icons.system.NOT_FOUND())
+
+                                    self.labels['conn'].configure(
+                                        text=statustring,
+                                        fg=Palette.generic.WARNING
+                                    )
+
+                            else: # dev is not connected
+                                self.labels['conn'].configure(
+                                    text='OFFLINE',
+                                    fg=Palette.generic.DISABLED
+                                )
+                                try:
+                                    self.icon.replace_image(Icons.devices[self.get_device().devtype].DISCONNECTED())
+                                except AttributeError:
+                                    self.icon.replace_image(Icons.system.NOT_FOUND())
+
+                        else: # offline
+                            self.disable_buttons()
+                            for entry in self.labels.values():
+                                entry.configure(fg=Palette.generic.DISABLED)
+                            try:
+                                self.icon.replace_image(Icons.devices[self.get_device().devtype].OFFLINE())
+                            except AttributeError:
+                                self.icon.replace_image(Icons.system.NOT_FOUND())
+
+                    else: # not exist
+                        self.disable_buttons()
+                        for entry in self.labels.values():
+                            entry.configure(fg=Palette.generic.DISABLED)
+
+                        self.icon.replace_image(Icons.system.NOT_FOUND())
+                        self.labels['conn'].configure(
+                            text='NOT FOUND',
+                            fg=Palette.generic.ERROR_GUI
+                        )
+
 
                     if System.alarms.groups[self._group].devices[(self.board, self.device)].is_onalarm:
                         self.labels['state'].configure(
                             text='ON ALARM',
-                            fg=Palette.generic.WHITE
+                            fg=Palette.generic.OFFLINE # it's just red
                         )
                     else:
                         if System.alarms.groups[self._group].devices[(self.board, self.device)].is_enabled:
                             self.labels['state'].configure(
                                 text='ENABLED',
-                                fg=Palette.generic.WHITE
+                                fg=Palette.generic.ONLINE
                             )
                             self.buttons['disable'].configure(
                                 text='Disable',
@@ -453,72 +605,6 @@ class UiAlarms(PanedTemplate):
                             self.buttons['disable'].configure(
                                 text='Enable',
                             )
-
-                    if self.exist() and 'status' in self.get_device().status.dev.packet.payload.keys():
-                        status = self.get_device().status.dev.packet.payload['status']
-                    else:
-                        status = 5 ## generic undefined error
-
-                    if not self.exist() or \
-                            not System.io.is_connected() or \
-                            not self.get_device().is_connected() \
-                            or status > 0:
-                        for entry in self.labels.values():
-                            entry.configure( fg=Palette.generic.DISABLED )
-
-                        self.disable_buttons()
-
-                        if not self.exist():
-                            self.icon.replace_image(Icons.system.NOT_FOUND())
-                            self.labels['conn'].configure(
-                                text='NOT FOUND',
-                                fg=Palette.generic.ERROR_GUI
-                            )
-                        elif not System.io.is_connected():
-                            try:
-                                self.icon.replace_image(Icons.devices[self.get_device().devtype].DISCONNECTED())
-                            except AttributeError:
-                                self.icon.replace_image(Icons.system.NOT_FOUND())
-
-                            self.labels['conn'].configure(
-                                text='OFFLINE',
-                                fg=Palette.generic.DISABLED
-                            )
-                        elif status > 0:
-                            try:
-                                self.icon.replace_image(Icons.devices[self.get_device().devtype].ERROR())
-                            except AttributeError:
-                                self.icon.replace_image(Icons.system.NOT_FOUND())
-
-                            self.labels['conn'].configure(
-                                text='ERROR',
-                                fg=Palette.generic.WARNING
-                            )
-                        else:
-                            try:
-                                self.icon.replace_image(Icons.devices[self.get_device().devtype].OFFLINE())
-                            except AttributeError:
-                                self.icon.replace_image(Icons.system.NOT_FOUND())
-
-                            self.labels['conn'].configure(
-                                text='OFFLINE',
-                                fg=Palette.generic.OFFLINE
-                            )
-
-                    else:
-                        self.enable_buttons()
-                        for entry in self.labels.values():
-                            entry.configure( fg=Palette.generic.FG_DEFAULT )
-
-                        try:
-                            self.icon.replace_image(Icons.devices[self.get_device().devtype].ONLINE())
-                        except AttributeError:
-                            self.icon.replace_image(Icons.system.NOT_FOUND())
-
-                        self.labels['conn'].configure(
-                            text='CONNECTED',
-                            fg=Palette.generic.ONLINE
-                        )
 
                 def disable_buttons(self):
                     for i in self.buttons.values():
@@ -677,13 +763,14 @@ class UiAlarms(PanedTemplate):
                         }
                     )
 
-                for key in ('acknowledge', 'confgiure', 'disable'):
+                for key in ('acknowledge', 'configure', 'disable'):
                     self.buttons.update(
                         {
                             key:ButtonTemplate(
                                 self,
                                 font=Fonts.monobold(10),
-                                text=key.capitalize()
+                                text=key.capitalize(),
+                                command=lambda c=key: self.callback(c)
                             )
                         }
                     )
@@ -701,6 +788,35 @@ class UiAlarms(PanedTemplate):
                     self._current=name
                 else:
                     error_ui('alarminfo:show: invalid name {}'.format(name))
+
+            def callback(self, command):
+                if not self._current in System.alarms.groups.keys():
+                    return
+                if command == 'acknowledge':
+                    for entry in System.alarms.groups[self._current].devices.values():
+                        p = IndoorinoPacket()
+                        p.build(IBACOM_ACK_ENV_ALARM, 'SERVER', {
+                            'board': entry.boardname,
+                            'devname': entry.devname,
+                            'epoch': int(time.mktime(datetime.datetime.now().timetuple()))
+                        })
+                        System.io.send(p)
+
+                elif command == 'disable':
+                    if not self._current in System.alarms.groups.keys():
+                        return
+                    for entry in System.alarms.groups[self._current].devices.values():
+                        p = IndoorinoPacket()
+                        p.build(IBACOM_SET_ENV_ALARM, 'SERVER', {
+                            'board': entry.boardname,
+                            'devname': entry.devname,
+                            'value1':0,
+                            'epoch':int(time.mktime(datetime.datetime.now().timetuple()))
+                        })
+                        System.io.send(p)
+                elif command == 'configure':
+                    tk.messagebox.showinfo('Sorry','Not implemented yet')
+
 
             def on_update(self, *args, **kwargs):
 
@@ -812,6 +928,8 @@ class UiAlarms(PanedTemplate):
                 self._scroll.config(command=self.listbox.yview)
                 self._scroll.configure(width=10)
 
+                self.listbox.items=list()
+
                 self.button.configure(
                     font=Fonts.monobold(10),
                     text='Clear',
@@ -826,6 +944,9 @@ class UiAlarms(PanedTemplate):
             def callback_clear(self, *event):
                 for dev in System.alarms.groups[self._current].devices.values():
                     dev.clear_events()
+                self.listbox.select_clear(0)
+                self.listbox.delete(0, tk.END)
+                self.listbox.items.clear()
                 self.on_update()
 
             def show(self, name):
@@ -834,6 +955,11 @@ class UiAlarms(PanedTemplate):
                     return
                 if name in System.alarms.groups.keys():
                     self._current = name
+                    self.listbox.select_clear(0)
+                    self.listbox.delete(0, tk.END)
+                    self.listbox.items.clear()
+                    self.on_update()
+
                 else:
                     error_ui('alarminfo:show: invalid name {}'.format(name))
 
@@ -841,38 +967,70 @@ class UiAlarms(PanedTemplate):
                 if not self._current in System.alarms.groups.keys():
                     return
 
-                self.listbox.select_clear(0)
                 self.listbox.delete(0, tk.END)
 
-                n_events = len(System.alarms.groups[self._current].events)
-
-                for event in System.alarms.groups[self._current].events:
+                # n_events = len(System.alarms.groups[self._current].events)
+                # n_events = 0
+                for epoch, event in System.alarms.groups[self._current].events.items():
                     if event.command == IBACOM_ENV_ALARM:
-                        entry = '{} @ {}:{}'.format(
-                            event.payload['desc1'], event.payload['label1'], event.payload['label2'])
-                        self.listbox.insert(tk.END, entry)
-                        self.listbox.itemconfig(tk.END, fg=Palette.generic.OFFLINE)
+
+                        entry = '{}:{}'.format(
+                            datetime.datetime.fromtimestamp(event.payload['epoch']).strftime('%b %d %H:%M:%S'),
+                            event.payload['desc1'])
+                        if not entry in self.listbox.items:
+                            self.listbox.items.append(entry)
+                            self.listbox.insert(tk.END, entry)
+                            self.listbox.itemconfig(tk.END,
+                                fg=Palette.generic.OFFLINE,
+                                )
+                            # n_events +=1
+
                     else:
-                        entry = '{}'.format(event.description())
-                        self.listbox.insert(tk.END, entry)
+                        entry = '{}:{}'.format(
+                            datetime.datetime.fromtimestamp(epoch).strftime('%b %d %H:%M:%S'), event.description)
+                        if not entry in self.listbox.items:
+                            self.listbox.items.append(entry)
+                            self.listbox.insert(tk.END, entry)
+                            # n_events += 1
 
+                n_events = self.listbox.size()
+                # n_info = 0
                 for dev in System.alarms.groups[self._current].devices.values():
-                    n_events += len(dev.events)
+                    # n_events += len(dev.events)
 
-                    for event in dev.events:
-                        if event.command == IBACOM_ALARM_DEVSTAT:
-                            entry = '{}:{} [{}:{}] '.format(
-                                event.payload['board'], event.payload['devname'],
-                                'enabled' if event.payload['status'] else 'disabled',
-                                'on alarm' if event.payload['status'] else 'idle',
-                            )
-                            self.listbox.insert(tk.END, entry)
+                    for epoch, event in dev.events.items():
+
+                        if 'epoch' in event.payload.keys():
+                            timestamp = datetime.datetime.fromtimestamp(event.payload['epoch']).strftime('%b %d %H:%M:%S')
                         else:
-                            entry = '{}'.format(event.description())
+                            timestamp = epoch.strftime('%b %d %H:%M:%S')
+
+                        entry = '{}:'.format(timestamp)
+
+                        if event.command == IBACOM_ALARM_DEVSTAT:
+
+                            entry += '{}:'.format(event.payload['devname'])
+                            if event.payload['status']:
+                                entry += '[ enabled -'
+                            else:
+                                entry += '[ disabled -'
+
+                            if event.payload['value1']:
+                                entry += ' on alarm ]'
+                            else:
+                                entry += ' idle ]'
+                        else:
+                            entry += '{}'.format(event.label)
+
+                        if not entry in self.listbox.items:
+                            self.listbox.items.append(entry)
                             self.listbox.insert(tk.END, entry)
+                            # n_info +=1
+
+                n_info = self.listbox.size() - n_events
 
                 self.label.configure(
-                    text='Events: {}'.format(n_events)
+                    text='Events: {}  Info: {}'.format(n_events, n_info)
                 )
 
             def on_resize(self, *args, **kwargs):
@@ -913,8 +1071,8 @@ class UiAlarms(PanedTemplate):
             self.events.build()
 
         def on_update(self, *args, **kwargs):
-            self.alarminfo.on_update()
             self.devices.on_update()
+            self.alarminfo.on_update()
             self.events.on_update()
 
         def show(self, name):
@@ -957,6 +1115,8 @@ class UiAlarms(PanedTemplate):
     def __init__(self, parent, **kwargs):
 
         PanedTemplate.__init__(self, parent, **kwargs)
+        self.title = LabelTemplate(self)
+        # self.buttons = dict()
         self.alarmgroups=dict()
         self.alarmframe=self.AlarmDisplay(self, bg=Palette.generic.BLACK)
         self._current='all'
@@ -967,11 +1127,19 @@ class UiAlarms(PanedTemplate):
 
     def build(self, *args, **kwargs):
         super(UiAlarms, self).build()
+        self.title.configure(
+            font=Fonts.monobold(16),
+            text='ALARMS',
+            anchor=tk.W,
+            padx=30,
+            fg=Palette.frames.ALARMS,
+            bg=Palette.generic.BLACK
+        )
         self.alarmframe.build()
         self.on_update()
 
     def loop(self):
-        if Config.flags.update.DEVICES or Config.flags.update.NETWORK:
+        if Config.flags.update.DEVICES or Config.flags.update.NETWORK or Config.flags.update.SYSTEM:
             self.on_update()
 
     def show(self, arg):
@@ -1018,6 +1186,15 @@ class UiAlarms(PanedTemplate):
     def on_resize(self, *args, **kwargs):
         w,h = super(UiAlarms, self).on_resize()
 
+        h_label = 35
+
+        self.title.place(
+            x=0,
+            y=0,
+            width=w,
+            heigh=h_label,
+        )
+
         w_alarms = 4 * w / 5
 
         try:
@@ -1029,7 +1206,7 @@ class UiAlarms(PanedTemplate):
             for count, entry in enumerate(self.alarmgroups.values()):
                 entry.place(
                     x=count * ww,
-                    y=0,
+                    y=h_label,
                     width=ww,
                     heigh=h
                 )
@@ -1038,7 +1215,7 @@ class UiAlarms(PanedTemplate):
         elif self._current in [group.alarmtype.lower() for group in System.alarms.groups.values()]:
             self.alarmgroups[self._current.upper()].place(
                     x=0,
-                    y=0,
+                    y=h_label,
                     width=ww,
                     heigh=h
                 )
@@ -1049,7 +1226,7 @@ class UiAlarms(PanedTemplate):
             try:
                 self.alarmgroups[group[0]].place(
                         x=0,
-                        y=0,
+                        y=h_label,
                         width=ww,
                         heigh=h
                     )
@@ -1057,11 +1234,10 @@ class UiAlarms(PanedTemplate):
 
                 self.alarmframe.place(
                     x=ww + 5,
-                    y=0,
+                    y=h_label,
                     width=w - (ww + 10),
                     heigh=h
                 )
                 self.alarmframe.show(self._current)
             except KeyError:
                 pass
-

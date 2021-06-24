@@ -17,6 +17,7 @@
  * 2 = offline
  * 3 = io error
  * 4 = type error
+ * 5 = not exist?
  * 
 */
     
@@ -37,6 +38,9 @@
 
 #define ALERT_HUMIDITY_UPPER 100
 #define ALERT_HUMIDITY_LOWER 0
+
+#define DELAY_ALARM_REPEAT      300000
+#define DELAY_ALARM_COOLDOWN    60000
 
 class   Actuator_Relay      : public virtualActuator
 {
@@ -71,6 +75,10 @@ public:
 
 class SwitchSensor_Flood    : public Sensor_Switch
 {
+private:
+    bool        _on_alarm=false;
+    iEpoch_t    _last_alarm=0;
+    void        send_alarm          (void);
 public:
     SwitchSensor_Flood(uint8_t i):Sensor_Switch(i) {};
     
@@ -82,6 +90,8 @@ public:
 
 class SwitchSensor_Rain     : public Sensor_Switch
 {
+private:
+    bool    on_alarm=false;
 public:
     SwitchSensor_Rain(uint8_t i):Sensor_Switch(i) {};
     void        loop                (void);

@@ -201,13 +201,16 @@ namespace utils
         if (!p) return false;
         
         uint16_t len = strlen(p);
-        if (len < min_size || len > max_size || !isalpha(p[0]))
+        if ( (len < min_size) || (len > max_size) || (!isalpha(p[0])) )
         { 
             return false;
         }
         for (uint16_t m=1; m<len; m++)
         {
-            if (!(isalpha(p[m]) || isdigit(p[m]) || p[m] == '.')) { return false; }
+            if ( isalpha(p[m]) )    continue;
+            if ( isdigit(p[m]) )    continue;
+            if ( p[m] == '.' )      continue;
+            return false;
         }
         return true;
     }
@@ -221,9 +224,12 @@ namespace utils
         { 
             return false;
         }
-        for (uint16_t m=1; m<len; m++)
+        for (uint16_t m=0; m<len; m++)
         {
-            if (!(isgraph(p[m]) || isspace(p[m]) || p[m] == '\n' || p[m] == '\t')) { return false; }
+            if ( isprint(p[m]) ) continue;
+            if ( p[m] == '\t' )  continue;            
+            if ( p[m] == '\n' )  continue;
+            return false;
         }
         return true;        
     }

@@ -402,8 +402,8 @@ class AppConfig:
 
         def __init__(self, data):
 
-            self.areas = data['area'] # list
-            self.devtypes = data['devtypes'] #list
+            self.areas = tuple(data['area']) # list
+            self.devtypes = tuple(data['devtypes']) #list
             self.location = dict()
 
             self.location.update(

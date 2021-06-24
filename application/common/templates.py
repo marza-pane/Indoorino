@@ -1,16 +1,14 @@
 import sys
 from common.gutils import *
-
 from indoorino.core import System
 
 import matplotlib as mpl
-
 mpl.use("TkAgg")
-
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 
 from tkinter import ttk
+from tkinter import messagebox
 
 """ Base Templates """
 """ Context may be [all], [motion], [selection]"""

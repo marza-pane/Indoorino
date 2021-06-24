@@ -2,7 +2,7 @@
  * packetmap.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: Jun 11, 2021 - 02:14:00
+ *   Edited on: Jun 20, 2021 - 00:35:55
  *      Author: n00b
  *  This code is code-generated
  */
@@ -72,10 +72,10 @@ namespace packet
 		{ 's',	sizeof(uint8_t)       , "devnum"               },	/*   9 */
 		{ 'c',	LEN_DEVNAME           , "devname"              },	/*  10 */
 		{ 'c',	LEN_DEVNAME           , "newname"              },	/*  11 */
-		{ 'c',	LEN_NAME              , "desc1"                },	/*  12 */
-		{ 'c',	LEN_NAME              , "desc2"                },	/*  13 */
-		{ 'c',	LEN_NAME              , "desc3"                },	/*  14 */
-		{ 'c',	LEN_NAME              , "desc4"                },	/*  15 */
+		{ 'c',	LEN_LABEL             , "desc1"                },	/*  12 */
+		{ 'c',	LEN_LABEL             , "desc2"                },	/*  13 */
+		{ 'c',	LEN_LABEL             , "desc3"                },	/*  14 */
+		{ 'c',	LEN_LABEL             , "desc4"                },	/*  15 */
 		{ 'u',	sizeof(uint32_t)      , "epoch"                },	/*  16 */
 		{ 'u',	sizeof(uint32_t)      , "freemem"              },	/*  17 */
 		{ 'u',	sizeof(uint32_t)      , "looptime"             },	/*  18 */
@@ -624,7 +624,7 @@ namespace packet
 	//
 		{
 			IBACOM_STATUS_SWITCH, 4,
-			"switch sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
+			"switch sensor stat", { 2, 10, 54, 53 } // name, devname, status, level
 		},
 	
 	
@@ -635,7 +635,7 @@ namespace packet
 	//
 		{
 			IBACOM_STAT_FLOODSWITCH, 4,
-			"flood switch sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
+			"flood switch sensor stat", { 2, 10, 54, 53 } // name, devname, status, level
 		},
 	
 	
@@ -646,7 +646,7 @@ namespace packet
 	//
 		{
 			IBACOM_STAT_RAINSWITCH, 4,
-			"rain switch sensor stat", { 2, 10, 54, 25 } // name, devname, status, value1
+			"rain switch sensor stat", { 2, 10, 54, 53 } // name, devname, status, level
 		},
 	
 	
@@ -1025,8 +1025,8 @@ namespace packet
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_ENV_ALARM, 7,
-			"environment alarm signal", { 12, 13, 5, 6, 16, 25, 54 } // desc1, desc2, label1, label2, epoch, value1, status
+			IBACOM_ENV_ALARM, 8,
+			"environment alarm signal", { 12, 13, 5, 6, 16, 25, 26, 54 } // desc1, desc2, label1, label2, epoch, value1, value2, status
 		},
 	
 	

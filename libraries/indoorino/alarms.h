@@ -23,15 +23,18 @@ namespace indoorino
         {
         private:
             bool                    _enabled    =false;
-            bool                    _on_alarm   =false;
+            uint8_t                 _on_alarm   =false;
         
         protected:
             std::vector<std::chrono::system_clock::time_point> _alarm_ack;
             std::vector<packet::netpacket>  _signals;
-            layout::dev_alarm_t &           _layout;
+            const layout::dev_alarm_t &     _layout;
+            
+            void    parse_alarm     (packet::netpacket *);
+            void    send_alarm      (void);
             
         public:
-            AlarmDevice(layout::dev_alarm_t &);
+            AlarmDevice(const layout::dev_alarm_t &);
             ~AlarmDevice() {}
             void    parse           (packet::netpacket *);
             void    send_updates    (void);

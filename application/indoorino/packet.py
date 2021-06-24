@@ -15,7 +15,7 @@ class IndoorinoPacket:
             return dict.__getitem__(self, key)
 
     def __init__(self, **kwargs):
-        self.___tx_repr = True
+        self.___tx_repr = False
 
         self._command   =kwargs.pop('command', 0)
         self._source    =kwargs.pop('source', Config.username)
@@ -95,7 +95,7 @@ class IndoorinoPacket:
         }
         Client.ipacket(d)
         self.from_client(d)
-        self.___tx_repr = False
+        self.___tx_repr = True
 
     def from_client(self, packet):
 

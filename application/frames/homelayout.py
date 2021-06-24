@@ -1,4 +1,3 @@
-import time
 import tkinter.messagebox
 
 from common.templates import *
@@ -147,32 +146,35 @@ class UiLayout (PanedTemplate):
 
             self._create_device()
 
+        def _fill_menu_board(self, entry):
+            self._values['board'].set(entry)
+            for dev in System.layout.devices.values():
+                if dev.boardname == entry:
+                    self._values['area'].set(dev.area)
+                    self._values['location'].set(dev.location)
+
         def _fill_menu(self, command):
             self._menu.delete('0', tk.END)
             self._menu.items.clear()
 
             if command == 'board':
-                blist=list()
                 for key in System.layout.devices.keys():
-                    if not key[0] in blist:
-                        blist.append(key[0])
-                for key in blist:
-                    self._menu.add_command(
-                        label=key,
-                        command=lambda c=key: self._values[command].set(c)
-                    )
+                    if not key[0] in self._menu.items:
+                        self._menu.items.append(key[0])
+                        self._menu.add_command(
+                            label=key[0],
+                            command=lambda c=key[0]: self._fill_menu_board(c)
+
+                        )
 
             elif command == 'device':
-                dlist=list()
                 for key in System.layout.devices.keys():
-                    if key[0] == self._values['board'].get() and not key[1] in dlist:
-                        dlist.append(key[1])
-
-                for key in dlist:
-                    self._menu.add_command(
-                        label=key,
-                        command=lambda c=key: self._values[command].set(c)
-                    )
+                    if key[0] == self._values['board'].get() and not key[1] in self._menu.items:
+                        self._menu.items.append(key[1])
+                        self._menu.add_command(
+                            label=key[1],
+                            command=lambda c=key[1]: self._values[command].set(c)
+                        )
 
             elif command == 'area':
                 for key in Config.layout.areas:
@@ -182,14 +184,13 @@ class UiLayout (PanedTemplate):
                     )
 
             elif command == 'location':
-                try:
-                    for key in Config.layout.location[self._values['area'].get()]:
-                        self._menu.add_command(
-                            label=key,
-                            command=lambda c=key: self._values[command].set(c)
-                        )
-                except (KeyError, ):
+                if not self._values['area'].get() in Config.layout.location.keys():
                     return
+                for key in Config.layout.location[self._values['area'].get()]:
+                    self._menu.add_command(
+                        label=key,
+                        command=lambda c=key: self._values[command].set(c)
+                    )
 
             elif command == 'type':
                 for key in Config.layout.devtypes:
@@ -1166,13 +1167,13 @@ class UiLayout (PanedTemplate):
     def __init__(self, parent, **kwargs):
 
         PanedTemplate.__init__(self, parent, **kwargs)
-        self.label = LabelTemplate(self)
+        self.title = LabelTemplate(self)
         self.button = dict()
         self.widgets = dict()
 
     def build(self, *args, **kwargs):
 
-        self.label.configure(
+        self.title.configure(
             font=Fonts.monobold(16),
             text='LAYOUT',
             anchor=tk.W,
@@ -1244,7 +1245,7 @@ class UiLayout (PanedTemplate):
         w_group = 380
         w_butt = 100
         off_butt = 8
-        self.label.place(
+        self.title.place(
             x=0,
             y=0,
             width=w,

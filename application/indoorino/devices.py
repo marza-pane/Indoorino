@@ -133,6 +133,19 @@ class IndoorinoDevice(DeviceParameters):
 
     def set_type(self, packet):     ## mod this when adding sensors
 
+        """
+            types:
+                "RELAY"
+                "SWITCH"
+                "FLOODSW"
+                "RAINSW"
+                "DHT22"
+                "DUSTPM25"
+                "LDR"
+                "SERVO"
+                "STEPPER"
+        """
+
         self.config.dev.update(
             {
                 'name': ParameterString(
@@ -159,53 +172,35 @@ class IndoorinoDevice(DeviceParameters):
         if packet.command == IBACOM_CONF_ASENSOR:
             self.config.std['devtype'].set('ASENSOR')
 
-        elif packet.command == IBACOM_CONF_DHT22:
-            self.config.std['devtype'].set('DHT22')
-            self.config.std.update(
+
+        elif packet.command == IBACOM_CONF_RELAY:
+            self.config.std['devtype'].set('RELAY')
+            self.status.dev.update(
                 {
-                    'coeffAT': ParameterInt(
-                        name='param1',
-                        label='alpha temp.',
-                        desc='temperature linear correction',
-                    ),
-                    'coeffAH': ParameterInt(
-                        name='param3',
-                        label='alpha humi.',
-                        desc='humidity linear correction',
-                    ),
-                    'coeffBT': ParameterInt(
-                        name='param2',
-                        label='beta temp.',
-                        desc='temperature correction',
-                    ),
-                    'coeffBH': ParameterInt(
-                        name='param2',
-                        label='beta humi.',
-                        desc='humidity correction',
+                    'relay_state': ParameterInt(
+                        name='level',
+                        label='relay state',
+                        desc='relay coil state',
+                        # value=packet.payload['level']
                     ),
                 }
             )
 
+        elif packet.command == IBACOM_CONF_FLOODSWITCH:
+            self.config.std['devtype'].set('FLOODSW')
             self.status.dev.update(
-
                 {
-                    'temperature': ParameterTemperature(
-                        name='value1',
-                        label='temperature',
-                        desc='air temperature',
-                    ),
-                    'humidity': ParameterRHumidity(
-                        name='value2',
-                        label='humidity',
-                        desc='air humidity',
+                    'switch_state': ParameterInt(
+                        name='level',
+                        label='switch state',
+                        desc='switch state',
+                        # value=packet.payload['level']
                     ),
                 }
             )
 
         elif packet.command == IBACOM_CONF_DUSTPM25:
-
             self.config.std['devtype'].set('DUSTPM25')
-
             self.config.std.update(
                 {
                     'analpin': ParameterInt(
@@ -255,16 +250,45 @@ class IndoorinoDevice(DeviceParameters):
                 }
             )
 
-
-        elif packet.command == IBACOM_CONF_RELAY:
-            self.config.std['devtype'].set('RELAY')
-            self.status.dev.update(
+        elif packet.command == IBACOM_CONF_DHT22:
+            self.config.std['devtype'].set('DHT22')
+            self.config.std.update(
                 {
-                    'relay_state': ParameterInt(
-                        name='level',
-                        label='relay state',
-                        desc='relay coil state',
-                        # value=packet.payload['level']
+                    'coeffAT': ParameterInt(
+                        name='param1',
+                        label='alpha temp.',
+                        desc='temperature linear correction',
+                    ),
+                    'coeffAH': ParameterInt(
+                        name='param3',
+                        label='alpha humi.',
+                        desc='humidity linear correction',
+                    ),
+                    'coeffBT': ParameterInt(
+                        name='param2',
+                        label='beta temp.',
+                        desc='temperature correction',
+                    ),
+                    'coeffBH': ParameterInt(
+                        name='param2',
+                        label='beta humi.',
+                        desc='humidity correction',
+                    ),
+                }
+            )
+
+            self.status.dev.update(
+
+                {
+                    'temperature': ParameterTemperature(
+                        name='value1',
+                        label='temperature',
+                        desc='air temperature',
+                    ),
+                    'humidity': ParameterRHumidity(
+                        name='value2',
+                        label='humidity',
+                        desc='air humidity',
                     ),
                 }
             )

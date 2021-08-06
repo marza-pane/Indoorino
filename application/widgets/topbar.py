@@ -63,3 +63,8 @@ class TopDashboardBar(PanedTemplate):
                 heigh=h
             )
             widget.on_resize()
+
+
+
+
+print('Loaded widgets.topbar')

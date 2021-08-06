@@ -19,45 +19,56 @@
 
 #if defined (INDOORINO_SERVER)
 
-#include "../common/icommon.h"
+#include "../common/indoorino.h"
 #include "devices.h"
-static indoorino::DeviceTemplate invalid_device(nullptr);
+#include "indoorino-system.h"
+
+namespace indoorino
+{
 
 //      _________________________________________
 //      |                                       |
 //      |       Device Template                 |
 //      |_______________________________________|
 
-namespace indoorino
-{
-    DeviceTemplate::DeviceTemplate(packet::ipacket * p)
+    
+    DeviceTemplate::DeviceTemplate(const char *bname, const char *dname, iCom_t comm, iPin_t pin)
     {
+
+        _conf.init(comm);
         _stat.init(IBACOM_STATUS_DEVSTD);
-        strcpy(_type, "NO-TYPE");
         
+        strcpy(_conf.p_name(),    bname);
+        strcpy(_conf.p_devname(), dname);
+        memcpy(_conf.p_pin1(),    &pin, sizeof(iPin_t));
+                
+        alert_dev("NEW DEVICE: added %s:%s to System.boards.%s on pin [%u]", lyt::devicetype_Com2Str(comm), name(), boardname(), pin);
         
-        if (p)
-        {
-            if (packet::is_devconf(p->command()))
-            {
-                _conf.init(p->command());            
-                memcpy(_conf.payload(), p->payload(), _conf.data_size());
-                alert_dev("NEW DEVICE: added %s to System.boards.%s on pin [%u]", name(), boardname(), pin());
-                return;
-            }
-            else error_dev("NEW DEVICE: invalid init packet <%s>", p->label());
-        }
-        else error_dev("NEW DEVICE: nullptr init packet");
-
-        _conf.init(IBACOM_CONF_DEVSTD);
-
-        strcpy(_conf.p_name(),    "UNKNOWN");
-        strcpy(_conf.p_devname(), "UNKNOWN");
+        strcpy(_stat.p_name(),      _conf.p_name());
+        strcpy(_stat.p_devname(),   _conf.p_devname());
 
     }
 
+    void                        DeviceTemplate::show                (void)
+    {
+        std::cout << "\n\tDevice          : [" << boardname() << ":" << name() << "]" << std::endl;
+        
+        std::cout << "\t\tonline  : " << is_connected() << std::endl;
+        std::cout << "\t\tpin     : " << pin() << std::endl;
+        std::cout << "\t\tservices [ " << _services.size() << " ]: ";
+        
+        for (auto &s : _services)
+        {
+            std::cout << s << ", ";
+        }
+        std::cout << std::endl;
+        std::cout << "\n\t\tDEVICE CONFIG: " << std::endl;
+        _conf.dump();
+        std::cout << "\n\t\tDEVICE STATUS: " << std::endl;
+        _stat.dump();
+    }
   
-    void                        DeviceTemplate::parse              (packet::ipacket * p)
+    void                        DeviceTemplate::parse               (packet::ipacket * p)
     {
         debug_dev("parse: parsing <%s>", p->label());
         
@@ -94,226 +105,186 @@ namespace indoorino
         }
     }
 
-    namespace devices
+        
+    int                         DeviceTemplate::has_service         (const char * n)
+    {
+        int index = 0;
+        for (auto &s : _services)
+        {
+            if (s.compare(n) == 0) return index;
+            index++;
+        }
+        return -1;
+
+        
+    }
+    
+    void                        DeviceTemplate::add_service         (const char * n)
+    {
+        if (this->has_service(n) == -1)
+        {
+            _services.push_back(std::string(n));
+            return;
+        }
+        warning_dev("add-service: <%s> already in list", n);
+    }
+
+    
+//      _____________________________________________________________________________________________
+//                                                                                                 
+//             ══════⊹⊱≼≽⊰⊹══════    D E V I C E S    S P A C E    ══════⊹⊱≼≽⊰⊹══════             
+//      _____________________________________________________________________________________________
+//
+
+
+    namespace devs
     {
 
-        //      _________________________________________
-        //      |                                       |
-        //      |       Device : RELAY                  |
-        //      |_______________________________________|
-
-        Relay::Relay(packet::ipacket * p):DeviceTemplate(p)
+    //              _________________________________________
+    //              |                                       |
+    //              |       Base : A L A R M                |
+    //              |_______________________________________|
+    //
+        void                        DeviceAlarm::parse              (packet::ipacket * p)
         {
-            strcpy(_type, "RELAY");
+            DeviceTemplate::parse(p);
+
+            if ( (p->command() >= IBACOM_HEAT_ALARM) && (p->command() <= IBACOM_GENERIC_ALARM) )
+            {
+                if ( (strcmp(p->p_board(), boardname()) == 0) && (strcmp(p->p_devname(), name()) == 0) )
+                {
+                    uint c = 0;
+                    for (auto &s : _services)
+                    {
+                        int i = System.services.exist(s.c_str());
+                        
+                        if (i == -1)
+                        {
+                            _services.erase(_services.begin() + c);
+                        }
+                        else
+                        {
+                            c++;
+
+                            if ( (p->command() == IBACOM_HEAT_ALARM     && strcmp(System.services().at(i)->type(), "ALARM:FIRE") == 0)  ||
+                                (p->command() == IBACOM_FLOOD_ALARM    && strcmp(System.services().at(i)->type(), "ALARM:FLOOD") == 0) )
+                            {
+                                _on_alarm=true;
+                                _alarm_value = * p->p_value1();
+                                _signals.push_back(packet::netpacket(p));
+                                break;
+                            }
+                        }
+
+                    }
+                }
+            }
+            else if ( p->command() == IBACOM_SET_ENV_ALARM )
+            {
+                if ( (strcmp(p->p_board(), boardname()) == 0) && (strcmp(p->p_devname(), name()) == 0) )
+                {
+                    bool b=bool(*p->p_value1());
+                    if (b)
+                        alert_os("ALARM:SET <%s:%s> ENABLED", p->p_board(), p->p_devname());
+                    else
+                        alert_os("ALARM:SET <%s:%s> DISABLED", p->p_board(), p->p_devname());                    
+                        
+                    _enabled=b;
+                    _signals.push_back(packet::netpacket(p));
+//                     this->send_updates();
+                }
+            }
+                    
+        }        
+        
+    //              _________________________________________
+    //              |                                       |
+    //              |       Device : R E L A Y              |
+    //              |_______________________________________|
+    // 
+        Relay::Relay(const char *b, const char *d, iCom_t c, iPin_t p):DeviceTemplate(b, d, c, p)
+        {
             _stat.init(IBACOM_STATUS_RELAY);
+            strcpy(_stat.p_name(),      _conf.p_name());
+            strcpy(_stat.p_devname(),   _conf.p_devname());
+            
+        }
+        void                        Relay::parse                    (packet::ipacket * p)
+        {
+            DeviceTemplate::parse(p);
         }
         
-//         void                        Relay::parse                    (packet::ipacket * p)
-//         {
-//             DeviceTemplate::parse(p);
-//         }
-
-        //      _________________________________________
-        //      |                                       |
-        //      |       Device : DHT22                  |
-        //      |_______________________________________|
-
-        DHT22::DHT22(packet::ipacket * p):DeviceTemplate(p)
+    //              _________________________________________
+    //              |                                       |
+    //              |       Base : S W I t C H              |
+    //              |_______________________________________|
+    // 
+        GenericSwitch::GenericSwitch(const char *b, const char *d, iCom_t c, iPin_t p):DeviceTemplate(b, d, c, p)
         {
-            strcpy(_type, "DHT22");
-            _stat.init(IBACOM_STATUS_DHT22);
-        }
-        
-        //      _________________________________________
-        //      |                                       |
-        //      |       Device : Switch                 |
-        //      |_______________________________________|
-
-        GenericSwitch::GenericSwitch(packet::ipacket * p):DeviceTemplate(p)
-        {
-            strcpy(_type, "SWITCH");
             _stat.init(IBACOM_STATUS_SWITCH);
+            strcpy(_stat.p_name(),      _conf.p_name());
+            strcpy(_stat.p_devname(),   _conf.p_devname());
+            
+        }
+
+
+    //              _________________________________________
+    //              |                                       |
+    //              |       Device : D H T 2 2              |
+    //              |_______________________________________|
+    // 
+        DHT22::DHT22(const char *b, const char *d, iCom_t c, iPin_t p):DeviceTemplate(b, d, c, p)
+        {
+            _stat.init(IBACOM_STATUS_DHT22);
+            strcpy(_stat.p_name(),      _conf.p_name());
+            strcpy(_stat.p_devname(),   _conf.p_devname());
+            
         }
         
-        //      _________________________________________
-        //      |                                       |
-        //      |       Device : FloodSwitch            |
-        //      |_______________________________________|
-
-        FloodSwitch::FloodSwitch(packet::ipacket * p):GenericSwitch(p)
+    //              _________________________________________
+    //              |                                       |
+    //              |       Device : F L O O D S W I T C H  |
+    //              |_______________________________________|
+    // 
+        FloodSwitch::FloodSwitch(const char *b, const char *d, iCom_t c, iPin_t p):GenericSwitch(b, d, c, p)
         {
-            strcpy(_type, "FLOODSW");
             _stat.init(IBACOM_STAT_FLOODSWITCH);
+            strcpy(_stat.p_name(),      _conf.p_name());
+            strcpy(_stat.p_devname(),   _conf.p_devname());
+            
         }
         
-        //      _________________________________________
-        //      |                                       |
-        //      |       Device : RainSwitch             |
-        //      |_______________________________________|
-
-        RainSwitch::RainSwitch(packet::ipacket * p):GenericSwitch(p)
+        void                        FloodSwitch::parse                  (packet::ipacket * p)
         {
-            strcpy(_type, "RAINSW");
+            DeviceTemplate::parse(p);
+        }
+    //              _________________________________________
+    //              |                                       |
+    //              |       Device : R A I N S W I T C H    |
+    //              |_______________________________________|
+    // 
+        RainSwitch::RainSwitch(const char *b, const char *d, iCom_t c, iPin_t p):GenericSwitch(b, d, c, p)
+        {
             _stat.init(IBACOM_STAT_RAINSWITCH);
+            strcpy(_stat.p_name(),      _conf.p_name());
+            strcpy(_stat.p_devname(),   _conf.p_devname());
         }
         
-        //      _________________________________________
-        //      |                                       |
-        //      |       Device : PM25 dust sensor       |
-        //      |_______________________________________|
-
-        DustPM25::DustPM25(packet::ipacket * p):DeviceTemplate(p)
+    //              _________________________________________
+    //              |                                       |
+    //              |       Device : P M 2 5   dust sensor  |
+    //              |_______________________________________|
+    // 
+        DustPM25::DustPM25(const char *b, const char *d, iCom_t c, iPin_t p):DeviceTemplate(b, d, c, p)
         {
-            strcpy(_type, "DUSTPM25");
             _stat.init(IBACOM_STATUS_DUSTPM25);
+            strcpy(_stat.p_name(),      _conf.p_name());
+            strcpy(_stat.p_devname(),   _conf.p_devname());
+            
         }
 
 
-    } /* namespace : devices */
-
-    
-    //      _________________________________________
-    //      |                                       |
-    //      |       Boards Devices Class List       |
-    //      |_______________________________________|
-    
-    bool                        DeviceList::exist          (const char *key)
-    {
-        for (auto& d: _list)
-        {
-            if (strcmp(d.name(), key) == 0) return true;
-        }
-        return false;
-    }
-
-    DeviceTemplate     &       DeviceList::operator[]     (const int i)
-    {
-        
-        iSize_t index=0;
-        if (i < 0)  { index = _list.size() + i; }
-        else        { index = i; }
-        
-        if (index < _list.size())
-        {
-            return _list.at(index);
-        }
-        
-        error_os("FATAL:devices: invalid call for index %d", i);
-        return invalid_device;
-    }
-    
-    DeviceTemplate     &       DeviceList::operator()     (const char *key)
-    {
-        for (auto& d: _list)
-        {
-            if (strcmp(d.name(), key) == 0) return d;
-        }
-
-        error_os("FATAL:devices: invalid call for %s", key);
-        return invalid_device;
-    }
-
-    bool                        DeviceList::remove         (const char *key)
-    {
-        iSize_t i=0;
-        for (auto& d: _list)
-        {
-            if (strcmp(d.name(), key) == 0)
-            {
-                _list.erase(_list.begin() + i);
-                return true;
-            }
-            i++;
-                
-        }
-        return false;
-    }
-
-    bool                        DeviceList::add            (packet::ipacket * p)
-    {
-//         static uint32_t rcheck=utils::random_signed();
-        
-        iCom_t com = p->command();
-        
-        if (!packet::is_devconf(com)) { goto handle_invalid_packet; }
-                
-        switch (com)
-        {
-            case IBACOM_CONF_ASENSOR:
-            {
-                break;
-            }
-            case IBACOM_CONF_SWITCH:
-            {
-                debug_board("adding SWITCH <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(devices::GenericSwitch(p));
-                _list.back().parse(p);
-                break;
-            }
-            case IBACOM_CONF_FLOODSWITCH:
-            {
-                debug_board("adding FLOODSWITCH <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(devices::FloodSwitch(p));
-                _list.back().parse(p);
-                break;
-            }
-            case IBACOM_CONF_RAINSWITCH:
-            {
-                debug_board("adding RAINSWITCH <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(devices::RainSwitch(p));
-                _list.back().parse(p);
-                break;
-            }
-            case IBACOM_CONF_RELAY:
-            {
-                debug_board("adding RELAY <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(devices::Relay(p));
-                _list.back().parse(p);
-                break;
-            }
-            case IBACOM_CONF_LDR:
-            {
-                break;
-            }
-            case IBACOM_CONF_DUSTPM25:
-            {
-                debug_board("adding DUST PM25 <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(devices::DustPM25(p));
-                _list.back().parse(p);
-                break;
-            }
-            case IBACOM_CONF_DHT22:
-            {
-                debug_board("adding DHT22 <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(devices::DHT22(p));
-                _list.back().parse(p);
-                break;            
-            }
-            case IBACOM_CONF_DEVSTD:
-            {
-                debug_board("adding generic device <%s> on pin %u", p->p_devname(), *p->p_pin1());
-                _list.push_back(DeviceTemplate(p));
-                _list.back().parse(p);
-                break;
-            }
-            default:
-            {
-                goto handle_invalid_packet;
-            }
-        }
-        
-//         alert_board("Now listing devices for %u: ###",rcheck);
-//         for (auto &d: _list) { std::cout << d.boardname() << ":" << d.name() << std::endl; }
-//         std::cout << "###\n";
-        
-        return true;
-        
-        handle_invalid_packet:
-        {
-                warning_dev("add: unknown device %u <%s>", com, p->label());
-                return false;
-        }
-    }
+    } /* namespace : devs */
 
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -321,30 +292,30 @@ namespace indoorino
 //      |___________________________________________________________________|
 //
     
-    Probe::Probe(packet::ipacket * p)
-    {
-        _boardtime = std::chrono::system_clock::from_time_t (std::time_t(*p->p_epoch()));        
-        _localtime = std::chrono::system_clock::now();        
-        _board.assign(p->p_board());
-        _device.assign(p->p_devname());
-        _type.assign(p->p_type());
-        
-        uint32_t v = *p->p_value1();
-        _value = double(v) / FLOAT2UINT_M;
-    }   
-    
-
-
-    
-    Message::Message(packet::ipacket * p)
-    {
-        _boardtime = std::chrono::system_clock::from_time_t (std::time_t(*p->p_epoch()));        
-        _localtime = std::chrono::system_clock::now();        
-        _board.assign(p->p_board());
-        _device.assign(p->p_devname());
-        _type.assign(p->p_type());
-        
-    }   
+//     Probe::Probe(packet::ipacket * p)
+//     {
+//         _boardtime = std::chrono::system_clock::from_time_t (std::time_t(*p->p_epoch()));        
+//         _localtime = std::chrono::system_clock::now();        
+//         _board.assign(p->p_board());
+//         _device.assign(p->p_devname());
+//         _type.assign(p->p_type());
+//         
+//         uint32_t v = *p->p_value1();
+//         _value = double(v) / FLOAT2UINT_M;
+//     }   
+//     
+// 
+// 
+//     
+//     Message::Message(packet::ipacket * p)
+//     {
+//         _boardtime = std::chrono::system_clock::from_time_t (std::time_t(*p->p_epoch()));        
+//         _localtime = std::chrono::system_clock::now();        
+//         _board.assign(p->p_board());
+//         _device.assign(p->p_devname());
+//         _type.assign(p->p_type());
+//         
+//     }   
 
     
 

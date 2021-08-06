@@ -14,6 +14,7 @@
 
 #include <deque>
 #include "packets/ipacket.h"
+#include "layout.h"
 
     /*
      * STATUS:
@@ -26,164 +27,247 @@
 
 namespace indoorino
 {
-    class Probe;
+    
+    class DeviceTemplate;
+    
+    //      _________________________________________
+    //      |                                       |
+    //      |       Device List Wrapper             |
+    //      |_______________________________________|
+    //
+    //
+    
+    class Devices
+    {
+    protected:
+        std::vector<DeviceTemplate *>   _devs;
+        void clean_nullp (void);
 
+    public:
+         Devices();
+        ~Devices();
+        
+    public:
+        DeviceTemplate  *   operator[]  (const int  i);
+        DeviceTemplate  *   operator()  (const char *);
+        const auto      &   operator()  (void) { return _devs; }
+        
+    public:
+
+                
+        int         exist       (const char *);
+        bool        remove      (const char *);
+        bool        add         (packet::ipacket *);
+        bool        add         (const char *b, const char *d, iCom_t c, iPin_t p=0);
+        void        show        (void);
+        iSize_t     size        (void) { return _devs.size(); }
+        void        clear       (void);
+                
+        friend class BoardTemplate;
+    };
+
+    //      _________________________________________
+    //      |                                       |
+    //      |       Device Template                 |
+    //      |_______________________________________|
+    //
+        
     class DeviceTemplate
     {
         
     protected:
-        std::deque<Probe>           _probes;
         packet::ipacket             _conf;
         packet::ipacket             _stat;
-        char                        _type[LEN_NAME];
+
+    protected:
+        std::vector<std::string>    _services;
+        void    add_service         (const char *);
         
     public:
-                 DeviceTemplate(packet::ipacket *);
+
+        DeviceTemplate(const char *b, const char *d, iCom_t c, iPin_t p=0);
         
-        virtual ~DeviceTemplate() {};
+        virtual ~DeviceTemplate() { _services.clear(); }
         
+        void                loop            (void) {};
         virtual void        parse           (packet::ipacket *);
         
-        const char  *       type            () { return (const char *)_type; }
-        const char  *       name            () { return (const char *)_conf.p_devname(); }
-        const char  *       boardname       () { return (const char *)_conf.p_name();    }
+        iCom_t              devtype         () { return _conf.command();                    }
+        const char  *       name            () { return (const char *)_conf.p_devname();    }
+        const char  *       boardname       () { return (const char *)_conf.p_name();       }
+        const char  *       type            () { return (const char *)lyt::devicetype_Com2Str(_conf.command()); }
         
-        void                set_offline     () { *_stat.p_status() = 2;     }
-        bool                is_connected    () { return (*_stat.p_status() == 0); }
+        void                set_offline     () { *_stat.p_status() = 2;                     }
+        bool                is_connected    () { return (*_stat.p_status() == 0);           }
+        void                show            (void);
+        uint8_t             pin             () { return (uint8_t)(*_conf.p_pin1());         }
 
-        uint8_t             pin         () { return *_conf.p_pin1(); }
-        packet::ipacket&    config      () { return _conf; }
-        packet::ipacket&    status      () { return _stat; }
+        packet::ipacket&    config          () { return _conf; }
+        packet::ipacket&    status          () { return _stat; }
+
+        void                request_probe   (void);
+        int                 has_service     (const char *);
+
+// // //         friend class Devices;
+        friend class BoardTemplate;
     };
     
-    namespace devices
+    //      _____________________________________________
+    //      |                                           |
+    //      |       D E V I C E S    S P A C E          |
+    //      |___________________________________________|
+    //
+    
+    namespace devs
     {
+        
+        class DeviceAlarm : public DeviceTemplate
+        {
+        protected:
+            bool                            _enabled = false;
+            bool                            _on_alarm = false;
+            int32_t                         _alarm_value = 0;            
+            std::vector<packet::ipacket>    _signals;
+
+            void    parse           (packet::ipacket *);
             
+        public:
+            
+            DeviceAlarm(const char *b, const char *d, iCom_t c, iPin_t p=0):DeviceTemplate(b, d, c ,p) {}
+
+            bool    alarm_enabled   (void) { return _enabled;  }
+            bool    onalarm         (void) { return _on_alarm; }
+            void    alarm_reset     (void) 
+            {
+                _enabled=false;
+                _on_alarm=false;
+                _alarm_value =0;
+            }
+            const auto& alarm_signals () { return _signals; }
+            
+        };
+        
+        /*          R E L A Y                       */
         class Relay : public DeviceTemplate
         {
         private:
             uint8_t         _relay_stat=0;
         public:
-            Relay(packet::ipacket *);
-//             void            parse           (packet::ipacket *);
+            Relay(const char *b, const char *d, iCom_t c, iPin_t p=0);
+            
+            void            parse           (packet::ipacket *);
+            void            set_on          (void) {};
+            void            set_off         (void) {};
+
             uint8_t         relay_status()  { return _relay_stat; }
         };
         
+        /*          D H T 2 2                       */
         class DHT22 : public DeviceTemplate
         {
         private:
         public:
-            DHT22(packet::ipacket *);
+            DHT22(const char *b, const char *d, iCom_t c, iPin_t p=0);
             double          temperature     (void);
             double          humidity        (void);
+
+            void            parse           (packet::ipacket *) {};
+            
         };
 
         
+        /*          G E N E R I C   S W I T C H     */
         class GenericSwitch : public DeviceTemplate
         {
         private:
+            uint8_t         _switch_state=false;
         public:
-            GenericSwitch(packet::ipacket *);  
-            bool            state           (void);
+            GenericSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);  
+            bool            state           (void) { return _switch_state; }
         };
 
+        /*          F L O O D   S W I T C H         */
         class FloodSwitch : public GenericSwitch
         {
         private:
         public:
-            FloodSwitch(packet::ipacket *);            
+            FloodSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);            
+            void            parse           (packet::ipacket *);
         };
         
+        /*          R A I N   S W I T C H           */
         class RainSwitch : public GenericSwitch
         {
         private:
         public:
-            RainSwitch(packet::ipacket *);            
+            RainSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);            
+//             void            parse           (packet::ipacket *) {};
         };
 
         
+        /*          D U S T   P. M.   25            */
         class DustPM25 : public DeviceTemplate
         {
         private:
         public:
-            DustPM25(packet::ipacket *);            
+            DustPM25(const char *b, const char *d, iCom_t c, iPin_t p=0);            
+//             void            parse           (packet::ipacket *) {};
         };
 
         
         
         
-    } /* namespace : devices */
+    } /* namespace : devs */
 
     
-    class DeviceList
-    {
-    private:
-        std::vector<DeviceTemplate> _list;
-    public:
-        DeviceList()  {};
-        ~DeviceList() { clear(); }
-        
-        
-        DeviceTemplate      &   operator[]      (const int  i);
-        DeviceTemplate      &   operator()      (const char *);
-        bool                    exist           (const char *);
-        bool                    remove          (const char *);
-        bool                    add             (packet::ipacket *);
-        
-        iSize_t                 count       () { return _list.size();  }
-        bool                    is_empty    () { return _list.empty(); }
-        void                    clear       () { _list.clear(); }
-        
-        friend class BoardTemplate;
-    };
 
     
     
     
-    class Probe
-    {
-    protected:
-        std::chrono::system_clock::time_point _boardtime;
-        std::chrono::system_clock::time_point _localtime;
-        std::string _type;
-        std::string _board;
-        std::string _device;
-        double      _value {0};
-    public:
-        Probe(packet::ipacket *);
-        
-        const std::chrono::system_clock::time_point& boardtime() { return _boardtime; }
-        const std::chrono::system_clock::time_point& servertime() { return _localtime; }
-        const std::string& type()   { return _type; }
-        const std::string& board()  { return _board; }
-        const std::string& device() { return _device; }
-        const double value() { return _value; }
-        
-    };
-    
-    class Message //??
-    {
-    protected:
-        std::chrono::system_clock::time_point _boardtime;
-        std::chrono::system_clock::time_point _localtime;
-        std::string _type;
-        std::string _board;
-        std::string _device;
-        std::string _message;
-        uint8_t     _level;
-
-    public:
-        Message(packet::ipacket *);
-        
-        const std::chrono::system_clock::time_point& boardtime() { return _boardtime; }
-        const std::chrono::system_clock::time_point& servertime() { return _localtime; }
-        const std::string& type()    { return _type; }
-        const std::string& board()   { return _board; }
-        const std::string& device()  { return _device; }
-        const std::string& message() { return _message; }
-        const double level() { return _level; }
-        
-    };
+//     class Probe
+//     {
+//     protected:
+//         std::chrono::system_clock::time_point _boardtime;
+//         std::chrono::system_clock::time_point _localtime;
+//         std::string _type;
+//         std::string _board;
+//         std::string _device;
+//         double      _value {0};
+//     public:
+//         Probe(packet::ipacket *);
+//         
+//         const std::chrono::system_clock::time_point& boardtime() { return _boardtime; }
+//         const std::chrono::system_clock::time_point& servertime() { return _localtime; }
+//         const std::string& type()   { return _type; }
+//         const std::string& board()  { return _board; }
+//         const std::string& device() { return _device; }
+//         const double value() { return _value; }
+//         
+//     };
+//     
+//     class Message //??
+//     {
+//     protected:
+//         std::chrono::system_clock::time_point _boardtime;
+//         std::chrono::system_clock::time_point _localtime;
+//         std::string _type;
+//         std::string _board;
+//         std::string _device;
+//         std::string _message;
+//         uint8_t     _level;
+// 
+//     public:
+//         Message(packet::ipacket *);
+//         
+//         const std::chrono::system_clock::time_point& boardtime() { return _boardtime; }
+//         const std::chrono::system_clock::time_point& servertime() { return _localtime; }
+//         const std::string& type()    { return _type; }
+//         const std::string& board()   { return _board; }
+//         const std::string& device()  { return _device; }
+//         const std::string& message() { return _message; }
+//         const double level() { return _level; }
+//         
+//     };
     
     
     

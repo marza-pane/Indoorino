@@ -1,38 +1,27 @@
 #include <Arduino.h>
-#include "definitions.h"
+#include "utils.h"
+#include <EEPROM.h>
+
+#define BUFFER_SIZE 300
+int address = 0;
+char buffer[BUFFER_SIZE];
+
 void setup()
 {
-    
+    utils::board::debug_init();
+    memset(buffer, 0, BUFFER_SIZE);
+   
+    for (uint32_t i=0; i<BUFFER_SIZE; i++)
+    {
+        buffer[i] = EEPROM.read(i);
+    }
+    utils::dump_hex(buffer, BUFFER_SIZE);
 
 }
-void loop(){
 
-    Serial.begin(SERIAL_DEFAULT_BAUDRATE);
-    Serial.print("\n\n\t*** SERIAL PORT START ***\nNow writing pins...\n");
-
-    for (int i=2; i<64; i++)
-    {
-
-        SoftwareSerial  SerialDebug(i, i+1, false);
-        Serial.print("INIT SoftwareSerial(");
-        Serial.print(i);
-        Serial.print(", ");
-        Serial.print(i+1);
-        Serial.println("); not begin ...");
-
-        SerialDebug.begin(SERIAL_DEFAULT_BAUDRATE);
-        delay(100);
-        SerialDebug.print("==> RX PIN #");
-        SerialDebug.print(i);
-        SerialDebug.print(" - TX PIN #");
-        SerialDebug.println(i+1);
-
-        Serial.print("WROTE to pin ");
-        Serial.println(i+1);
-        
-        SerialDebug.end();        
-    }
-
+void loop()
+{
+   
     delay(2000); //Delay 2 sec.
 }
 

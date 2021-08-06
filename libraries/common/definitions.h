@@ -16,11 +16,10 @@
 #endif
 
 /* Some people ask why the first release is number 3. Here is why.
- * 0 was my first idea working with strings in serial
+ * 0 was the first idea of sensor connected via serial and talking with string
  * 1 when I realized that a packet system would have been a great improvement
  * 2 comes with ESP and UDP transmission
- * 3 uses TCP and AES encryption
- * I have little IT knowledge and it took me 3 years as a hobby lo learn and develop.
+ * 3 switches to TCP and uses AES encryption
  */
 
 //     
@@ -183,17 +182,15 @@ typedef     uint32_t    iPid_t;
 #define     LEN_BOARDPATH           LEN_NAME + LEN_DEVNAME + 2
 #define     LEN_LOCATIONAME         32
 #define     F2C_BUFFER_SIZE         SERIAL_TX_BUFFER_SIZE
-// #define     CLIENT_BUFFER_SIZE      2048
+#define     SRV_DATA_PACKET_SIZE    2048
+#define     SRV_PROBE_PACKET_SIZE   1024
 #define     FLOAT2UINT_M            100
 
 #define     SIZEOF_STDCONF          (3 * LEN_NAME + sizeof(uint8_t))
 #define     SIZEOF_STDESPCONF       (SIZEOF_STDCONF + LEN_SSID + LEN_PSK + (4 * sizeof(uint8_t)) + sizeof(uint16_t) + (2 * sizeof(iEpoch_t)) + sizeof(uint8_t))
 #define     SIZEOF_PREAMBLE         (4 * sizeof(uint8_t))
 #define     SIZEOF_PACKET_HEADER    (SIZEOF_PREAMBLE + sizeof(iCom_t) + 2 * LEN_NAME + sizeof(iPid_t)) // 4 + 2 + 48 + 4 = 58
-#define     SIZEOF_NET_HEADER       (SIZEOF_PREAMBLE + sizeof(iSize_t) + N_BLOCK)
-
-// #define     SIZEOF_COMMAND          sizeof(ibacomm_t)
-// #define     SIZEOF_EPOCH            sizeof(ibaepoch_t)
+#define     SIZEOF_NET_HEADER       (SIZEOF_PREAMBLE + sizeof(iSize_t) + N_BLOCK) // 4 + 2 + 16 = 22
 
     /*
      * Packets shape:
@@ -212,10 +209,23 @@ typedef     uint32_t    iPid_t;
     
 #define     MAX_ATTACHED_DEVICES    35
 #define     MAX_CLIENTS             200
-// #define     MAX_PAYLOAD_SIZE        MAX_PACKET_SIZE - (LEN_NAME + SIZEOF_PREAMBLE + 4) /* 488 */
 #define     MAX_SIZE_PACKET         4096
 #define     MAX_QUEUED_PACKETS      300
 // #define     MAX_ADM_DELAY           10
+
+
+#define     MAX_PROBE_RATE          3600000L
+#define     MIN_PROBE_RATE          5000
+#define     STD_PROBE_RATE          300000L
+
+#define     MAX_STATUS_RATE         300000L
+#define     MIN_STATUS_RATE         2000
+#define     STD_STATUS_RATE         30000
+
+#define     MAX_CONFIG_RATE         300000L
+#define     MIN_CONFIG_RATE         2000
+#define     STD_CONFIG_RATE         60000
+
 
 #define     RATE_UPDATE             32500L
 #define     RATE_BEACON             77200L
@@ -280,7 +290,6 @@ typedef struct {
 
         #if ! defined(RTC_MODULE)
             #define RTC_MODULE
-            #warning "No rtc_MODULE detected. Please attach rtc CLOCK device for project SAMPLER"
         #endif
 
         #define INDOORINO_DEVS
@@ -315,6 +324,52 @@ typedef struct {
 //             "FLOOD3",  10, IBACOM_CONF_FLOODSWITCH,
             
         };
+//      _____________________________________________________________________
+//      |                                                                   |
+//      |       SAMPLER                                                     |
+//      |___________________________________________________________________|
+//
+
+    #elif defined (INDOORINO_SAMPLER)
+
+        const char INDOORINO_TYPE[] PROGMEM = "SAMPLER";
+
+        #if ! defined(RTC_MODULE)
+            #define RTC_MODULE
+        #endif
+
+        #define INDOORINO_DEVS
+
+        /*
+        *  Here you can define your own standard devices.
+        *  Set DEFAULT_DEVNUM to the number of device you want and compile the table below.
+        *  Table parameters are: <device name>, <pin>, <device type>
+        */
+
+        #define DEFAULT_DEVNUM      4
+
+        const device_conf_template DEFAULT_DEVCONF[DEFAULT_DEVNUM] PROGMEM = 
+        {
+            "AIR1",  3, IBACOM_CONF_DUSTPM25,
+            "DHT1",  5, IBACOM_CONF_DHT22,
+            "DHT2",  6, IBACOM_CONF_DHT22,
+            "DHT3",  7, IBACOM_CONF_DHT22
+
+//             "HEAT1",  7, IBACOM_CONF_DHT22,
+//             "BEAM1", 28, IBACOM_CONF_RELAY,
+//             "BEAM2", 30, IBACOM_CONF_RELAY,
+//             "BEAM3", 32, IBACOM_CONF_RELAY,
+//             "BEAM4", 34, IBACOM_CONF_RELAY,
+//             "BEAM5", 36, IBACOM_CONF_RELAY,
+//             "BEAM6", 38, IBACOM_CONF_RELAY,
+//             "BEAM7", 40, IBACOM_CONF_RELAY,
+//             "BEAM8", 42, IBACOM_CONF_RELAY
+
+//             "FLOOD1",  8,  IBACOM_CONF_FLOODSWITCH,
+//             "FLOOD2",  9,  IBACOM_CONF_FLOODSWITCH,
+//             "FLOOD3",  10, IBACOM_CONF_FLOODSWITCH,
+            
+        };
 
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -324,7 +379,7 @@ typedef struct {
         
     #elif defined (INDOORINO_ROUTER)
 
-        #if ! defined (ESP8266)
+        #if !defined (ESP8266)
         #error "ESPROUTER can only be uploaded to ESP devices"
         #endif
                 
@@ -334,6 +389,7 @@ typedef struct {
     #elif defined (INDOORINO_CAMERA)
 
         // TODO //
+        
     #else
         const char INDOORINO_TYPE[] PROGMEM = "RAWRUN";
         const char BOARD_NAME[] PROGMEM = "DEBUG";
@@ -403,8 +459,36 @@ typedef struct {
         
     #endif
         
-#endif /* ARDUINO / LINUX */    
+#endif /* ARDUINO / LINUX */
 
+#if defined(INDOORINO_NETWORK) || defined(INDOORINO_DEVS)
+
+    namespace indoorino {
+        namespace lyt {
+            namespace amb {
+            
+                #define LYT_NUM_AMBIENT_VARTYPES 10
+                const char vartypes[LYT_NUM_AMBIENT_VARTYPES][LEN_NAME] PROGMEM = {
+                    
+                    { "TEMPERATURE" },
+                    { "HUMIDITY" },
+                    { "PRESSURE" },
+                    { "DISTANCE" },
+                    { "SPEED" },
+                    { "LIGHT" },
+                    { "POWER" },
+                    { "STATE" },
+                    { "DUST" },
+                    { "POLLUTION" }
+                    
+                };
+            }
+        }
+    }
+
+
+#endif
+        
 #endif /* SOURCE_DEFINITIONS_H_ */
 
 //     #include <errno.h>

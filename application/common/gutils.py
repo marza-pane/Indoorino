@@ -1,8 +1,10 @@
 from common.utils import *
+from matplotlib import colors as matcolor
 
 import pynput
 import tkinter.font
 import tkinter as tk
+import random
 
 from PIL import Image as ImagePil
 import PIL.ImageTk as ImageTk
@@ -86,19 +88,37 @@ class PaletteManager:
             self.LDR='gold'
             self.RELAY='cornflower blue'
 
+    class PlotPalette:
+
+        def __init__(self):
+
+            self._colors = list(matcolor.CSS4_COLORS)
+            self._current = self._colors
+
+        def new(self):
+            if len(self._current) == 0:
+                self._current = self._colors
+
+            shot = random.choice(self._current)
+            self._current.remove(shot)
+            return shot
+
     class Frames:
         def __init__(self):
             self.DEVICES='DarkOliveGreen1'
             self.LAYOUT='light sky blue'
             self.LIGHTS='light goldenrod'
             self.ALARMS='light coral'
+            self.WEATHER='peach puff'
+            # self.WEATHER='light slate blue'
 
 
     def __init__(self):
         self.generic=self.GenericPalette()
         self.report=self.ReportPalette()
-        self.board=self.BoardPalette()
         self.device=self.DevicePalette()
+        self.board=self.BoardPalette()
+        self.plot=self.PlotPalette()
         self.frames=self.Frames()
 
 class ScreenMonitor:

@@ -2,7 +2,7 @@
  * comtable.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: Jun 20, 2021 - 00:35:55
+ *   Edited on: Aug 06, 2021 - 01:00:15
  *      Author: n00b
  *  This code is code-generated
  */
@@ -18,13 +18,13 @@
 
 
 #if defined (__linux__)
-	#define TOTAL_IBACOM 84
+	#define TOTAL_IBACOM 81
 	#define MAX_PACKET_ENTRIES 13
 #elif defined (ESP8266)
-	#define TOTAL_IBACOM 65
+	#define TOTAL_IBACOM 66
 	#define MAX_PACKET_ENTRIES 13
 #else
-	#define TOTAL_IBACOM 61
+	#define TOTAL_IBACOM 62
 	#define MAX_PACKET_ENTRIES 13
 #endif
 
@@ -59,6 +59,7 @@
 	/*** [ 01001 - 01300 ] : board config    ***/
 
 #define	IBACOM_CONF_STD                     1001
+#define	IBACOM_CONF_PARAMS                  1002
 #define	IBACOM_CONF_SAMPLER                 1005
 #define	IBACOM_CONF_ESP                     1100
 #define	IBACOM_CONF_CAMERA                  1300
@@ -73,6 +74,8 @@
 #define	IBACOM_CONF_DUSTPM25                1405
 #define	IBACOM_CONF_DHT22                   1422
 #define	IBACOM_CONF_RELAY                   1700
+#define	IBACOM_CONF_SERVO                   1705
+#define	IBACOM_CONF_STEPPER                 1706
 #define	IBACOM_CONF_DEVSTD                  2000
 
 	/*** [ 02001 - 02300 ] : board status    ***/
@@ -93,19 +96,17 @@
 #define	IBACOM_STATUS_DUSTPM25              2405
 #define	IBACOM_STATUS_DHT22                 2422
 #define	IBACOM_STATUS_RELAY                 2700
+#define	IBACOM_STATUS_SERVO                 2705
+#define	IBACOM_STATUS_STEPPER               2706
 #define	IBACOM_STATUS_DEVSTD                3000
 
 	/*** [ 03001 - 03200 ] : alarms          ***/
 
 #define	IBACOM_HEAT_ALARM                   3001
-#define	IBACOM_OVERH_ALARM                  3002
-#define	IBACOM_FIRE_ALARM                   3003
-#define	IBACOM_FLOOD_ALARM                  3004
-#define	IBACOM_MOIST_ALARM                  3005
-#define	IBACOM_SMOG_ALARM                   3006
-#define	IBACOM_HAZARD_ALARM                 3007
-#define	IBACOM_SMOKE_ALARM                  3008
-#define	IBACOM_GRID_ALARM                   3009
+#define	IBACOM_FLOOD_ALARM                  3002
+#define	IBACOM_HAZARD_ALARM                 3003
+#define	IBACOM_SMOKE_ALARM                  3004
+#define	IBACOM_GRID_ALARM                   3010
 #define	IBACOM_GENERIC_ALARM                3050
 
 	/*** [ 03201 - 03500 ] : requests        ***/
@@ -130,20 +131,16 @@
 #define	IBACOM_SESSION_END                  7003
 #define	IBACOM_SRV_REQ                      7010
 #define	IBACOM_SRV_CONF                     7012
-#define	IBACOM_SYS_BRD_CNF                  7021
-#define	IBACOM_SYS_BRD_STS                  7022
-#define	IBACOM_SYS_DEV_CNF                  7023
-#define	IBACOM_SYS_DEV_STS                  7024
 #define	IBACOM_SYS_REQ                      7100
+#define	IBACOM_SYS_PROBE_DATA               7505
 #define	IBACOM_SET_ENV_ALARM                7701
 #define	IBACOM_ACK_ENV_ALARM                7702
 #define	IBACOM_ENV_ALARM                    7703
 #define	IBACOM_ALARM_DEVSTAT                7705
 #define	IBACOM_LYT_CONF                     8008
+#define	IBACOM_LYT_MAP                      8010
 #define	IBACOM_LYT_DEVICE                   8012
-#define	IBACOM_LYT_LIGHTS                   8020
-#define	IBACOM_LYT_WEATHER                  8022
-#define	IBACOM_LYT_ALARMS                   8050
+#define	IBACOM_LYT_SERVICE                  8014
 
 
 #endif  /* SOURCE_COMTABLE_H_ */

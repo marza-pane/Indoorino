@@ -1,6 +1,7 @@
 #include "icommon.h"
 
-ConfController  conf;
+// ConfController  conf;
+ConfSampler         conf;
 IndoorinoDeviceList devices;
 
 #define DOTTING_PERIOD 1000
@@ -17,6 +18,7 @@ void setup()
     
     rtc.begin();
 //     conf.factory();
+    
     conf.begin(); /* must be run only once! */
     
 // // //     sendReport(1, FPSTR(BOARD_NAME), F("Board %s:%s booting"), P2C(BOARD_NAME), P2C(INDOORINO_TYPE));    
@@ -34,6 +36,7 @@ void setup()
 void loop()
 {
     static iEpoch_t timeout_stat=0;
+    static iEpoch_t timeout_probe=0;
     static iEpoch_t timeout_conf=millis() + RATE_BEACON;
 
     blinker.loop();
@@ -55,19 +58,32 @@ void loop()
         return;
     }
 
-    /* This send status every RATE_UPDATE secs. */
-    if (millis() > timeout_stat)
-    {
-        utils::board::send_status();
-        timeout_stat = millis() + RATE_UPDATE;
-    }
-    
     /* This send config every RATE_BEACON secs. */
     if (millis() > timeout_conf)
     {
         utils::board::send_config();
-        timeout_conf = millis() + RATE_BEACON;
+        timeout_conf = millis() + conf.step_config();
     }
+
+    
+    /* This send status every RATE_UPDATE secs. */
+    if (millis() > timeout_stat)
+    {
+        utils::board::send_status();
+        timeout_stat = millis() + conf.step_status();
+    }
+    
+    /* This send probe every RATE_PROBE secs. */
+    if (millis() > timeout_probe)
+    {
+        timeout_probe = millis() + conf.step_probe();
+        for (uint8_t i=0; i<devices.devnum(); i++)
+        {
+            devices[i]->send_probe();
+        }
+    }
+    
+    
 
     static iEpoch_t timeout_dot=0;
     if (millis() > timeout_dot)

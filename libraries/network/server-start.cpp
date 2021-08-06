@@ -23,7 +23,9 @@ void on_exit         (int exitcode)
     printf("\n");
     fflush(stdout);
 
-    System.save_state();
+//     System.save_state();
+    System.on_exit();
+    
     Server.stop();
     
     printf("\n%s\t exitcode [%d] on process [%d] - See you in space cowboy\n\n", debug::TRS, exitcode, getpid());
@@ -69,6 +71,8 @@ int main (void)
 
         System.loop();
         Server.loop();
+        
+        /* Qui metti un bel wait() con condition variable su Server.incomin(). Quando arriva il pacchetto esegui System.parse */
         
         if (utils::millis() > last)
         {

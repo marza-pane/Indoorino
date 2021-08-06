@@ -447,6 +447,28 @@ if __name__ == '__main__':
 
     else:
 
+        ## add +1 to minor version
+        path = codepath.joinpath('build/.version')
+        try:
+            with open(path, 'r') as v:
+                version = v.readline()
+                v.close()
+
+                minor = int(version.split('.')[-1])
+                version = version.split('.')
+                version.pop(-1)
+                version.append(str(minor + 1))
+                print('\nUpdating version {} ==> {} - '.format(minor, version[-1]), end='')
+                version = '.'.join(version)
+                print(version)
+
+                with open(path, 'w') as v:
+                    v.write(version)
+                    v.close()
+
+        except FileNotFoundError:
+            print('WARNING! CodeGen: could not write {}'.format(path))
+
         if MAP:
             path = codepath.joinpath('libraries/packets/packetmap.h')
             try:

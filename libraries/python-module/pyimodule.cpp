@@ -549,6 +549,8 @@ PyObject    *   pyi_commit          (PyObject *self, PyObject *args)
     PyObject * list_alarmtype   = PyList_New(0);
     PyObject * list_alarmgroup  = PyList_New(0);
     
+    PyObject * list_physic_vals = PyList_New(0);
+    
     for (int i=0; i<LYT_NUM_AREAS; i++)
     {
         PyList_Append(list_area, PyUnicode_FromString(indoorino::layout::global_area[i]));
@@ -579,12 +581,49 @@ PyObject    *   pyi_commit          (PyObject *self, PyObject *args)
         PyList_Append(list_alarmgroup, PyUnicode_FromString(indoorino::layout::global_alarms_group[i]));
     }
     
+    
+    
+    for (int i=0; i<LYT_NUM_AMBIENTVAR; i++)
+    {
+        PyObject * b = PyList_New(0);
+                                                                                /* v */
+        PyList_Append(b, PyUnicode_FromString(indoorino::layout::global_ambient_types[i]));
+        PyList_Append(b, PyUnicode_FromString(indoorino::layout::global_ambient_units[i]));
+        
+        PyList_Append(list_physic_vals, b);
+    }
+    
+/*    
+    
+    
+            const char global_ambient_types[LYT_NUM_AMBIENTVAR][LEN_NAME]
+        {
+            "TEMPERATURE",
+            "HUMIDITY",
+            "LIGHT",
+            "POWER",
+            "STATE",
+            "AIR POLLUTION",
+        };
+        const char global_ambient_units[LYT_NUM_AMBIENTVAR][LEN_FIELD]
+        {
+            "C",
+            "RH",
+            "Lux",
+            "kW",
+            "",
+            "ug/m3",
+        };*/
+
+    
+    
     PyDict_SetItemString(constants, "area",             list_area);
     PyDict_SetItemString(constants, "area_home",        list_sub_home);
     PyDict_SetItemString(constants, "area_perimeter",   list_sub_perim);
     PyDict_SetItemString(constants, "devtypes",         list_devtype);
     PyDict_SetItemString(constants, "alarmtypes",       list_alarmtype);
     PyDict_SetItemString(constants, "alarmgroup",       list_alarmgroup);
+    PyDict_SetItemString(constants, "ambientypes",      list_physic_vals);
 
 //     PyDict_SetItemString(constants, "num_area",             PyLong_FromUnsignedLong(LYT_NUM_AREAS));
 //     PyDict_SetItemString(constants, "num_area_home",        PyLong_FromUnsignedLong(LYT_NUM_L_HOME));

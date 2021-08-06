@@ -401,9 +401,9 @@ class AppConfig:
         #         self.__getitem__(almtype)[group][bname].update( { dname : data } )
 
         def __init__(self, data):
-
             self.areas = tuple(data['area']) # list
             self.devtypes = tuple(data['devtypes']) #list
+            self.ambientypes = tuple(data['ambientypes']) #list of lists of 2 (name, unit)
             self.location = dict()
 
             self.location.update(

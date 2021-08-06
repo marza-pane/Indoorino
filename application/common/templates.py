@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 
 from tkinter import ttk
 from tkinter import messagebox
+import numpy as np
 
 """ Base Templates """
 """ Context may be [all], [motion], [selection]"""
@@ -964,56 +965,242 @@ class TransparentFrameContainer(TransparentFrameTemplate):
 #             self.master.delete(line)
 #         self.lines.clear()
 
-class   PlotTemplate(GenericUiTemplate, tk.Frame):
-
-    class PlotTemplateLine:
-
+class PlotTemplate(PanedTemplate):
+    """
+    R-click     hold, grid, clear,
+    L-click:    home, zoom, pan
+    """
+    class PlotLine:
         def __init__(self, x, y, label, color):
-
             self.x = x
             self.y = y
             self.label=label
             self.color=color
-            self.status=True
 
     def __init__(self, parent, **kwargs):
 
-        # tk.Frame.__init__(self, parent, **kwargs)
-        GenericUiTemplate.__init__(self, parent, tk.Frame, **kwargs)
+        PanedTemplate.__init__(self, parent, **kwargs)
 
         self._lines = list()
-        self._flag_hold=False
+        self._flag_hold=True
         self._flag_grid=False
+        self._flag_marker=True
 
-        self._figure = mpl.figure.Figure(figsize = (5, 5), dpi = 100,
-                                  facecolor='#2d2d2d',
-                                  # facecolor='red',
-                                  # frameon=False,
-                                  # facecolor=[i/65280 for i in self.winfo_rgb(Palette.generic.BG_DEFAULT)],
-                                  edgecolor='red')
-        self._plot = self._figure.add_subplot(111)
+        self._figure = mpl.figure.Figure(
+            figsize = (1, 1),
+            dpi = 100,
+            facecolor=Palette.generic.BG_DEFAULT,
+            frameon=True,
+            constrained_layout=True,
+            # edgecolor='red',
+        )
+
+        self._menu=dict()
+        self._menu.update({ 'right':tk.Menu(self, tearoff=0) })
+
+        self._plot = self._figure.add_subplot()
         self._canvas = FigureCanvasTkAgg(self._figure, self)
 
+    def build(self, *args, **kwargs):
+
         axes = self._figure.gca()
-        # axes.set_facecolor('xkcd:salmon')
         axes.set_facecolor('#070d0d') # plot background color (almost black)
-        # axes.xaxis.label.set_color(Palette.generic.WHITE)
-        # axes.yaxis.label.set_color(Palette.generic.WHITE)
         axes.tick_params(axis='x', colors=Palette.generic.WHITE)
         axes.tick_params(axis='y', colors=Palette.generic.WHITE)
 
+        self.unbind_all("<Enter>")
+        self.unbind_all("<Leave>")
+        self.unbind_all("<Motion>")
+        self.unbind_all("<ButtonPress-1>")
+        self.unbind_all("<ButtonRelease-1>")
+
+        self._figure.canvas.mpl_connect('button_press_event', self.on_press)
+        self._figure.canvas.mpl_connect('button_release_event', self.on_release)
+
+        self._menu['right'].add_separator()
+        self._menu['right'].add_command(label="Hold", command=lambda : self.hold(not self.hold()))
+        self._menu['right'].add_command(label="Grid", command=lambda : self.grid(not self.grid()))
+        self._menu['right'].add_command(label="Clear", command=self.clean)
+        self._menu['right'].add_separator()
+
+    def hold(self, *args):
+        if args:
+            self._flag_hold=args[0]
+        else:
+            return self._flag_hold
+
+    def on_release(self, *event):
+        super(PlotTemplate, self).on_release(*event)
         try:
-            toolbar = NavigationToolbar2Tk(self._canvas, self, pack_toolbar=False)
-            toolbar.pack(side=tk.BOTTOM, fill=tk.X)
-        except TypeError as error:
-            debug_ui('Could not pack toolbar [{}]'.format(error))
-            toolbar = NavigationToolbar2Tk(self._canvas, self)
+            self._menu['right'].tk_popup(Mouse.CURRENT_MOUSE_X, Mouse.CURRENT_MOUSE_Y)
+        except (IndexError, AttributeError):
+            debug_ui('illegal event {}'.format(event[0]))
+            return
+        finally:
+            self._menu['right'].grab_release()
 
-        toolbar.update()
-        # self.canvas.show()
+    def grid(self, *args):
+        if args:
+            self._flag_grid=args[0]
+            self.draw()
+        else:
+            return self._flag_grid
 
-    def build(self):
-        self._figure.set_facecolor(Palette.generic.BG_DEFAULT)
+    def clean(self):
+        axes = self._figure.gca()
+        axes.clear()
+        self._lines.clear()
+        self._canvas.draw()
+        self._canvas.flush_events()
+
+    def add_line(self, x, y, label, color):
+
+        if not len(x) == len(y):
+            error_os('{} x and y have different sizes ({}:{})'.format(label, len(x), len(y)))
+            return
+
+        for index, item in enumerate(self._lines):
+            if any(x) is np.NaN or any(y) is np.NaN:
+                alert_os('{} has NaN values'.format(item.label))
+                continue
+
+            if list(item.y) == list(y):
+                alert_os('{} already in list'.format(item.label))
+                return
+
+            if item.label == label and len(x) > len(item.x):
+                alert_os('Updating {}'.format(item.label))
+                self._lines[index].x = x
+                self._lines[index].y = y
+                return
+
+        if not self.hold():
+            self.clean()
+
+        self._lines.append( self.PlotLine(x, y, label, color) )
+
+    def plot(self, *args, **kwargs):
+
+        if len(args) == 1 and isinstance(args[0], (tuple, list, np.ndarray)):
+            x = np.linspace(0, len(args[0]))
+            y = args[0]
+        elif isinstance(args[0], (tuple, list, np.ndarray))\
+            and isinstance(args[1], (tuple, list, np.ndarray)):
+            x = args[0]
+            y = args[1]
+        else:
+            error_os('PlotWidget: invalid input {}'.format(args))
+            return
+
+        self.add_line(x, y,
+                      kwargs.pop('label', 'data{}'.format(len(self._lines))),
+                      kwargs.pop('color', Palette.plot.new())
+                      )
+
+    def draw(self):
+
+        axes = self._figure.gca()
+        axes.clear()
+
+        if len(self._lines) == 0:
+            return
+
+        for line in self._lines:
+            axes.plot(
+                line.x, line.y,
+                label=line.label,
+                color=line.color,
+                # marker='.',
+                # markersize = 5,
+                linestyle = '-',
+                linewidth = 2,
+            )
+
+        if self._flag_grid:
+            axes.grid(b=True)
+        else:
+            axes.grid(b=False)
+
+        axes.legend()
+        self._canvas.draw()
+
+    def on_resize(self, *args, **kwargs):
+        w, h = super(PlotTemplate, self).on_resize()
+        self._canvas.get_tk_widget().place(
+            x=2,
+            y=2,
+            width=w - 4,
+            heigh=h - 4
+        )
+        self.draw()
+
+class PlotFrame(PanedTemplate):
+    """
+    R-click     hold, grid, clear,
+    L-click:    home, zoom, pan
+    """
+    class PlotLine:
+        def __init__(self, x, y, label, color):
+            self.x = x
+            self.y = y
+            self.label=label
+            self.color=color
+
+    def __init__(self, parent, **kwargs):
+
+        PanedTemplate.__init__(self, parent, **kwargs)
+
+        self._lines = list()
+        self._flag_hold=True
+        self._flag_grid=False
+        self._flag_marker=True
+
+        self._marker_x = 0
+        self._marker_y = 0
+        self._menu_R = tk.Menu(self, tearoff=0)
+        self._menu_L = tk.Menu(self, tearoff=0)
+
+        self._figure = mpl.figure.Figure(
+            figsize = (1, 1),
+            dpi = 100,
+            facecolor='blue',
+            frameon=True,
+            constrained_layout=True,
+            edgecolor='red')
+
+        self._plot = self._figure.add_subplot()
+        # error_os('building plot {}'.format(format_type(self._plot)))
+        self._canvas = FigureCanvasTkAgg(self._figure, self)
+
+    def build(self, *args, **kwargs):
+
+        axes = self._figure.gca()
+        axes.set_facecolor('#070d0d') # plot background color (almost black)
+        axes.tick_params(axis='x', colors=Palette.generic.WHITE)
+        axes.tick_params(axis='y', colors=Palette.generic.WHITE)
+
+        self.unbind_all("<Enter>")
+        self.unbind_all("<Leave>")
+        self.unbind_all("<Motion>")
+        self.unbind_all("<ButtonPress-1>")
+        self.unbind_all("<ButtonRelease-1>")
+
+        # self.bind_mouse_buttons()
+        self._figure.canvas.mpl_connect('motion_notify_event', self.on_motion)
+        self._figure.canvas.mpl_connect('figure_enter_event', self.on_enter)
+        self._figure.canvas.mpl_connect('figure_leave_event', self.on_leave)
+
+        self._figure.canvas.mpl_connect('button_press_event', self.on_press)
+        self._figure.canvas.mpl_connect('button_release_event', self.on_release)
+
+        self._menu_R.add_separator()
+        self._menu_R.add_command(label="Hold",
+                                 command=lambda : self.hold(not self.hold()) and self.draw() )
+        self._menu_R.add_command(label="Grid",
+                                 command=lambda : self.grid(not self.grid()))
+        self._menu_R.add_command(label="Clear",
+                                 command=self.clean)
+        self._menu_R.add_separator()
 
     def hold(self, *args):
         if args:
@@ -1029,51 +1216,66 @@ class   PlotTemplate(GenericUiTemplate, tk.Frame):
             return self._flag_grid
 
     def clean(self):
-        self._plot.clear()
+        axes = self._figure.gca()
+        axes.clear()
         self._lines.clear()
         self._canvas.draw()
         self._canvas.flush_events()
 
-    def plot(self, x, y, label='', **kwargs):
+    def add_line(self, x, y, label, color):
 
         if not len(x) == len(y):
-            error_os('x and y have different sizes ({}:{})'.format(
-                len(x), len(y)
-            ))
-
-        if len(label) == 0:
-            label = 'data{}'.format(len(self._lines))
+            error_os('{} x and y have different sizes ({}:{})'.format(label, len(x), len(y)))
+            return
 
         for index, item in enumerate(self._lines):
-            if item.y == y:
-                print('Plot Already in list')
+            if any(x) is np.NaN or any(y) is np.NaN:
+                alert_os('{} has NaN values'.format(item.label))
+                continue
+
+            if list(item.y) == list(y):
+                alert_os('{} already in list'.format(item.label))
                 return
+
             if item.label == label and len(x) > len(item.x):
+                alert_os('Updating {}'.format(item.label))
                 self._lines[index].x = x
                 self._lines[index].y = y
                 return
 
-        if not self._flag_hold:
+        if not self.hold():
             self.clean()
 
-        self._lines.append(
-            self.PlotTemplateLine(
-                x, y, label, Palette.plot.new()))
+        self._lines.append( self.PlotLine(x, y, label, color) )
 
+    def plot(self, *args, **kwargs):
 
-        # lineid = self._plot.plot(x, y, label=label)
-        # lineid.set_label(label)
+        if len(args) == 1 and isinstance(args[0], (tuple, list, np.ndarray)):
+            x = np.linspace(0, len(args[0]))
+            y = args[0]
+        elif isinstance(args[0], (tuple, list, np.ndarray))\
+            and isinstance(args[1], (tuple, list, np.ndarray)):
+            x = args[0]
+            y = args[1]
+        else:
+            error_os('PlotWidget: invalid input {}'.format(args))
+            return
 
+        self.add_line(x, y,
+                      kwargs.pop('label', 'data{}'.format(len(self._lines))),
+                      kwargs.pop('color', Palette.plot.new())
+                      )
 
     def draw(self):
 
-        self._plot.clear()
+        axes = self._figure.gca()
+        axes.clear()
 
         if len(self._lines) == 0:
             return
 
         for line in self._lines:
-            self._plot.plot(
+            axes.plot(
                 line.x, line.y,
                 label=line.label,
                 color=line.color,
@@ -1083,45 +1285,110 @@ class   PlotTemplate(GenericUiTemplate, tk.Frame):
                 linewidth = 2,
             )
 
+        if self._flag_marker and self._marker_x and self._marker_y:
+            axes.plot(self._marker_x, self._marker_y,
+                            marker='o',
+                            color='white',
+                            markersize=12)
+
+            axes.plot(self._marker_x, self._marker_y,
+                            marker='o',
+                            color='red',
+                            markersize=8)
 
         if self._flag_grid:
-            self._plot.grid()
+            axes.grid(b=True)
+        else:
+            axes.grid(b=False)
 
-        self._plot.legend()
+        axes.legend()
         self._canvas.draw()
-        # self._canvas.flush_events()
 
-        # if len(self._x_values) == len(self._y_values):
-        #     if not self._flag_hold:
-        #         self.clean()
-        #     self._plot.plot(self._x_values, self._y_values)
-        #     self._canvas.draw()
-        #     self._canvas.flush_events()
-        # else:
-        #     error_os('x and y have different sizes ({}:{})'.format(
-        #         len(self._x_values), len(self._y_values)
-        #     ))
+    def set_marker(self, x, y):
 
-    def on_update(self, query=False):
-        self.update()
-        # self.draw()
+        return
+        if len(self._lines) == 0:
+            return
 
-    def on_resize(self):
-        self.update()
+        if not isinstance(x, (int, float, np.float64)) \
+                or not isinstance(y, (int, float, np.float64)):
+            return
+
         try:
-            w=self.winfo_width()
-            h=self.winfo_height()
-            self._canvas.get_tk_widget().place(
-                x = 2,
-                y = 2,
-                width = w - 4,
-                heigh = h - 4
-            )
+            threshold= ( max( [max(i.y) for i in self._lines] ) - min( [min(i.y) for i in self._lines] ) ) / 10
+        except ValueError:
+            pass
 
-        except tk.TclError as error:
-            debug_ui('warning: can not place element [{}]'.format(error))
+        string=''
+        distance = None
+        for index, line in enumerate(self._lines):
+            for i in range(len(line.x)):
+                if not isinstance(i, (int, float, np.float64)):
+                    self.draw()
+                    return
 
+                d = np.sqrt( (x - line.x[i])**2 + (y - line.y[i])**2 )
+                if d > threshold:
+                    continue
+
+                if (distance is None) or (d < distance):
+                    distance = d
+                    self._marker_x = line.x[i]
+                    self._marker_y = line.y[i]
+                    string='{} ==> {}:{}'.format(
+                        line.label, "%5.3f" % line.x[i], "%5.3f" % line.y[i])
+
+
+        if not len(string):
+            self._marker_x = 0
+            self._marker_y = 0
+
+        self.settooltip(string)
         self.draw()
+
+    def on_press(self, *event):
+        super(PlotTemplate, self).on_press(*event)
+        try:
+            self._menu_R.tk_popup(Mouse.CURRENT_MOUSE_X, Mouse.CURRENT_MOUSE_Y)
+        except (IndexError, AttributeError):
+            debug_ui('illegal event {}'.format(event[0]))
+            return
+        finally:
+            self._menu_R.grab_release()
+
+    def on_motion(self, *event):
+        super(PlotTemplate, self).on_motion(*event)
+        try:
+            x, y = event[0].xdata, event[0].ydata
+            if x == 0 or y == 0:
+                return
+        except (IndexError, AttributeError):
+            debug_ui('illegal event {}'.format(event[0]))
+            return
+
+        if self._flag_marker:
+            self.set_marker(x, y)
+
+    def on_enter(self, *event):
+        super(PlotTemplate, self).on_enter(*event)
+        self.settooltip('')
+        self._flag_marker=True
+        self.draw()
+
+    def on_leave(self, *event):
+        super(PlotTemplate, self).on_leave(*event)
+        self.settooltip('')
+        self._flag_marker=False
+        self.draw()
+
+    def on_resize(self, *args, **kwargs):
+        w, h = super(PlotTemplate, self).on_resize()
+        self._canvas.get_tk_widget().place(
+            x=2,
+            y=2,
+            width=w - 4,
+            heigh=h - 4
+        )
 
 
 print('Loaded common.templates')

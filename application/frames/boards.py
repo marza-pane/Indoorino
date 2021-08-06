@@ -1152,17 +1152,26 @@ class UiBoards(PanedTemplate):
 
         def __init__(self, parent, **kwargs):
             ScrollableFrameTemplate.__init__(self, parent, **kwargs)
+            self._hide_flag=False
+
+        def hide_clients(self, *args):
+            if args and isinstance(args[0], (bool, int)):
+                self._hide_flag = args[0]
+
+            return self._hide_flag
 
         def build(self):
             super(UiBoards.BoardList, self).build()
-            self.on_update()
+            self.on_update(self._hide_flag)
 
         def on_update(self, *args, **kwargs):
             super(UiBoards.BoardList, self).on_update()
             flag=False
-            for board in System.boards().keys():
-                if not board in [ widget.board for widget in self.widgetlist ]:
-                    self.add(self.Header, str(board))
+            for boardname, board in System.boards().items():
+                if self._hide_flag and board.type == 'ESPROUTER':
+                    continue
+                if not boardname in [ widget.board for widget in self.widgetlist ]:
+                    self.add(self.Header, str(boardname))
                     flag=True
 
             for widget in self.widgetlist:
@@ -1173,7 +1182,7 @@ class UiBoards(PanedTemplate):
 
         def loop(self):
             if Config.flags.update.BOARD:
-                self.on_update()
+                self.on_update(self._hide_flag)
 
         def on_resize(self, *args, **kwargs):
             widget_width = 70
@@ -2602,9 +2611,11 @@ class UiBoards(PanedTemplate):
         PanedTemplate.__init__(self, parent, **kwargs)
 
         self.title=LabelTemplate(self)
+        self.buttons=dict()
         self.boardlist = self.BoardList(self)
         self.frames=dict()
         self.current=''
+        # self._hide_clients_flag=False
         # self.devs=self.Devices(self, self.current)
 
     def build(self, *args, **kwargs):
@@ -2617,6 +2628,17 @@ class UiBoards(PanedTemplate):
             fg=Palette.frames.DEVICES,
             bg=Palette.generic.BLACK
         )
+
+        for key in ('hide clients', 'refresh'):
+            self.buttons.update({
+                key:ButtonTemplate(
+                    self,
+                    font=Fonts.mono(8),
+                    text=key.capitalize(),
+                    command=lambda c=key: self.callback(c)
+                )
+            })
+
         self.boardlist.build()
         self.on_update()
 
@@ -2657,6 +2679,24 @@ class UiBoards(PanedTemplate):
         if self.current in self.frames.keys():
             self.frames[self.current].loop()
 
+    def callback(self, command):
+        if command == 'refresh':
+            self.frames.clear()
+            self.boardlist.clear()
+            self.on_update()
+            self.on_resize()
+        elif command == 'hide clients':
+            if self.boardlist.hide_clients():
+                self.boardlist.hide_clients(False)
+                self.buttons['hide clients'].configure(text='hide clients')
+                self.boardlist.clear()
+            else:
+                self.boardlist.hide_clients(True)
+                self.buttons['hide clients'].configure(text='show clients')
+                self.boardlist.clear()
+
+            self.boardlist.on_update()
+
     def on_update(self, *args, **kwargs):
 
         self.boardlist.on_update()
@@ -2688,6 +2728,9 @@ class UiBoards(PanedTemplate):
         )
 
         w_list=350
+        w_butt = 120
+        off_butt = 8
+
         self.boardlist.place(
             x=off,
             y=h_label + off,
@@ -2704,3 +2747,14 @@ class UiBoards(PanedTemplate):
                 heigh=h - (h_label + 2 * off)
             )
             self.frames[self.current].on_resize()
+
+        for count, entry in enumerate(self.buttons.values()):
+            entry.place(
+                x=w - (5 + w_butt) * (count + 1),
+                y=off_butt,
+                width=w_butt,
+                heigh=h_label - 2 * off_butt,
+            )
+
+
+print('Loaded frames.boards')

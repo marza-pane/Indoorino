@@ -1,7 +1,72 @@
 import datetime
 
 from indoorino.parameters import *
+# from indoorino.packet import IndoorinoPacket
 from common.comtable import *
+
+class DeviceProbes:
+
+    def __init__(self):
+        self._db = dict()
+
+    def __call__(self, *args, **kwargs):
+
+        if args:
+            if args[0] in self._db.keys():
+
+                return tuple([datetime.datetime.fromtimestamp(epoch) for epoch in self._db[args[0]].keys()]), \
+                       tuple([float(value)/Config.macros.FLOAT2INT for value in self._db[args[0]].values()])
+
+        else:
+            return self._db
+
+
+    def parse(self, packet):
+
+        if packet.command == IBACOM_SYS_PROBE_DATA:
+            if len(packet.payload['desc1']):
+                if not packet.payload['desc1'] in self._db.keys():
+                    self._db.update({
+                        packet.payload['desc1']: dict()
+                    })
+
+                e = packet.payload['table1']
+                v = packet.payload['table2']
+
+                if not (isinstance(e, bytearray) and isinstance(v, bytearray)):
+                    print(format_type(e))
+                    print(format_type(v))
+                    return
+
+                for i in range (0, int(1024/4), 4): # <<< da mettere 1024 in Config.macros.SRV_PROBE_PACKET_SIZE
+                                                    # <<< e volendoo anche 4 come SIZEOF_INT(32)
+
+                    current_epoch = int.from_bytes(e[i: i + 4], byteorder='little', signed=True)
+
+                    if current_epoch == 0:
+                        break
+
+                    current_value = int.from_bytes(v[i: i + 4], byteorder='little', signed=True)
+
+                    self._db[packet.payload['desc1']].update({
+                        current_epoch: current_value
+                    })
+
+
+        elif packet.command == IBACOM_PROBE_AMBIENT:
+
+            for i in range(4):
+                desc = packet.payload['desc{}'.format(i + 1)]
+                value = packet.payload['value{}'.format(i + 1)]
+                if len(desc):
+                    if not desc in self._db.keys():
+                        self._db.update({
+                            desc:dict()
+                        })
+
+                    self._db[desc].update({
+                        packet.payload['epoch']:value
+                    })
 
 
 class DeviceParameters:
@@ -85,11 +150,12 @@ class DeviceParameters:
             # except KeyError:
             #     if self.config.std.packet.payload['type'] and len(self.config.dev.keys()) == 0:
             #         self.set_board_type(self.config.std.packet.payload['type'])
+
         for key, item in self.status.dev.items():
             try:
                 item.set(self.status.dev.packet.payload[item.name])
-            except KeyError:
-                print(KeyError)
+            except KeyError as e:
+                # print('MISS! : {}'.format(e))
                 continue
 
 
@@ -105,6 +171,11 @@ class IndoorinoDevice(DeviceParameters):
     def __init__(self, boardname, name, pin):
         DeviceParameters.__init__(self, boardname, name, pin)
         self._timeout=time.perf_counter()
+        self._probes=DeviceProbes()
+
+    @property
+    def probes(self):
+        return self._probes
 
     @property
     def name(self):
@@ -284,11 +355,13 @@ class IndoorinoDevice(DeviceParameters):
                         name='value1',
                         label='temperature',
                         desc='air temperature',
+                        limits=(10, 30)
                     ),
                     'humidity': ParameterRHumidity(
                         name='value2',
                         label='humidity',
                         desc='air humidity',
+                        limits=(10, 90)
                     ),
                 }
             )
@@ -307,6 +380,9 @@ class IndoorinoDevice(DeviceParameters):
     def parse(self, packet):
 
         # if not isinstance(packet, IndoorinoPacket): return
+        if packet.command in (IBACOM_SYS_PROBE_DATA, IBACOM_PROBE_AMBIENT,):
+            if packet.payload['board'] == self.boardname and packet.payload['devname'] == self.name:
+                self._probes.parse(packet)
 
         if 'name' in packet.payload.keys() and 'devname' in packet.payload.keys():
 

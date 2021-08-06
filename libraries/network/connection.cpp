@@ -476,7 +476,7 @@ namespace net
         for(const auto& target: _namelist)
         {
             strcpy(s.target, target.c_str());
-            std::cout << "Broadcasting netpacket" << s.description() << "to " << target << std::endl;
+//             std::cout << "Broadcasting netpacket" << s.description() << "to " << target << std::endl;
             this->send(&s);
         }
         
@@ -806,6 +806,7 @@ namespace net
         }
         return false;
     }
+
 //     void            serverTemplate::send                    (const char * target, packet::ipacket * p)
 //     {
 //         this->send(new packet::netpacket(p, BOARD_NAME, target));

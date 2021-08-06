@@ -75,6 +75,7 @@ class ApplicationMainFrame(PanedTemplate):
         self.current='layout'
         self.current='resources:alarms'
         self.current='boards'
+        self.current='resources:weather'
         # self.after(4500, self.tempdrop)
 
     def tempdrop(self):

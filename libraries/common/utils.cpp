@@ -234,6 +234,66 @@ namespace utils
         return true;        
     }
     
+    unsigned int chopstring(const char * string, char splitter, char ** buffer, unsigned int max_word_size=32)
+    {
+        /* USE like this:
+         	
+         	const char * s = {"This:string:has:5:elements"};
+            char ** b=nullptr;
+	
+            unsigned int n = utils::chopstring(s, ':', b);
+            // do what you want 
+
+            if (b) {
+                for (unsigned int i=0; i<n; i++) free(b[n]);
+                free(b); }
+         */
+
+        unsigned int n=0;
+        
+        if (strlen(string) > 0)
+        {
+            n = 1;
+        }
+        else return 0;
+
+        char *  _chp_;
+        char *  _cptr_;
+
+        _chp_=(char *)malloc(strlen(string) + 1);
+        strcpy(_chp_, string);
+
+        _cptr_ = strchr(_chp_, splitter);
+        while (_cptr_ != NULL)
+        {
+            n++;
+            _cptr_=strchr(_cptr_ + 1,splitter);
+        }
+
+        char * index = _chp_;
+
+        buffer = (char**)calloc(n, sizeof(char*));
+
+        for (unsigned int i=0; i<n; i++)
+        {
+            buffer[i] = (char *)calloc(max_word_size, sizeof(char));
+            _cptr_ = strchr(index, splitter);
+
+            if (_cptr_==NULL)  { strcpy(buffer[i], index); }
+            else            
+            { 
+                strncpy(buffer[i], index, _cptr_ - index);
+                index = _cptr_ + 1;
+            }
+
+            debug_io("--> Chunk %u : %s",i, buffer[i]);
+        }
+
+        free (_chp_);
+        
+        return n;
+    }
+    
     void        dump_hex_header     (iSize_t count)
     {
     #if defined(ARDUINO)

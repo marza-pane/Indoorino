@@ -274,8 +274,8 @@ namespace packet
     
     void            ipacket::dump               (void)
     {
-        #if defined(DEBUG_PACKETDUMP)
-        debug_pack("%s", description());
+//         #if defined(DEBUG_PACKETDUMP)
+        info_pack("%s", description());
 
         iSize_t i=0;
         packet_fst_ p;
@@ -293,17 +293,17 @@ namespace packet
                     {
                         memset(buffer, 0, SERIAL_TX_BUFFER_SIZE);
                         strncpy(buffer, _payload + i, s.size);                        
-                        debug_pack("\t --> %s: <%s>",s.name, buffer);
+                        info_pack("\t --> %s: <%s>",s.name, buffer);
                     }
                     else
                     {
                         if (memvcmp(_payload + i, 0, s.size))
                         {
-                            debug_pack("\t --> %s: EMPTY", s.name);
+                            info_pack("\t --> %s: EMPTY", s.name);
                         }
                         else
                         {
-                            debug_pack("\t --> %s:", s.name);
+                            info_pack("\t --> %s:", s.name);
                             utils::dump_hex(_payload + i, s.size);
                         }                        
                     }
@@ -313,29 +313,27 @@ namespace packet
                 {
                     uint8_t c=0;
                     memcpy(&c, _payload + i, sizeof(uint8_t));
-                    debug_pack("\t --> %s: [ %u ]",s.name, c);
+                    info_pack("\t --> %s: [ %u ]",s.name, c);
                     break;
                 }
                 case 'u':
                 {
                     uint32_t c=0;
                     memcpy(&c, _payload + i, sizeof(uint32_t));
-                    debug_pack("\t --> %s: [ %u ]",s.name, c);
+                    info_pack("\t --> %s: [ %u ]",s.name, c);
                     break;
                 }
                 case 'n':
                 {
                     int32_t c=0;
                     memcpy(&c, _payload + i, sizeof(int32_t));
-                    debug_pack("\t --> %s: [ %d ]",s.name, c);
+                    info_pack("\t --> %s: [ %d ]",s.name, c);
                     break;
                 }
                 case 'h':
                 {
-                    debug_pack("\t --> %s: HASHES", s.name);
-                    #if defined(DEBUG_PACKET)
+                    info_pack("\t --> %s: HASHES", s.name);
                     utils::dump_hex(_payload + i, s.size);
-                    #endif
                     break;
                 }
                 default:
@@ -346,7 +344,7 @@ namespace packet
             i += s.size;
         }
 
-    #endif
+//     #endif
     }
 
     

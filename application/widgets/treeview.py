@@ -67,8 +67,10 @@ class ResourceTreeView(TreeViewTemplate):
         for entry in self.get_children(self._structure['boards']):
             self.delete(entry)
 
-        for i, board in enumerate(System.boards().values()):
-            self.insert(self._structure['boards'], i, text=board.name, values=('ONLINE',))
+        boardlist = [b.name for b in System.boards().values()]
+        boardlist.sort()
+        for index, board in enumerate(boardlist):
+            self.insert(self._structure['boards'], index, text=board, values=('ONLINE',))
 
 
         for group in self.alarmgroups.values():
@@ -102,3 +104,4 @@ class ResourceTreeView(TreeViewTemplate):
         #         text=alarm.name.capitalize(), values=('',))
 
 
+print('Loaded widgets.treeview')

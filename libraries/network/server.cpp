@@ -7,12 +7,10 @@
  */
 
 #if defined(INDOORINO_SERVER)
-#include "../network/server.h"
+#include "server.h"
 #include "../indoorino/indoorino-system.h"
 
 static bool net_thread_flag=true;
-
-
 
 namespace net
 {    
@@ -36,6 +34,7 @@ namespace net
         [this]
         {
             static bool isOnline=false;
+            
             while (net_thread_flag)
             {
 //                 std::cout << ".";
@@ -79,7 +78,7 @@ namespace net
         {
             packet::netpacket * p = _rxqueue.pop_front();
             on_packet(p);
-            delete p;
+            delete p; /* here I delete incoming pacets */
         }
 
     }    
@@ -109,6 +108,7 @@ namespace net
 
         System.parse(incoming);
 
+        
         if (board.has_client(incoming->source))
         {
             /** Packets from boards **/
@@ -160,30 +160,17 @@ namespace net
             
             info_net("Re-routing: %s ==> %s ==> %s", incoming->source, incoming->description(), incoming->target);
             Server.board.send(incoming);
-//             boost::asio::post(board._asio_context, [ incoming ]() { delete incoming; });
-        }
-
-        else if (shell.has_client(incoming->target))
-        {
-            /** re-routing packets targeting shell users **/
-
-            info_net("Re-routing: %s ==> %s ==> %s", incoming->source, incoming->description(), incoming->target);
-            Server.shell.send(incoming);
-//             boost::asio::post(shell._asio_context, [ incoming ]() { delete incoming; });
         }
         else
-        {            
-//             boost::asio::post(shell._asio_context, [ incoming ]() { delete incoming; });
+        {
+            if (shell.has_client(incoming->target))
+            {
+                /** re-routing packets targeting shell users **/
+
+                info_net("Re-routing: %s ==> %s ==> %s", incoming->source, incoming->description(), incoming->target);
+                Server.shell.send(incoming);
+            }           
         }
-
-
-        
-    //     boost::asio::post(_asio_context,
-    //         [incoming]()
-    //         {
-    //             delete incoming;
-    //         });
-        
     }
 
     void        IndoorinoServer::parse_request          (const char * command)

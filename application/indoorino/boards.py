@@ -289,19 +289,20 @@ class IndoorinoBoard (BoardParameters):
             return
 
         if IBACOM_CONF_ASENSOR <= packet.command <= IBACOM_CONF_DEVSTD or \
-            IBACOM_STATUS_ASENSOR <= packet.command <= IBACOM_STATUS_DEVSTD:
+                IBACOM_STATUS_ASENSOR <= packet.command <= IBACOM_STATUS_DEVSTD:
 
             name = packet.payload['devname']
             if not name in self._devs.keys() and IBACOM_CONF_ASENSOR <= packet.command <= IBACOM_CONF_DEVSTD:
                 alert_boards('Adding device {}:{}'.format(packet.payload['name'], packet.payload['devname']))
                 self._devs[name] = IndoorinoDevice(self.name, name, packet.payload['pin1'])
-            try:
-                self._devs[name].parse(packet)
                 Config.flags.update.DEVICES = True
-            except KeyError:
-                pass
+            self._devs[name].parse(packet)
 
-                #qui eventualmente fare else: send pack request conf
+        if packet.command in (IBACOM_PROBE_AMBIENT, IBACOM_SYS_PROBE_DATA,):
+            if packet.payload['devname'] in self._devs.keys():
+                self._devs[packet.payload['devname']].parse(packet)
+
+            #qui eventualmente fare else: send pack request conf
 
         ### if comand == probe
         ### if comand == ???

@@ -1,3 +1,5 @@
+import tkinter
+
 from frames.application import ApplicationWindow
 
 from indoorino.core import System
@@ -13,6 +15,8 @@ if __name__ == '__main__':
     # environment.inject_in('/home/n00b/.indoorino/session/packets_welcome.ndo', 0)
     # environment.override_connection(True)
     app = ApplicationWindow()
-    app.show()
 
-
+    try:
+        app.show()
+    except tkinter.TclError:
+        pass

@@ -35,7 +35,7 @@
  * INDOORINO_CLIENT     : defined defined by CLIENT compile script. For CLIENT compiling
  * INDOORINO_NETWORK    : defined when compiling for SERVER/CLIENT in their own scripts or for ROUTER
  * 
- * Note: compile scripts are usually in build/setup.py
+ * Note: compile scripts are usually in build/
  *
  * How to: Map new sensor into the system
  
@@ -65,9 +65,9 @@
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
 //         #define INDOORINO_CONTROLLER
 
-        const char BOARD_NAME[] PROGMEM = "SRV.HOUSE.BEAMS";
-        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
-        #define INDOORINO_ROUTER
+//         const char BOARD_NAME[] PROGMEM = "SRV.HOUSE.BEAMS";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
+//         #define INDOORINO_ROUTER
 
 
 
@@ -75,9 +75,9 @@
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
 //         #define INDOORINO_ROUTER
         
-//         const char BOARD_NAME[] PROGMEM = "KITCHEN.CLIMATE";
-//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
-//         #define INDOORINO_CONTROLLER
+        const char BOARD_NAME[] PROGMEM = "KITCHEN.CLIMATE";
+        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
+        #define INDOORINO_SAMPLER
 
 
 //         const char BOARD_NAME[] PROGMEM = "SRV.PRESCOTT.CLIMATE";
@@ -134,6 +134,7 @@
 //     #define DEBUG_MODULE
 //     #define DEBUG_PACKET
 //     #define DEBUG_PACKETDUMP
+//     #define DEBUG_BENCHMARK
 //     #define DEBUG_CHKSUM // TODO
     
     

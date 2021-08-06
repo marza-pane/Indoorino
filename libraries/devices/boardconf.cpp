@@ -9,7 +9,7 @@
 #if defined (ARDUINO)
 #include "icommon.h"
 
-
+#define BUFFER_SIZE 300
 //      _____________________________________________________________________
 //      |                                                                   |
 //      |       BOARD DEFAULT CONFIGURATION                                 |
@@ -60,9 +60,10 @@ void        Conf_Board::begin               (void)
 //         sendReport(3, _id, F("%s%s%u"), P2C(_k_niConfBoard_), P2C(dst_dev_1), devnum());
         Conf_Board::factory();
         this->begin();
+        return;
     }
     
-    info_dev("conf:loaded board configuration!");
+    info_dev("conf:loaded board configuration [%u devices]", devnum());
 }
 
 void        Conf_Board::factory             (void)
@@ -108,6 +109,73 @@ void        Conf_Board::factory             (void)
 #endif
     debug_dev("Done resetting STD conf! (devnum = %u)", devnum());
 }
+
+
+#if defined(INDOORINO_DEVS)
+    void        Conf_Board::factorydev          (iSize_t index)
+    {
+            device_conf_template dev;
+            packet::ipacket data;
+            
+            for (uint8_t i=0; i<DEFAULT_DEVNUM; i++)
+            {
+                memcpy_P(&dev, &DEFAULT_DEVCONF[i], sizeof(dev));
+
+                data.init(dev.type);
+
+                staticspace.put(index, dev.type);
+                index += sizeof(iCom_t);
+
+                info_dev("Writing device @ %u: %u - %s - on pin %u", index, dev.type, dev.name, dev.pin);
+                
+                strcpy(data.p_name(), P2C(BOARD_NAME));
+                strcpy(data.p_devname(), dev.name);
+                memcpy(data.p_pin1(), &dev.pin, sizeof(iPin_t));
+                
+                switch (data.command())
+                {
+                    case IBACOM_CONF_DHT22:
+                    {
+                        * data.p_param1() = FLOAT2UINT_M;
+                        * data.p_param2() = 0;
+                        * data.p_param3() = FLOAT2UINT_M;
+                        * data.p_param4() = 0;    
+                        break;
+                    }
+                    case IBACOM_CONF_DUSTPM25:
+                    {   
+                        /* default values from https://wiki.keyestudio.com/Ks0196_keyestudio_PM2.5_Dust_Sensor_Module */
+                        
+                        * data.p_param1() = 170 * FLOAT2UINT_M;  // dust K (multiplier)
+                        * data.p_param2() = -10;                // dust C (constant)
+                        * data.p_param3() = 1000;              // dust alarm limit
+                        * data.p_timeout1() = 280;            // sampling time
+                        * data.p_timeout2() = 40;            // release time
+                        break;
+                    }
+                    default:
+                        debug_dev("no config required for %%s", dev.name);
+                }
+                
+                for (iSize_t j=0; j<data.data_size(); j++)
+                {
+                    staticspace.update(index, data.payload()[j]);
+                    index++;
+                }
+                debug_dev("Wrote sensor %u:%s - on pin %u", i, 
+                        data.p_devname(),
+                        *data.p_pin1());
+
+            }
+            for(iSize_t i=index; i<index + 100; i++)
+            {
+                // trailing zeros
+                staticspace.update(i, 0);
+            }
+    }
+#else
+    void        Conf_Board::factorydev          (iSize_t index) {}
+#endif
 
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -665,7 +733,7 @@ void            ConfRouter::factory           (void)
     char        buf_psk[LEN_PSK]            {0};
     uint16_t    port=0;
     IPAddress   ip;
-    iEpoch_t  timeout=0;
+    iEpoch_t    timeout=0;
     uint8_t     attempts=0;
     
     memcpy_P(buf_ssid, DEFAULT_SSID, LEN_SSID);
@@ -760,27 +828,41 @@ void        ConfSampler::begin              (void)
 {
     Conf_Board::begin();
     
-    uint32_t  par=0;
-    staticspace.get(SIZEOF_STDCONF, par);
-    if (par < DT_MIN_STEP || par > DT_MAX_STEP)
+    uint32_t p=0;
+    
+    staticspace.get(SIZEOF_STDCONF, p);
+    if (p < MIN_CONFIG_RATE || p > MAX_CONFIG_RATE)
     {
-        error_dev("Sampler:begin: invalid STEP <%u>", par); 
-        /* sendReport(3, _id, F("%s:%s STEP <%u>"), P2C(_k_begin_), P2C(_k_invalid_), par); */
+        error_dev("Sampler:begin: invalid CONFIG STEP <%u>", p); 
+        /* sendReport(3, _id, F("%s:%s STEP <%u>"), P2C(_k_begin_), P2C(_k_invalid_), p); */
         this->factory();
         this->begin();
+        return;
     }
 
-    staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), par);
-    if (par < DT_MIN_COOL || par > DT_MAX_COOL)
+    staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), p);
+    if (p < MIN_STATUS_RATE || p > MAX_STATUS_RATE)
     {
-//         sendReport(3, _id, F("%sCOOL TIME <%u>"), P2C(string_foundinvalid), par);
-        error_dev("Sampler:begin: invalid COOL TIME  <%u>", par); 
+        error_dev("Sampler:begin: invalid STATUS STEP <%u>", p); 
+        /* sendReport(3, _id, F("%s:%s STEP <%u>"), P2C(_k_begin_), P2C(_k_invalid_), p); */
         this->factory();
         this->begin();
+        return;
     }
+
+    staticspace.get(SIZEOF_STDCONF + 2 * sizeof(uint32_t), p);
+    if (p < MIN_PROBE_RATE || p > MAX_PROBE_RATE)
+    {
+        error_dev("Sampler:begin: invalid PROBE STEP <%u>", p); 
+        /* sendReport(3, _id, F("%s:%s STEP <%u>"), P2C(_k_begin_), P2C(_k_invalid_), p); */
+        this->factory();
+        this->begin();
+        return;
+    }
+
     
-    initdev(SIZEOF_STDCONF + 2 * sizeof(uint32_t));
-    debug_dev("%s:Sampler begin complete", F2C(_id));
+    initdev(SIZEOF_STDCONF + 3 * sizeof(uint32_t));
+    debug_dev("Sampler begin complete");
 }
 
 void        ConfSampler::factory            (void)
@@ -788,90 +870,94 @@ void        ConfSampler::factory            (void)
         
     Conf_Board::factory();
     
-    iSize_t   ndx=SIZEOF_STDCONF;
-    uint32_t    par=0;
+    iSize_t     ndx=SIZEOF_STDCONF;
+    uint32_t    p=0;
 
-    par =DT_DEF_STEP;
-    staticspace.put(ndx, par);
+    p = STD_CONFIG_RATE;
+    staticspace.put(ndx, p);
     ndx +=sizeof(uint32_t);
 
-    par =DT_DEF_COOL;
-    staticspace.put(ndx, par);
+    p = STD_STATUS_RATE;
+    staticspace.put(ndx, p);
+    ndx +=sizeof(uint32_t);
+
+    p = STD_PROBE_RATE;
+    staticspace.put(ndx, p);
     ndx +=sizeof(uint32_t);
     
-    default_dev_conf_template       dev;
-    for (uint8_t i=0; i<DEFAULT_DEVNUM; i++)
+    debug_dev("Loaded Sampler conf: [size=%u]", ndx);
+    
+    Conf_Board::factorydev(ndx);
+  
+}
+
+uint32_t    ConfSampler::step_config        (void)
+{
+    uint32_t p;
+    staticspace.get(SIZEOF_STDCONF, p);
+    return p;
+}
+
+uint32_t    ConfSampler::step_status        (void)
+{
+    uint32_t p;
+    staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), p);
+    return p;
+}     
+
+uint32_t    ConfSampler::step_probe         (void)
+{
+    uint32_t p;
+    staticspace.get(SIZEOF_STDCONF + 2 * sizeof(uint32_t), p);
+    return p;
+}     
+
+void        ConfSampler::step_config        (uint32_t value)
+{
+    if ( value < MIN_CONFIG_RATE || value > MAX_CONFIG_RATE)
     {
-        memcpy_P(&dev, &DEFAULT_DEVCONF[i], sizeof(dev));
-
-        packet::ipacket * data  = new packet::ipacket(dev.type);
-
-        staticspace.put(ndx, dev.type);
-        ndx+=sizeof(iCom_t);
-
-        debug_dev("Writing sensor %u: %u - %s - on pin %u", i, dev.type,dev.name, dev.pin);
-        
-        strcpy(data->p_devname(), dev.name);
-        strcpy(data->p_name(), P2C(BOARD_NAME));
-        *data->p_pin() = dev.pin;
-        
-        if (data->p_param1() != nullptr) *data->p_param1() = 1;
-        if (data->p_param3() != nullptr) *data->p_param3() = 1;
-        
-        for (iSize_t j=0; j<data->data_size(); j++)
-            {
-                staticspace.update(ndx, data->payload()[j]);
-                ndx++;
-            }
-            debug_dev("Wrote sensor %u:%s - no pin %u\n", i, 
-                     data->p_devname(),
-                     *data->p_pin());
-        delete data;
+        warning_dev("SAMPLER:config_step: value %u [ms] of range!",value);
+        return;
     }
-
-    for(iSize_t i=ndx; i<ndx + 100; i++)
-    {
-        // trailing zeros
-        staticspace.update(i, 0);
-    }      
-}
-
-uint32_t    ConfSampler::step               (void)
-{
-    uint32_t par;
-    staticspace.get(SIZEOF_STDCONF, par);
-    return par;
-}
-
-uint32_t    ConfSampler::cool               (void)
-{
-    uint32_t par;
-    staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), par);
-    return par;
-}
-
-void        ConfSampler::step               (uint32_t value)
-{
-    uint32_t par;
-    staticspace.get(SIZEOF_STDCONF, par);
-    if (par != value)
+    uint32_t p;
+    staticspace.get(SIZEOF_STDCONF, p);
+    if (p != value)
     {
         staticspace.put(SIZEOF_STDCONF, value);        
     }
     staticspace.update();
-
 }
 
-void        ConfSampler::cool               (uint32_t value)
+void        ConfSampler::step_status        (uint32_t value)
 {
-    uint32_t par;
-    staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), par);
-    if (par != value)
+    if (value < MIN_STATUS_RATE || value > MAX_STATUS_RATE)
+    {
+        warning_dev("SAMPLER:status_step: value %u [ms] of range!", value);
+        return;
+    }
+    uint32_t p;
+    staticspace.get(SIZEOF_STDCONF + sizeof(uint32_t), p);
+    if (p != value)
     {
         staticspace.put(SIZEOF_STDCONF + sizeof(uint32_t), value);        
     }
     staticspace.update();
+}
 
+void        ConfSampler::step_probe         (uint32_t value)
+{
+    if (value < MIN_PROBE_RATE || value > MAX_PROBE_RATE)
+    {
+        warning_dev("SAMPLER:probe_step: value %u [ms] of range!", value);
+        return;
+    }
+    uint32_t p;
+    staticspace.get(SIZEOF_STDCONF + 2 * sizeof(uint32_t), p);
+    if (p != value)
+    {
+        staticspace.put(SIZEOF_STDCONF + 2 * sizeof(uint32_t), value);        
+    }
+    staticspace.update();
 }
 
 
@@ -953,57 +1039,6 @@ void        ConfSampler::cool               (uint32_t value)
         }      
     }
 
-    #if defined (ESP8266)
-
-        void        ConfEspController::begin        (void)
-        {
-            ConfRouter::begin();
-            initdev(SIZEOF_STDESPCONF);
-            info_dev("conf:loading [%u] devices!", devnum());
-        }
-
-        void        ConfEspController::factory      (void)
-        { 
-                
-            ConfRouter::factory();
-
-            device_conf_template dev;
-            iSize_t ndx=SIZEOF_STDESPCONF;  
-            packet::ipacket data;
-            
-            for (uint8_t i=0; i<DEFAULT_DEVNUM; i++)
-            {
-                memcpy_P(&dev, &DEFAULT_DEVCONF[i], sizeof(dev));
-
-                data.init(dev.type);
-
-                staticspace.put(ndx, dev.type);
-                ndx+=sizeof(iCom_t);
-
-                debug_dev("Writing device %u: %u - %s - on pin %u", i, dev.type, dev.name, dev.pin);
-                
-                strcpy(data.p_name(), P2C(BOARD_NAME));
-                strcpy(data.p_devname(), dev.name);
-                memcpy(data.p_pin1(), &dev.pin, sizeof(iPin_t));
-                
-                for (iSize_t j=0; j<data.data_size(); j++)
-                    {
-                        staticspace.update(ndx, data.payload()[j]);
-                        ndx++;
-                    }
-                    debug_dev("Wrote sensor %u:%s - on pin %u", i, 
-                            data.p_devname(),
-                            *data.p_pin1());
-            }
-
-            for(iSize_t i=ndx; i<ndx + 100; i++)
-            {
-                // trailing zeros
-                staticspace.update(i, 0);
-            }      
-        }
-
-    #endif
 
 #elif defined (INDOORINO_CAMERA)
 

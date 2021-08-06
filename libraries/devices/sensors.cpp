@@ -5,7 +5,7 @@
  *      Author: n00b
  */
 
-#include "../common/icommon.h"
+#include "../common/indoorino.h"
 
     /*
      * STATUS:
@@ -135,6 +135,7 @@ bool                    Actuator_Relay::set                 (uint32_t value)
 void                    Actuator_Relay::send_dev_stat       (void)
 {
     packet::ipacket p(IBACOM_STATUS_RELAY);
+    strcpy_P(p.p_name(), BOARD_NAME);
     
     if (_status == 1)
     {
@@ -144,13 +145,32 @@ void                    Actuator_Relay::send_dev_stat       (void)
     else    strcpy(p.p_devname(), _name);
     
     
-    debug_mem("Free heap @ <send_dev_stat> [%u] KB", utils::board::available_ram());
+//     debug_mem("Free heap @ <send_dev_stat> [%u] KB", utils::board::available_ram());
     
-    strcpy(p.p_name(), P2C(BOARD_NAME));
     memcpy(p.p_status(), &_status, sizeof(uint8_t));
     memcpy(p.p_level(),  &_relay_stat, sizeof(uint8_t));
     utils::board::io.send(&p);
         
+}
+
+void                    Actuator_Relay::send_probe          (void)
+{
+    
+    if (_status != 0) return;
+
+    packet::ipacket p(IBACOM_PROBE_AMBIENT);
+    
+    strcpy_P(p.p_board(), BOARD_NAME);
+    strcpy(p.p_devname(), _name);    
+    
+    iEpoch_t e = rtc.epoch();
+    
+    memcpy(p.p_epoch(), &e, sizeof(uint32_t));
+    strcpy_P(p.p_desc1(), VLABEL_relay);
+    memcpy(p.p_value1(),  &_relay_stat, sizeof(uint8_t));
+    utils::board::io.send(&p);
+
+    
 }
 
 
@@ -242,6 +262,25 @@ void                    Sensor_Switch::send_dev_stat        (void)
 int32_t                 Sensor_Switch::value                (void)
 {    
     return int32_t(digitalRead(_pin));    
+}
+
+void                    Sensor_Switch::send_probe           (void)
+{
+    if (_status != 0) return;
+
+    packet::ipacket p(IBACOM_PROBE_AMBIENT);
+    
+    strcpy_P(p.p_board(), BOARD_NAME);
+    strcpy(p.p_devname(), _name);    
+    
+    iEpoch_t e = rtc.epoch();
+    uint32_t v=this->value();
+    
+    memcpy(p.p_epoch(), &e, sizeof(uint32_t));
+    strcpy_P(p.p_desc1(), VLABEL_switch);
+    memcpy(p.p_value1(),  &v, sizeof(uint32_t));
+    utils::board::io.send(&p);
+    
 }
 
 
@@ -518,8 +557,9 @@ int32_t                 Sensor_DHT22::getHumidity           (void)
     }
     
     return value_int;
-
 }
+
+
 
 int32_t                 Sensor_DHT22::getTemperature        (void)
 {
@@ -619,7 +659,30 @@ void                    Sensor_DHT22::send_dev_stat         (void)
     utils::board::io.send(&p);
 }
 
+void                    Sensor_DHT22::send_probe            (void)
+{
+    if (_status != 0) return;
 
+    packet::ipacket p(IBACOM_PROBE_AMBIENT);
+    
+    strcpy_P(p.p_board(), BOARD_NAME);
+    strcpy(p.p_devname(), _name);    
+    
+    iEpoch_t e = rtc.epoch();
+    int32_t t = getTemperature();
+    int32_t h = getHumidity();
+    
+    memcpy(p.p_epoch(), &e, sizeof(uint32_t));
+    
+    strcpy_P(p.p_desc1(), VLABEL_temperature);
+    memcpy(p.p_value1(),  &t, sizeof(int32_t));
+    
+    strcpy_P(p.p_desc2(), VLABEL_humidity);
+    memcpy(p.p_value2(),  &h, sizeof(int32_t));
+    
+    utils::board::io.send(&p);
+    
+}
 //      _____________________________________________________________________
 //      |                                                                   |
 //      |       PM25 DUST SENSOR                                            |
@@ -717,6 +780,27 @@ void                    Sensor_PM25dust::send_dev_stat      (void)
     memcpy(p.p_value1(), &D, sizeof(int32_t));
 
     utils::board::io.send(&p);    
+}
+
+void                    Sensor_PM25dust::send_probe         (void)
+{
+    if (_status != 0) return;
+
+    packet::ipacket p(IBACOM_PROBE_AMBIENT);
+    
+    strcpy_P(p.p_board(), BOARD_NAME);
+    strcpy(p.p_devname(), _name);    
+    
+    iEpoch_t e = rtc.epoch();
+    int32_t v = value();
+    
+    memcpy(p.p_epoch(), &e, sizeof(uint32_t));
+    
+    strcpy_P(p.p_desc1(), VLABEL_dust);
+    memcpy(p.p_value1(),  &v, sizeof(int32_t));
+        
+    utils::board::io.send(&p);
+    
 }
 
 int32_t                 Sensor_PM25dust::value              (void)

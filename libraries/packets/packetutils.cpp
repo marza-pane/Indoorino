@@ -45,7 +45,6 @@ namespace packet
     bool        is_boardstat        (iCom_t command)
     {
         if (command > IBACOM_STATUS_STD && command <= IBACOM_STATUS_CAMERA) { return true; }
-        if (command == IBACOM_STATUS_ESP) { return true; }
         return false;       
     }
         

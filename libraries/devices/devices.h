@@ -110,7 +110,7 @@ public:
     virtual bool        set                 (uint32_t)  { return false; }
     virtual void        loop                (void)      {}
     int32_t             value               (void)      { return (int32_t)_status; }
-    void                send_probe          (void)      {}
+    virtual void        send_probe          (void)      {}
 
     bool                isSensor            (void)      { return false; }
     //     ipacket     **      probe               (ipacket ** p)  { return p; };

@@ -5,7 +5,7 @@
  *      Author: n00b
  */
 
-#include "../common/icommon.h"
+#include "../common/indoorino.h"
 #if defined(INDOORINO_NETWORK)
 
 #if defined(__linux__)
@@ -186,44 +186,3 @@ namespace net
 
 
 #endif /* INDOORINO_NETWORK */
-
-
-
-
-
-
-
-
-
-/*
-    NET PACKET HEADER VERSION (use if compiler cant reach this file)
-      
-    class netpacket
-    {
-    public:
-
-        packet::ipacket     *   item=nullptr;
-        char                    source[LEN_NAME] {0};
-        char                    target[LEN_NAME] {0};
-
-        netpacket() {};
-        netpacket(packet::ipacket * p, const char * s, const char * t)
-        {
-            this->item = p;
-            strncpy(this->source, s, LEN_NAME);
-            strncpy(this->target, t, LEN_NAME);
-        }
-        virtual ~netpacket()
-        {
-            if (this->item != nullptr)
-            {
-                delete this->item;
-                this->item=nullptr;
-            }
-        }
-
-        void    header           (char*buffer) { this->item->header(buffer, this->source, this->target); }
-        
-    };
-    
-*/

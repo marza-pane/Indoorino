@@ -23,8 +23,7 @@ namespace utils
         {}
         BoardIo::~BoardIo() 
         {
-            _rxqueue.clear();
-            _txqueue.clear();
+            clear();
         }
 
         void        BoardIo::begin                  (void)
@@ -73,7 +72,6 @@ namespace utils
 
             _rxqueue.clear();
             _txqueue.clear();
-            
         }
             
         void        BoardIo::send                   (packet::ipacket * p, bool direct)
@@ -338,18 +336,22 @@ namespace utils
             io.send(&p);
 
         #if defined (INDOORINO_SAMPLER)
-        // 
-        //     ptr=reallocPacket(ptr, IBACOM_CONF_SAMPLER);
-        //     
-        //     *ptr->p_stepday1()  = conf.step();
-        //     *ptr->p_stephour1() = conf.cool();
-        //     #if defined (DEBUG_PACKET)
-        //         debug("\npacket:sendConfig:Sending CONF_SAMPLER\n");
-        //         dump_packet(ptr);
-        //     #endif
-        //     boardio.tx.send(ptr);
-        // 
-        //     
+
+            p.init(IBACOM_CONF_SAMPLER);
+            
+            strcpy_P(p.p_name(), BOARD_NAME);
+            
+            * p.p_stephour1() = conf.step_config();
+            * p.p_stephour2() = conf.step_status();
+            * p.p_stephour3() = conf.step_probe();
+            
+            #if defined (DEBUG_PACKET)
+                debug("\npacket:sendConfig:Sending CONF_SAMPLER\n");
+                dump_packet(p);
+            #endif
+            io.send(&p);
+        
+            
         #elif defined (INDOORINO_CONTROLLER)
 
         #elif defined (ESP8266)
@@ -400,7 +402,7 @@ namespace utils
         void        send_status                 (void)
         {
             packet::ipacket p(IBACOM_STATUS_STD);
-            strcpy(p.p_name(), P2C(BOARD_NAME));
+            strcpy_P(p.p_name(), BOARD_NAME);
 
             *p.p_epoch()    = (uint32_t)rtc.epoch();
             *p.p_freemem()  = (uint32_t)available_ram();

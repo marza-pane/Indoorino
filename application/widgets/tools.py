@@ -1760,30 +1760,5 @@ class Alarms:
         if packet.command():
             pass
 
+print('Loaded widgets.tools')
 
-if __name__ == '__main__':
-
-    class App(ApplicationWindowTemplate):
-
-        def __init__(self):
-            ApplicationWindowTemplate.__init__(self)
-            self.c=AlarmWidget(self, bg='snow')
-            self.show()
-
-        def build(self):
-            super(App, self).build()
-            self.geometry('400x400+200+200')
-            self.minsize(width=10,
-                         height=10)
-            self.c.build()
-
-        def on_resize(self):
-            w,h = super(App, self).on_resize()
-            self.c.place(
-                x=0, y=0,
-                width=w, heigh=h
-                )
-            self.c.on_resize(30)
-
-
-    app=App()

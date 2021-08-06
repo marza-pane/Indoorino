@@ -51,7 +51,7 @@ namespace utils
     void        debughelper         (const __FSH *, ...);
     void        dump_hex            (const char * buffer, iSize_t size, int mode=0);
     void        dump_sha            (const char * sha);
-//     int         chopstring          (char **, const char *, iSize_t, char);
+    iSize_t     chopstring          (const char *string, const char splitter, char ** buffer, iSize_t max_word_size=LEN_NAME);
     uint32_t    random_signed       (uint32_t start=0, uint32_t stop=UINT16_MAX);
     double      random_double       (double   start=0, double   stop=DBL_MAX);
     

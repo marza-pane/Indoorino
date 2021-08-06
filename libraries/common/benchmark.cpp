@@ -5,12 +5,9 @@
  *      Author: n00b
  */
 
-#include "icommon.h"
-// #include "containers.h"
+#include "indoorino.h"
 
-#include "../packets/ipacket.h"
-#include "../network/netutils.h"
-#include "../network/connection.h"
+#if defined (DEBUG_BENCHMARK)
 
 #if defined(ARDUINO)
     #include "stddev.h"
@@ -523,6 +520,8 @@ namespace benchmark
     }
 
 }
+
+#endif /* DEBUG_BENCHMARK */
 
 // void        benchmark_config    (void)
 // {

@@ -30,6 +30,7 @@ namespace indoorino
         const char      _f_boards[LEN_LABEL]    = "/boards.db";
         const char      _f_devs[LEN_LABEL]      = "/devices.db";
         const char      _f_layout[LEN_LABEL]    = "/layout.db";
+        const char      _f_probes[LEN_LABEL]    = "/probes.db";
 
     public:    
                  Paths();
@@ -40,6 +41,7 @@ namespace indoorino
         const char  *   db_boards   (void);     /* return board database </home/user/.indoorino/database/boards.db */
         const char  *   db_devices  (void);     /* return devices database </home/user/.indoorino/database/devices.db */
         const char  *   db_layout   (void);     /* return layout database </home/user/.indoorino/database/layout.db */
+        const char  *   db_probes   (void);     /* return layout database </home/user/.indoorino/database/layout.db */
     };
     
     extern Paths paths;

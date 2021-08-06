@@ -1,4 +1,3 @@
-import datetime
 import pickle
 
 from common.utils import *
@@ -85,7 +84,7 @@ class IndoorinoCore:
                 Config.flags.update.PACKET=True
                 packet = IndoorinoPacket()
                 packet.from_client(buffer)
-                print('appending packet {}'.format(packet.description))
+                # print('appending packet {}'.format(packet.description))
                 self._buffer.append(packet)
                 self._rx.append(packet)
 
@@ -157,23 +156,27 @@ class IndoorinoCore:
 
         def parse(self, packet):
 
-            if IBACOM_CONF_STD <= packet.command <= IBACOM_STATUS_DEVSTD or \
-                packet.command in (IBACOM_CONF_ESP, IBACOM_STATUS_ESP):
+            if IBACOM_CONF_STD <= packet.command <= IBACOM_STATUS_DEVSTD:
 
                 Config.flags.update.BOARD=True
 
                 debug('parsing for boards {}'.format(packet.description))
                 name = packet.payload['name']
-                if not isinstance(name, str):
+                if not isinstance(name, str) or len(name) == 0:
                     error_os('board:parse: invalid name <{}> from packet {}'.format(name, packet))
-                try:
-                    if not name in self._boards.keys():
-                        info_boards('Adding board {}'.format(name))
-                        self._boards[name] = IndoorinoBoard(name)
-                    self._boards[name].parse(packet)
-                except TypeError as error:
-                    error_os('board:parse: invalid <name:{}> parameter. Packet {}'.format(name, packet))
-                    error_os(error.__repr__())
+                    return
+                if not name in self._boards.keys():
+                    info_boards('Adding board {}'.format(name))
+                    self._boards[name] = IndoorinoBoard(name)
+                self._boards[name].parse(packet)
+
+
+            elif packet.source in self._boards.keys():
+                self._boards[packet.source].parse(packet)
+
+            elif packet.command in (IBACOM_SYS_PROBE_DATA,):
+                if packet.payload['board'] in self._boards.keys():
+                    self._boards[packet.payload['board']].parse(packet)
 
         def clear(self):
             self._boards.clear()
@@ -225,7 +228,7 @@ class IndoorinoCore:
             self.weather = dict()
 
         def parse(self, packet):
-            info_database('Layout:parse: packet {}'.format(packet))
+            # info_database('Layout:parse: packet {}'.format(packet))
             if packet.command == IBACOM_LYT_DEVICE:
                 key = (packet.payload['board'], packet.payload['devname'])
                 self.devices.update( {
@@ -523,6 +526,7 @@ class IndoorinoCore:
     def save_session(self):
 
         filepath=os.path.join(PATH_WS, 'session/boards.ndo')
+        r = list()
 
         if len( self.boards ) > 0:
             alert_os('Saving boards to {}'.format(filepath))
@@ -532,6 +536,7 @@ class IndoorinoCore:
                 handler.close()
             except (FileNotFoundError, FileExistsError, IOError) as error:
                 error_os('Can not save! error:{}'.format(error))
+                r.append(filepath)
 
         filepath = os.path.join(PATH_WS, 'session/packets.ndo')
         if len( self.io.rx_packets() ) > 0:
@@ -546,6 +551,7 @@ class IndoorinoCore:
                 handler.close()
             except (FileNotFoundError, FileExistsError, IOError) as error:
                 error_os('Can not save! error:{}'.format(error))
+                r.append(filepath)
 
         filepath = os.path.join(PATH_WS, 'session/layout.ndo')
         alert_os('Saving layout to {}'.format(filepath))
@@ -560,6 +566,7 @@ class IndoorinoCore:
             handler.close()
         except (FileNotFoundError, FileExistsError, IOError) as error:
             error_os('Can not save! error:{}'.format(error))
+            r.append(filepath)
 
         filepath = os.path.join(PATH_WS, 'session/alarms.ndo')
         alert_os('Saving alarms to {}'.format(filepath))
@@ -569,6 +576,9 @@ class IndoorinoCore:
             handler.close()
         except (FileNotFoundError, FileExistsError, IOError) as error:
             error_os('Can not save! error:{}'.format(error))
+            r.append(filepath)
+
+        return r
 
     def load_session(self):
         # per lo stimato ed illustre collega FRENZ detto biggus dickus
@@ -620,6 +630,17 @@ class IndoorinoCore:
             warning_os('invalid file: {} does not exist!'.format(filepath))
 
 System = IndoorinoCore()
+
+
+class HomeSensors:
+
+    def __init__(self):
+        pass
+
+    def query(self):
+        pass
+
+
 
 print('Loaded indoorino.core')
 

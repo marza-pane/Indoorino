@@ -341,7 +341,7 @@ class StatusBar(PanedTemplate):
             return
 
         elif command == 'login':
-            tkinter.messagebox.showinfo('Sorry', '{} not implemented yet'.format(command.capitalize()))
+            tkinter.messagebox.showinfo('S O R R Y', '{} not implemented yet'.format(command.capitalize()))
             return
 
         elif command == 'refresh':
@@ -350,7 +350,8 @@ class StatusBar(PanedTemplate):
             return
 
         elif command == 'options':
-            tkinter.messagebox.showinfo('Sorry', '{} not implemented yet'.format(command.capitalize()))
+            System.io.send_system_request('PROBE:ALL')
+            tkinter.messagebox.showinfo('S O R R Y', '{} not implemented yet'.format(command.capitalize()))
             return
 
         elif command == 'load':
@@ -359,7 +360,8 @@ class StatusBar(PanedTemplate):
             return
 
         elif command == 'save':
-            System.save_session()
+            if len(System.save_session()) == 0:
+                tk.messagebox.showinfo('S A V E', 'Wrote all files successfully!')
             return
 
         elif command == 'exit':
@@ -425,3 +427,4 @@ class StatusBar(PanedTemplate):
                 heigh=h
             )
 
+print('Loaded widgets.statusbar')

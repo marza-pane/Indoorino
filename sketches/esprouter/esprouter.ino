@@ -11,8 +11,8 @@ void setup()
     utils::board::io.begin();
     
     rtc.begin();
-    conf.begin();
 //     conf.factory();
+    conf.begin();
     network.begin();
     
     utils::board::send_boot_signal();
@@ -35,13 +35,14 @@ void loop()
     static iEpoch_t timeout=0;
     if (millis() > timeout)
     {
-        SerialDebug.print(".");
+        SerialDebug.write('.');
         debug_os("[RAM: %u KB] ", utils::board::available_ram());
         timeout = millis() + 1000;
     }
     
     while (!client.incoming().is_empty())
     {
+        SerialDebug.print(" P! ");
         packet::netpacket * p = client.incoming().pop_front();
         debug_client("NAME COMPARE: <%s>|<%s>",p->target, P2C(BOARD_NAME));
         if (strcmp_P(p->target, BOARD_NAME) == 0)
@@ -50,6 +51,7 @@ void loop()
         }
         else
         {
+            
             utils::board::io.sendSerial(p);
         }
         delete p;

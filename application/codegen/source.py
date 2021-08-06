@@ -20,10 +20,10 @@ variable_source_standard = (
     ( 'devnum',         'sizeof(uint8_t)',              '',                         '0',                            'MAX_ATTACHED_DEVICES'),
     ( 'devname',        'LEN_DEVNAME',                  'isAlpha',                  '0',                            '0'),
     ( 'newname',        'LEN_DEVNAME',                  'isAlpha',                  '0',                            '0'),
-    ( 'desc1',          'LEN_LABEL',                    'isAlpha',                  '0',                            '0'),
-    ( 'desc2',          'LEN_LABEL',                    'isAlpha',                  '0',                            '0'),
-    ( 'desc3',          'LEN_LABEL',                    'isAlpha',                  '0',                            '0'),
-    ( 'desc4',          'LEN_LABEL',                    'isAlpha',                  '0',                            '0'),
+    ( 'desc1',          'LEN_NAME',                     'isAlpha',                  '0',                            '0'),
+    ( 'desc2',          'LEN_NAME',                     'isAlpha',                  '0',                            '0'),
+    ( 'desc3',          'LEN_NAME',                     'isAlpha',                  '0',                            '0'),
+    ( 'desc4',          'LEN_NAME',                     'isAlpha',                  '0',                            '0'),
     ( 'epoch',          'sizeof(uint32_t)',             '',                         'SECONDS_FROM_1970_TO_2010',    'SECONDS_FROM_1970_TO_2100'),
     ( 'freemem',        'sizeof(uint32_t)',             '',                         '0',                            '0'),
     ( 'looptime',       'sizeof(uint32_t)',             '',                         '0',                            '0'),
@@ -102,10 +102,10 @@ variable_source_network = (
 
 variable_source_server = (
     # ( 'whole',          'MAX_PAYLOAD_SIZE',             '',                         '0',                          '0'),
-    ( 'table1',         'SERIAL_TX_BUFFER_SIZE',        '',                         '0',                          '0'),
-    ( 'table2',         'SERIAL_TX_BUFFER_SIZE',        '',                         '0',                          '0'),
-    ( 'table3',         'SERIAL_TX_BUFFER_SIZE',        '',                         '0',                          '0'),
-    ( 'table4',         'SERIAL_TX_BUFFER_SIZE',        '',                         '0',                          '0'),
+    ( 'table1',         'SRV_PROBE_PACKET_SIZE',        '',                         '0',                          '0'),
+    ( 'table2',         'SRV_PROBE_PACKET_SIZE',        '',                         '0',                          '0'),
+    ( 'table3',         'SRV_PROBE_PACKET_SIZE',        '',                         '0',                          '0'),
+    ( 'table4',         'SRV_PROBE_PACKET_SIZE',        '',                         '0',                          '0'),
 
 )
 #_______________________________________________________________#
@@ -156,9 +156,10 @@ packet_source_standard = (
 
     # ---#    [01001   - 01300]   :   boards config
 
-    ( 1001,     'conf_std',         'standard conf',                ('name','type','board','devnum','desc1')),
+    ( 1001,     'conf_std',         'standard conf',                ('name','type','board','devnum','desc1',)),
+    ( 1002,     'conf_params',      'conf parameters',              ('name','type','desc1','value1',)),
 
-    ( 1005,     'conf_sampler',     'sampler conf',                 ('name','stepday1','stephour1',)),                  # probe timestep & cooling time
+    ( 1005,     'conf_sampler',     'sampler conf',                 ('name','stephour1','stephour2','stephour3',)),     # probe timestep & cooling time
     ( 1100,     'conf_esp',         'esp conf',                     ('name', 'ip1', 'ip2', 'port1', 'port2',
                                                                      'timeout1', 'timeout2', 'timeout3', 'timeout4',    # timeout client, packet resend delay,
                                                                      'count1', 'count2', 'count3', 'count4')),          # packet attemps
@@ -178,6 +179,8 @@ packet_source_standard = (
     ( 1422,     'conf_DHT22',       'DHT22 sensor conf',            ('name', 'devname','pin1',
                                                                      'param1','param2','param3','param4','param5',)),
     ( 1700,     'conf_relay',       'relay conf',                   ('name', 'devname','pin1')),
+    ( 1705,     'conf_servo',       'servo conf',                   ('name', 'devname','pin1')),
+    ( 1706,     'conf_stepper',     'stepper conf',                 ('name', 'devname','pin1', 'pin2')),
     ( 2000,     'conf_devstd',      'device generic conf',          ('name', 'devname','pin1')),
 
     #---#    [02001   - 02300]   :   boards status
@@ -202,6 +205,8 @@ packet_source_standard = (
     ( 2405,     'status_dustPM25',  'PM2.5 dust sensor stat',       ('name', 'devname','status','value1',)),
     ( 2422,     'status_DHT22',     'DHT22 sensor stat',            ('name', 'devname','status','value1','value2',)),
     ( 2700,     'status_relay',     'relay stat',                   ('name', 'devname','status','level',)),
+    ( 2705,     'status_servo',     'servo stat',                   ('name', 'devname','status','value1',)),
+    ( 2706,     'status_stepper',   'servo stat',                   ('name', 'devname','status','value1',)),
     ( 3000,     'status_devstd',    'device generic stat',          ('name', 'devname','status',)),
 
     #---#    [03001   - 03200]   :   alarms
@@ -213,14 +218,10 @@ packet_source_standard = (
             # - pollution   (level: 0-undefined, 1-polluted)
 
     ( 3001,     'heat_alarm',       'heat alarm',           ('board', 'devname', 'epoch', 'value1')),
-    ( 3002,     'overh_alarm',      'overheat alarm',       ('board', 'devname', 'epoch', 'value1')),
-    ( 3003,     'fire_alarm',       'fire alarm',           ('board', 'devname', 'epoch', 'value1')),
-    ( 3004,     'flood_alarm',      'flood alarm',          ('board', 'devname', 'epoch', 'value1')),
-    ( 3005,     'moist_alarm',      'moist alarm',          ('board', 'devname', 'epoch', 'value1')),
-    ( 3006,     'smog_alarm',       'smog alarm',           ('board', 'devname', 'epoch', 'value1')),
-    ( 3007,     'hazard_alarm',     'hazard alarm',         ('board', 'devname', 'epoch', 'value1')),
-    ( 3008,     'smoke_alarm',      'smoke alarm',          ('board', 'devname', 'epoch', 'value1')),
-    ( 3009,     'grid_alarm',       'power grid alarm',     ('board', 'devname', 'epoch', 'value1')),
+    ( 3002,     'flood_alarm',      'flood alarm',          ('board', 'devname', 'epoch', 'value1')),
+    ( 3003,     'hazard_alarm',     'hazard alarm',         ('board', 'devname', 'epoch', 'value1')),
+    ( 3004,     'smoke_alarm',      'smoke alarm',          ('board', 'devname', 'epoch', 'value1')),
+    ( 3010,     'grid_alarm',       'power grid alarm',     ('board', 'devname', 'epoch', 'value1')),
     ( 3050,     'generic_alarm',    'generic alarm',        ('board', 'devname', 'epoch', 'value1', 'type')),
 
     #---#    [03201   - 03500]   :   requests
@@ -256,24 +257,23 @@ packet_source_server = (
 
     ( 7012,     'srv_conf',         'server config',                        ('ip1', 'port1', 'port2', 'status', 'table1')),
 
-    ( 7021,     'sys_brd_cnf',      'system board config',                  ('name','type','board','devnum')),
-    ( 7022,     'sys_brd_sts',      'system board status',                  ('name','status')),
-    ( 7023,     'sys_dev_cnf',      'system device config',                 ('name','type','pin1')),
-    ( 7024,     'sys_dev_sts',      'system device status',                 ('name','status')),
-
     ( 7100,     'sys_req',          'system request',                       ('command','value1','value2','value3','value4')),
+
+    ( 7505,     'sys_probe_data',   'probes data',                          ('board','devname','desc1','table1','table2')), # epoches and values
 
     ( 7701,     'set_env_alarm',    'enable environment alarm',             ('devname','board','value1', 'epoch')),
     ( 7702,     'ack_env_alarm',    'alarm acknowledge',                    ('devname','board', 'epoch')),
     ( 7703,     'env_alarm',        'environment alarm signal',             ('desc1', 'desc2', 'label1', 'label2',
                                                                              'epoch', 'value1', 'value2', 'status')),
-    ( 7705,     'alarm_devstat',    'device alarm status',                  ('devname','board', 'desc1', 'value1', 'status')), #enbled, onalarm
+    ( 7705,     'alarm_devstat',    'device alarm status',                  ('devname','board', 'desc1', 'value1', 'status')), # enabled, onalarm
 
     ( 8008,     'lyt_conf',         'layout config command',                ('command','board', 'devname',)),
-    ( 8012,     'lyt_device',       'layout device',                        ('devname','board', 'label1', 'label2', 'type')),
-    ( 8020,     'lyt_lights',       'layout lights',                        ('devname','board', 'label1', 'type')),
-    ( 8022,     'lyt_weather',      'layout weather station',               ('devname','board', 'label1', 'type')),
-    ( 8050,     'lyt_alarms',       'layout alarms',                        ('devname','board', 'label1', 'type')),
+    ( 8010,     'lyt_map',          'layout home map',                      ('command','label1', 'label2',)), #area, location
+    ( 8012,     'lyt_device',       'layout device',                        ('devname','board', 'label1', 'label2', 'label3', 'type', 'desc1')), #area, location, usability, type (to lookup in layout::LayoutDevKey), and service
+    ( 8014,     'lyt_service',      'layout service conf',                  ('command','desc1','desc2','label1', 'label2', 'label3')),
+
+    # ( 8022,     'lyt_weather',      'layout weather station',               ('devname','board', 'label1', 'type')),
+    # ( 8050,     'lyt_alarms',       'layout alarms',                        ('devname','board', 'label1', 'type')),
 
 
     # ( 7575,     'pack_route',        'route packet',        ('whole',)),

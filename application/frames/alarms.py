@@ -904,6 +904,7 @@ class UiAlarms(PanedTemplate):
                 self.button = ButtonTemplate(self)
                 self.listbox = ListBoxTemplate(self)
                 self._scroll = tk.Scrollbar(self.listbox)
+                self._event_counts = [0,0]
 
             def build(self, *args, **kwargs):
                 super(UiAlarms.AlarmDisplay.AlarmEvents, self).build()
@@ -944,6 +945,7 @@ class UiAlarms(PanedTemplate):
             def callback_clear(self, *event):
                 for dev in System.alarms.groups[self._current].devices.values():
                     dev.clear_events()
+                self._event_counts = [0,0]
                 self.listbox.select_clear(0)
                 self.listbox.delete(0, tk.END)
                 self.listbox.items.clear()
@@ -967,7 +969,7 @@ class UiAlarms(PanedTemplate):
                 if not self._current in System.alarms.groups.keys():
                     return
 
-                self.listbox.delete(0, tk.END)
+                # self.listbox.delete(0, tk.END)
 
                 # n_events = len(System.alarms.groups[self._current].events)
                 # n_events = 0
@@ -983,7 +985,7 @@ class UiAlarms(PanedTemplate):
                             self.listbox.itemconfig(tk.END,
                                 fg=Palette.generic.OFFLINE,
                                 )
-                            # n_events +=1
+                            self._event_counts[0] +=1
 
                     else:
                         entry = '{}:{}'.format(
@@ -991,9 +993,10 @@ class UiAlarms(PanedTemplate):
                         if not entry in self.listbox.items:
                             self.listbox.items.append(entry)
                             self.listbox.insert(tk.END, entry)
+                            self._event_counts[0] +=1
                             # n_events += 1
 
-                n_events = self.listbox.size()
+                # n_events = self.listbox.size()
                 # n_info = 0
                 for dev in System.alarms.groups[self._current].devices.values():
                     # n_events += len(dev.events)
@@ -1025,12 +1028,13 @@ class UiAlarms(PanedTemplate):
                         if not entry in self.listbox.items:
                             self.listbox.items.append(entry)
                             self.listbox.insert(tk.END, entry)
+                            self._event_counts[1] += 1
                             # n_info +=1
 
-                n_info = self.listbox.size() - n_events
+                # n_info = self.listbox.size() - n_events
 
                 self.label.configure(
-                    text='Events: {}  Info: {}'.format(n_events, n_info)
+                    text='Events: {}  Info: {}'.format(self._event_counts[0], self._event_counts[1])
                 )
 
             def on_resize(self, *args, **kwargs):

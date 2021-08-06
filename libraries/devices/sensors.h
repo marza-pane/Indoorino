@@ -42,6 +42,13 @@
 #define DELAY_ALARM_REPEAT      300000
 #define DELAY_ALARM_COOLDOWN    60000
 
+// const char VLABEL_relay[] PROGMEM = "relay state";
+// const char VLABEL_switch[] PROGMEM = "switch state";
+// 
+// const char VLABEL_humidity[] PROGMEM = "humidity";
+// const char VLABEL_temperature[] PROGMEM = "temperature";
+// const char VLABEL_dust[] PROGMEM = "air dust";
+
 class   Actuator_Relay      : public virtualActuator
 {
 private:
@@ -55,6 +62,7 @@ public:
     bool        reset               (void);    
     bool        set                 (uint32_t);
     void        send_dev_stat       (void);
+    void        send_probe          (void);
 };
 
 
@@ -67,9 +75,10 @@ public:
      Sensor_Switch      (uint8_t);
     ~Sensor_Switch      ();
     
-    bool        reset               (void);
-    void        send_dev_stat       (void);
-    int32_t     value               (void);
+    bool            reset               (void);
+    void            send_dev_stat       (void);
+    virtual void    send_probe          (void);
+    int32_t         value               (void);
 };
 
 
@@ -96,6 +105,7 @@ public:
     SwitchSensor_Rain(uint8_t i):Sensor_Switch(i) {};
     void        loop                (void);
     void        send_dev_stat       (void);
+    void        send_probe          (void);
     int32_t     value               (void);
     
 };
@@ -109,7 +119,7 @@ public:
         
     bool        reset               (void);
     void        send_dev_stat       (void);
-
+    void        send_probe          (void);
     int32_t     value               (void);
 };
 
@@ -137,12 +147,12 @@ public:
     void        loop                (void) {}
     bool        reset               (void);
     
-    void        send_probe          (void) {}
     void        send_dev_stat       (void);
     
     int32_t     value               (void)  { return uint32_t(getHumidity()); };
     int32_t     getHumidity         (void);
     int32_t     getTemperature      (void);
+    void        send_probe          (void);
 
 };
 
@@ -173,9 +183,8 @@ public:
     void        loop                (void) {}
     bool        reset               (void);
     
-    void        send_probe          (void) {}
     void        send_dev_stat       (void);
-    
+    void        send_probe          (void);
     int32_t     value               (void);
     
 };

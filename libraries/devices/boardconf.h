@@ -10,11 +10,6 @@
 
 #include "staticspace.h"
 
-// #if defined (INDOORINO_ROUTER)
-// #include "../netmodule/netutils.h"
-// #include "../netmodule/esputils.h"
-// #endif
-
 //  ___________________________________________________________________________________________
 //  |                              |            |      |               |      |               |
 //  |     project config           |   project  |      |     packet    |      |     packet    |
@@ -37,9 +32,12 @@
     protected:
         
         StaticSpace         staticspace;
+        virtual void        factorydev      (iSize_t);
         void                initdev         (iSize_t);
         uint8_t             validate        (packet::ipacket *);
         iSize_t             _dpos[MAX_ATTACHED_DEVICES] {0};
+        uint8_t             _propnum=0;
+        
 
     public:
                  Conf_Board ();
@@ -60,7 +58,7 @@
         bool                devSetPin       (const char *, uint8_t);
         packet::ipacket *   device          (packet::ipacket *, const char *);
         packet::ipacket *   device          (packet::ipacket *, int8_t);
-
+        
         int8_t              indexFromName   (const char *);
         int8_t              indexFromPin    (int8_t);
         void                device_name     (char *, int8_t);
@@ -77,26 +75,6 @@
 //      |___________________________________________________________________|
 //
 
-// // // // // //     class   Conf_AVR      : public Conf_Board
-// // // // // //     {
-// // // // // //         
-// // // // // //     protected:
-// // // // // //         
-// // // // // // 
-// // // // // //     public:
-// // // // // //         
-// // // // // //          Conf_AVR():Conf_Board() { };
-// // // // // //         ~Conf_AVR()              { };
-// // // // // // 
-// // // // // // //         void                begin           (void);
-// // // // // // //         void                factory         (void);
-// // // // // //         
-// // // // // // 
-// // // // // // //         iCom_t           index2command   (uint8_t);
-// // // // // // //         uint8_t             pin2index       (uint8_t);
-// // // // // //     };
-
-
     #if defined (ESP8266)
     
     /*
@@ -109,6 +87,8 @@
 
     class   ConfRouter      : public Conf_Board
     {
+    protected:
+
         char                _ssid[LEN_SSID] {0};
         char                _psk[LEN_PSK]   {0};
         IPAddress           _remote_address;
@@ -116,8 +96,7 @@
         
         iEpoch_t            _timeout_packet=0;
         uint8_t             _attemps_packet=0;
-
-        
+    
     public:
 
          ConfRouter():Conf_Board() { };
@@ -161,32 +140,27 @@
     public:
         void                begin           (void);
         void                factory         (void);
-        
-        void                step            (uint32_t);
-        void                cool            (uint32_t);
-        uint32_t            step            (void);
-        uint32_t            cool            (void);
+
+        void                step_probe      (uint32_t);
+        void                step_status     (uint32_t);
+        void                step_config     (uint32_t);
+
+        uint32_t            step_probe      (void);
+        uint32_t            step_status     (void);
+        uint32_t            step_config     (void);
+
+        //         void                cool            (uint32_t);
+//         uint32_t            cool            (void);
     };
     
     #elif defined (INDOORINO_CONTROLLER)
-        
-        class   ConfController  : public Conf_Board
-        {
-        public:
-            void        begin           (void);
-            void        factory         (void);        
-        };
     
-        #if defined (ESP8266)
-        
-            class ConfEspController : public ConfRouter
-            {
-            public:
-                void        begin           (void);
-                void        factory         (void);
-            };
-
-        #endif
+    class   ConfController  : public Conf_Board
+    {
+    public:
+        void        begin           (void);
+        void        factory         (void);        
+    };
         
     #endif /* PROJECTS */
 

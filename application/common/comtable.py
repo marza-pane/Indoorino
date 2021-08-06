@@ -7,7 +7,7 @@
 #    |______________________________________________________________________|
 #
 
-TOTAL_IBACOM = 65
+TOTAL_IBACOM = 66
 
 
 
@@ -42,6 +42,7 @@ IBACOM_REQ_DEV_RESET                = 506
 	# --- # [ 01001 - 01300 ] : board config    # --- #
 
 IBACOM_CONF_STD                     = 1001
+IBACOM_CONF_PARAMS                  = 1002
 IBACOM_CONF_SAMPLER                 = 1005
 IBACOM_CONF_ESP                     = 1100
 IBACOM_CONF_CAMERA                  = 1300
@@ -56,6 +57,8 @@ IBACOM_CONF_LDR                     = 1310
 IBACOM_CONF_DUSTPM25                = 1405
 IBACOM_CONF_DHT22                   = 1422
 IBACOM_CONF_RELAY                   = 1700
+IBACOM_CONF_SERVO                   = 1705
+IBACOM_CONF_STEPPER                 = 1706
 IBACOM_CONF_DEVSTD                  = 2000
 
 	# --- # [ 02001 - 02300 ] : board status    # --- #
@@ -76,19 +79,17 @@ IBACOM_STATUS_LDR                   = 2310
 IBACOM_STATUS_DUSTPM25              = 2405
 IBACOM_STATUS_DHT22                 = 2422
 IBACOM_STATUS_RELAY                 = 2700
+IBACOM_STATUS_SERVO                 = 2705
+IBACOM_STATUS_STEPPER               = 2706
 IBACOM_STATUS_DEVSTD                = 3000
 
 	# --- # [ 03001 - 03200 ] : alarms          # --- #
 
 IBACOM_HEAT_ALARM                   = 3001
-IBACOM_OVERH_ALARM                  = 3002
-IBACOM_FIRE_ALARM                   = 3003
-IBACOM_FLOOD_ALARM                  = 3004
-IBACOM_MOIST_ALARM                  = 3005
-IBACOM_SMOG_ALARM                   = 3006
-IBACOM_HAZARD_ALARM                 = 3007
-IBACOM_SMOKE_ALARM                  = 3008
-IBACOM_GRID_ALARM                   = 3009
+IBACOM_FLOOD_ALARM                  = 3002
+IBACOM_HAZARD_ALARM                 = 3003
+IBACOM_SMOKE_ALARM                  = 3004
+IBACOM_GRID_ALARM                   = 3010
 IBACOM_GENERIC_ALARM                = 3050
 
 	# --- # [ 03201 - 03500 ] : requests        # --- #
@@ -113,17 +114,13 @@ IBACOM_SESSION_STAT                 = 7002
 IBACOM_SESSION_END                  = 7003
 IBACOM_SRV_REQ                      = 7010
 IBACOM_SRV_CONF                     = 7012
-IBACOM_SYS_BRD_CNF                  = 7021
-IBACOM_SYS_BRD_STS                  = 7022
-IBACOM_SYS_DEV_CNF                  = 7023
-IBACOM_SYS_DEV_STS                  = 7024
 IBACOM_SYS_REQ                      = 7100
+IBACOM_SYS_PROBE_DATA               = 7505
 IBACOM_SET_ENV_ALARM                = 7701
 IBACOM_ACK_ENV_ALARM                = 7702
 IBACOM_ENV_ALARM                    = 7703
 IBACOM_ALARM_DEVSTAT                = 7705
 IBACOM_LYT_CONF                     = 8008
+IBACOM_LYT_MAP                      = 8010
 IBACOM_LYT_DEVICE                   = 8012
-IBACOM_LYT_LIGHTS                   = 8020
-IBACOM_LYT_WEATHER                  = 8022
-IBACOM_LYT_ALARMS                   = 8050
+IBACOM_LYT_SERVICE                  = 8014

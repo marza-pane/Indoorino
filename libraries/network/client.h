@@ -43,23 +43,23 @@ public:
      ShellClient();
     ~ShellClient();
     
-    bool            begin               (const std::string& n, const std::string& h, const uint16_t p);
-    void            loop                (void);
-    void            stop                (void);
-    bool            is_connected        (void);
-    bool            connect2server      (void);
+    bool           begin               (const std::string& n, const std::string& h, const uint16_t p);
+    void           loop                (void);
+    void           stop                (void);
+    bool           is_connected        (void);
+    bool           connect2server      (void);
     
-    void            send                (const char *, packet::ipacket *);    
-    void            send2server         (packet::ipacket * p) { send(DEFAULT_TARGET, p); }
+    void           send                (const char *, packet::ipacket *);    
+    void           send2server         (packet::ipacket * p) { send(DEFAULT_TARGET, p); }
 public:
     
-    void            send                (packet::netpacket *);
-    void            login               (const char * name, const char * passwd)
+    void           send                (packet::netpacket *);
+    void           login               (const char * name, const char * passwd)
     {
         
     }
     
-    void            PingServer          (void)
+    void           PingServer          (void)
 	{
 	}
 

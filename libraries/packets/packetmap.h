@@ -2,7 +2,7 @@
  * packetmap.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: Jun 20, 2021 - 00:35:55
+ *   Edited on: Aug 06, 2021 - 01:00:15
  *      Author: n00b
  *  This code is code-generated
  */
@@ -72,10 +72,10 @@ namespace packet
 		{ 's',	sizeof(uint8_t)       , "devnum"               },	/*   9 */
 		{ 'c',	LEN_DEVNAME           , "devname"              },	/*  10 */
 		{ 'c',	LEN_DEVNAME           , "newname"              },	/*  11 */
-		{ 'c',	LEN_LABEL             , "desc1"                },	/*  12 */
-		{ 'c',	LEN_LABEL             , "desc2"                },	/*  13 */
-		{ 'c',	LEN_LABEL             , "desc3"                },	/*  14 */
-		{ 'c',	LEN_LABEL             , "desc4"                },	/*  15 */
+		{ 'c',	LEN_NAME              , "desc1"                },	/*  12 */
+		{ 'c',	LEN_NAME              , "desc2"                },	/*  13 */
+		{ 'c',	LEN_NAME              , "desc3"                },	/*  14 */
+		{ 'c',	LEN_NAME              , "desc4"                },	/*  15 */
 		{ 'u',	sizeof(uint32_t)      , "epoch"                },	/*  16 */
 		{ 'u',	sizeof(uint32_t)      , "freemem"              },	/*  17 */
 		{ 'u',	sizeof(uint32_t)      , "looptime"             },	/*  18 */
@@ -153,10 +153,10 @@ namespace packet
 
 #if defined (__linux__)
 
-		{ 'c',	SERIAL_TX_BUFFER_SIZE , "table1"               },	/*  85 */
-		{ 'c',	SERIAL_TX_BUFFER_SIZE , "table2"               },	/*  86 */
-		{ 'c',	SERIAL_TX_BUFFER_SIZE , "table3"               },	/*  87 */
-		{ 'c',	SERIAL_TX_BUFFER_SIZE , "table4"               },	/*  88 */
+		{ 'c',	SRV_PROBE_PACKET_SIZE , "table1"               },	/*  85 */
+		{ 'c',	SRV_PROBE_PACKET_SIZE , "table2"               },	/*  86 */
+		{ 'c',	SRV_PROBE_PACKET_SIZE , "table3"               },	/*  87 */
+		{ 'c',	SRV_PROBE_PACKET_SIZE , "table4"               },	/*  88 */
 
 #endif /* __linux__ */
 
@@ -421,12 +421,23 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
+	//    |    IBACOM - 1002 - IBACOM_CONF_PARAMS - conf parameters              |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_CONF_PARAMS, 4,
+			"conf parameters", { 2, 3, 12, 25 } // name, type, desc1, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
 	//    |    IBACOM - 1005 - IBACOM_CONF_SAMPLER - sampler conf                |
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_CONF_SAMPLER, 3,
-			"sampler conf", { 2, 41, 45 } // name, stepday1, stephour1
+			IBACOM_CONF_SAMPLER, 4,
+			"sampler conf", { 2, 45, 46, 47 } // name, stephour1, stephour2, stephour3
 		},
 	
 	
@@ -537,6 +548,28 @@ namespace packet
 		{
 			IBACOM_CONF_RELAY, 3,
 			"relay conf", { 2, 10, 63 } // name, devname, pin1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 1705 - IBACOM_CONF_SERVO - servo conf                    |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_CONF_SERVO, 3,
+			"servo conf", { 2, 10, 63 } // name, devname, pin1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 1706 - IBACOM_CONF_STEPPER - stepper conf                |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_CONF_STEPPER, 4,
+			"stepper conf", { 2, 10, 63, 64 } // name, devname, pin1, pin2
 		},
 	
 	
@@ -696,6 +729,28 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
+	//    |    IBACOM - 2705 - IBACOM_STATUS_SERVO - servo stat                  |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_STATUS_SERVO, 4,
+			"servo stat", { 2, 10, 54, 25 } // name, devname, status, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 2706 - IBACOM_STATUS_STEPPER - servo stat                |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_STATUS_STEPPER, 4,
+			"servo stat", { 2, 10, 54, 25 } // name, devname, status, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
 	//    |    IBACOM - 3000 - IBACOM_STATUS_DEVSTD - device generic stat        |
 	//    |______________________________________________________________________|
 	//
@@ -718,29 +773,7 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 3002 - IBACOM_OVERH_ALARM - overheat alarm               |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_OVERH_ALARM, 4,
-			"overheat alarm", { 4, 10, 16, 25 } // board, devname, epoch, value1
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 3003 - IBACOM_FIRE_ALARM - fire alarm                    |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_FIRE_ALARM, 4,
-			"fire alarm", { 4, 10, 16, 25 } // board, devname, epoch, value1
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 3004 - IBACOM_FLOOD_ALARM - flood alarm                  |
+	//    |    IBACOM - 3002 - IBACOM_FLOOD_ALARM - flood alarm                  |
 	//    |______________________________________________________________________|
 	//
 		{
@@ -751,29 +784,7 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 3005 - IBACOM_MOIST_ALARM - moist alarm                  |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_MOIST_ALARM, 4,
-			"moist alarm", { 4, 10, 16, 25 } // board, devname, epoch, value1
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 3006 - IBACOM_SMOG_ALARM - smog alarm                    |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_SMOG_ALARM, 4,
-			"smog alarm", { 4, 10, 16, 25 } // board, devname, epoch, value1
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 3007 - IBACOM_HAZARD_ALARM - hazard alarm                |
+	//    |    IBACOM - 3003 - IBACOM_HAZARD_ALARM - hazard alarm                |
 	//    |______________________________________________________________________|
 	//
 		{
@@ -784,7 +795,7 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 3008 - IBACOM_SMOKE_ALARM - smoke alarm                  |
+	//    |    IBACOM - 3004 - IBACOM_SMOKE_ALARM - smoke alarm                  |
 	//    |______________________________________________________________________|
 	//
 		{
@@ -795,7 +806,7 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 3009 - IBACOM_GRID_ALARM - power grid alarm              |
+	//    |    IBACOM - 3010 - IBACOM_GRID_ALARM - power grid alarm              |
 	//    |______________________________________________________________________|
 	//
 		{
@@ -944,56 +955,23 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 7021 - IBACOM_SYS_BRD_CNF - system board config          |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_SYS_BRD_CNF, 4,
-			"system board config", { 2, 3, 4, 9 } // name, type, board, devnum
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 7022 - IBACOM_SYS_BRD_STS - system board status          |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_SYS_BRD_STS, 2,
-			"system board status", { 2, 54 } // name, status
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 7023 - IBACOM_SYS_DEV_CNF - system device config         |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_SYS_DEV_CNF, 3,
-			"system device config", { 2, 3, 63 } // name, type, pin1
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 7024 - IBACOM_SYS_DEV_STS - system device status         |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_SYS_DEV_STS, 2,
-			"system device status", { 2, 54 } // name, status
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
 	//    |    IBACOM - 7100 - IBACOM_SYS_REQ - system request                   |
 	//    |______________________________________________________________________|
 	//
 		{
 			IBACOM_SYS_REQ, 5,
 			"system request", { 1, 25, 26, 27, 28 } // command, value1, value2, value3, value4
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7505 - IBACOM_SYS_PROBE_DATA - probes data               |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_SYS_PROBE_DATA, 5,
+			"probes data", { 4, 10, 12, 85, 86 } // board, devname, desc1, table1, table2
 		},
 	
 	
@@ -1054,45 +1032,34 @@ namespace packet
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
+	//    |    IBACOM - 8010 - IBACOM_LYT_MAP - layout home map                  |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_LYT_MAP, 3,
+			"layout home map", { 1, 5, 6 } // command, label1, label2
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
 	//    |    IBACOM - 8012 - IBACOM_LYT_DEVICE - layout device                 |
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_LYT_DEVICE, 5,
-			"layout device", { 10, 4, 5, 6, 3 } // devname, board, label1, label2, type
+			IBACOM_LYT_DEVICE, 7,
+			"layout device", { 10, 4, 5, 6, 7, 3, 12 } // devname, board, label1, label2, label3, type, desc1
 		},
 	
 	
 	//    ________________________________________________________________________
 	//    |                                                                      |
-	//    |    IBACOM - 8020 - IBACOM_LYT_LIGHTS - layout lights                 |
+	//    |    IBACOM - 8014 - IBACOM_LYT_SERVICE - layout service conf          |
 	//    |______________________________________________________________________|
 	//
 		{
-			IBACOM_LYT_LIGHTS, 4,
-			"layout lights", { 10, 4, 5, 3 } // devname, board, label1, type
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 8022 - IBACOM_LYT_WEATHER - layout weather station       |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_LYT_WEATHER, 4,
-			"layout weather station", { 10, 4, 5, 3 } // devname, board, label1, type
-		},
-	
-	
-	//    ________________________________________________________________________
-	//    |                                                                      |
-	//    |    IBACOM - 8050 - IBACOM_LYT_ALARMS - layout alarms                 |
-	//    |______________________________________________________________________|
-	//
-		{
-			IBACOM_LYT_ALARMS, 4,
-			"layout alarms", { 10, 4, 5, 3 } // devname, board, label1, type
+			IBACOM_LYT_SERVICE, 6,
+			"layout service conf", { 1, 12, 13, 5, 6, 7 } // command, desc1, desc2, label1, label2, label3
 		},
 
 #endif /* __linux__ */

@@ -18,6 +18,17 @@
 #include <mutex>
 #include <condition_variable>
 
+/*
+ * Possible conditions:
+ * 
+ * - device is added or removed from one or more services:
+ * - service has terminated unexpetedly and must be restarted:
+ * - user wants to restart a specific service
+ * 
+ * TODO implement these line above
+ * 
+ */
+
 namespace indoorino
 {
     namespace svc
@@ -38,18 +49,24 @@ namespace indoorino
         public:
             
              Services() {}
-            ~Services() { _threadlist.clear(); } 
+            ~Services() { this->clear(); } 
             
-            auto& operator() (void) { return _threadlist; }
+            ServiceTemplate * operator() (const char *);
+            auto operator[] (int i) { return _threadlist.at(i); }
+            auto operator() (void)  { return _threadlist; }
             
             int             exist       (const char *);
             bool            remove      (const char *);
-            bool            add         (const lyt::LayoutServiceKey&);
+            bool            add         (lyt::Service *);
             void            show        (void);
             
             void            begin       (void);
             iSize_t         size        () { return _threadlist.size(); }
-            void            clear       () { _threadlist.clear(); } 
+            void            clear       (void);
+            void            read_layout (void);
+            
+            bool            load        (void) { return 0; };
+            bool            save        (void) { return 0; };
         };
 
 //      _________________________________________
@@ -69,50 +86,38 @@ namespace indoorino
             bool        _update=false;
 
         protected:
-            const lyt::LayoutServiceKey     _layout;
-            std::vector<DeviceTemplate *>   _devices;
+            lyt::Service               *    _layout;
             std::mutex                      _mtx;
             std::condition_variable         _cv;
             
         public:
-            const char * name()     { return (const char *)_layout.name; }
-            const char * type()     { return (const char *)_layout.type; }
-            const char * area()     { return (const char *)_layout.area; }
-            const char * location() { return (const char *)_layout.location; }
-
+            const char * name()     { return (const char *)_layout->name(); }
+            const char * type()     { return (const char *)_layout->type(); }
+            const char * area()     { return (const char *)_layout->area(); }
+            const char * location() { return (const char *)_layout->location(); }            
+            
         public:
             
-            ServiceTemplate (const lyt::LayoutServiceKey&);
+            ServiceTemplate (lyt::Service *);
             
-            virtual ~ServiceTemplate() { this->stop(); _devices.clear(); }
+            virtual ~ServiceTemplate() { this->stop(); }
             
             virtual void    begin       (void);
             virtual void    stop        (void);
+            virtual void    read_layout (void)=0;
+            virtual void    on_update   (void)=0;
+            virtual void    send_status (void)=0;
+            virtual void    parse       (packet::ipacket*)=0;
             
-            bool            add_device  (lyt::LayoutKey&);
-            bool            rem_device  (const char *, const char *);
+            virtual bool    is_alarm    (void) { return false; }
+            virtual bool    is_light    (void) { return false; }
+            virtual bool    is_climate  (void) { return false; }
+
             int             has_device  (const char *, const char *);
             
+            friend class Services;
         };
 
-        
-        
-        
-        
-        class LightsTemplate : public ServiceTemplate
-        {
-        protected:
-            void    loop    (void);
-        
-        public:
-            
-             LightsTemplate(const lyt::LayoutServiceKey&);
-            ~LightsTemplate();
-            
-            void    begin   (void);
-            void    stop    (void);
-            
-        };
 
         
 //         class AlarmFlood: public ServiceTemplate

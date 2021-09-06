@@ -45,7 +45,7 @@ namespace utils
 {
     iEpoch_t    epoch_now           (void);
     void        wait                (unsigned long msec);
-    char    *   time_string         (const uint32_t epoch);
+    char    *   timestring_epoch32  (const uint32_t epoch);
     bool        is_devname          (const char * p, uint8_t min_size=4, uint8_t max_size=LEN_NAME);
     bool        is_readable         (const char * p, uint8_t min_size=1, uint8_t max_size=SERIAL_TX_BUFFER_SIZE);
     void        debughelper         (const __FSH *, ...);
@@ -54,9 +54,45 @@ namespace utils
     iSize_t     chopstring          (const char *string, const char splitter, char ** buffer, iSize_t max_word_size=LEN_NAME);
     uint32_t    random_signed       (uint32_t start=0, uint32_t stop=UINT16_MAX);
     double      random_double       (double   start=0, double   stop=DBL_MAX);
-    
+
 #if defined(__linux__)
+
     time_t      millis              (void);
+    char    *   format_seconds      (uint32_t secs);
+    char    *   timestring_epoch64  (const uint64_t t);
+    char    *   timestring_chrono   (std::chrono::system_clock::time_point t);
+    char    *   format_duration     (std::chrono::seconds t);
+    
+    uint32_t    chrono2unixepoch    (std::chrono::system_clock::time_point t);
+    
+    template <class T>
+    void        clean_vector        (std::vector<T*>& data)
+    {
+        iSize_t i=0;
+        for (auto entry: data)
+        {
+            if (entry == nullptr)
+            {
+                warning_io("clean: found nullptr @ %d!", i);
+                data.erase(data.begin() + i);
+                clean_vector(data);
+                return;
+            }
+            i++;
+        }
+    }
+    
+    template <class...DUR, class DIN>
+    std::tuple<DUR...> break_down_durations( DIN d )
+    {
+        std::tuple<DUR...> r;
+        using discard = int[];
+        (void) discard { 0, (void ((
+            (std::get<DUR>(r) = std::chrono::duration_cast<DUR>(d)),
+            (d -= std::chrono::duration_cast<DIN>(std::get<DUR>(r)))
+            )),0)...};
+        return r;
+    }
 #endif /* __linux__ */    
     template <typename OBJ> class List;
     template <typename OBJ> class Queue;    

@@ -1,4 +1,4 @@
-#include "icommon.h"
+#include "indoorino.h"
 
 ConfController  conf;
 IndoorinoDeviceList devices;

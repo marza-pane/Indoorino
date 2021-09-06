@@ -380,7 +380,6 @@ namespace net
 //         printf("\n ************* milliseconds from 2010 is [%ld]", f);
 //         printf("\n ************* milliseconds for PING is [%d]", u);
     }
-
         
                     /* O N  P A C K E T */
     void            connection::on_packet                   (packet::netpacket * p)
@@ -509,7 +508,7 @@ namespace net
         iEpoch_t t=utils::epoch_now();
         packet::netpacket p(IBACOM_UNIX_EPOCH);
         memcpy(p.p_epoch(), &t, sizeof(iEpoch_t));
-        std::cout << "Updating board RTC with : " << utils::time_string(*p.p_epoch()) << std::endl;
+        std::cout << "Updating board RTC with : " << utils::timestring_epoch32(*p.p_epoch()) << std::endl;
 
         broadcast(&p);
         

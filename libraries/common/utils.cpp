@@ -170,15 +170,131 @@ namespace utils
     }
     
 #if defined (__linux__)
+
+    char    *   format_seconds      (uint32_t secs)
+    {
+        static char buffer[LEN_DATETIMESTR];
+        memset(buffer, 0, LEN_DATETIMESTR);
+        
+        int32_t years = 0;
+        int32_t months = 0;
+        int32_t days = 0;
+        int32_t hours = 0;
+        int32_t minutes = 0;
+        
+        while (secs >= SECONDS_PER_YEAR)
+        {
+            secs -= SECONDS_PER_YEAR;
+            years++;
+        }
+                
+        while (secs > 30 * SECONDS_PER_DAY)
+        {
+            secs -= 30 * SECONDS_PER_DAY;
+            months++;
+        }
+
+        while (secs > SECONDS_PER_DAY)
+        {            
+            secs -= SECONDS_PER_DAY;
+            days++;
+        }
+        
+        while (secs > SECONDS_PER_HOUR)
+        {            
+            secs -= SECONDS_PER_HOUR;
+            hours++;
+        }
+        
+        while (secs > 60)
+        {            
+            secs -= 60;
+            minutes++;
+        }
+        
+        char b[LEN_DATETIMESTR];
+        if (years)
+        { 
+            sprintf(b, "%d years ", years);
+            strcat(buffer, b);
+        }
+        
+        if (months)
+        {
+            if (years)
+            {
+                sprintf(b, "and %d months", months);
+                strcat(buffer, b);
+                return buffer;
+            }
+            sprintf(b, "%d months ", months);
+            strcat(buffer, b);            
+        }
+        
+        if (days)
+        { 
+            if (months)
+            {
+                sprintf(b, "and %d days", days);
+                strcat(buffer, b);
+                return buffer;
+            }
+            sprintf(b, "%d days ", days);
+            strcat(buffer, b);
+        }
+        
+        if (hours || (days || months))
+        { 
+            sprintf(b, "%02d:", hours);
+            strcat(buffer, b);
+        }
+        sprintf(b, "%02d:", minutes);
+        strcat(buffer, b);
+        sprintf(b, "%02d", secs);
+        strcat(buffer, b);
+                
+        return buffer;
+    }
+
     time_t      millis              (void)
     {
         timeval t;
         gettimeofday(&t, NULL);
         return time_t(t.tv_sec * 1000 + t.tv_usec / 1000);
     }
-#endif
+
+    char    *   format_duration     (std::chrono::seconds t)
+    {
+        auto s = std::chrono::duration_cast<std::chrono::seconds>(t);
+        return format_seconds(s.count());
+    }
     
-    char    *   time_string          (const uint32_t epoch)
+    char    *   timestring_chrono   (std::chrono::system_clock::time_point t)
+    {
+        std::chrono::system_clock::duration dtn = t.time_since_epoch();
+        uint64_t eph = dtn.count() * std::chrono::system_clock::period::num / std::chrono::system_clock::period::den;
+        return timestring_epoch64(eph);
+    }
+
+    char    *   timestring_epoch64  (const uint64_t t)
+    {
+        static char buffer[LEN_DATETIMESTR];        
+        memset(buffer, 0, LEN_DATETIMESTR);
+        tm * timeinfo;
+        timeinfo = localtime((int64_t *)&t);   
+        strftime (buffer, LEN_DATETIMESTR, "%Y %b %d %H:%M:%S", timeinfo);
+        return (char*)buffer;
+    }
+
+    uint32_t    chrono2unixepoch    (std::chrono::system_clock::time_point t)
+    {
+        std::chrono::system_clock::duration dtn = t.time_since_epoch();
+        return dtn.count() * std::chrono::system_clock::period::num / std::chrono::system_clock::period::den;
+    }
+    
+#endif
+
+    char    *   timestring_epoch32  (const uint32_t epoch)
     {
         static char buffer[LEN_DATETIMESTR];        
         memset(buffer, 0, LEN_DATETIMESTR);
@@ -234,7 +350,7 @@ namespace utils
         return true;        
     }
     
-    unsigned int chopstring(const char * string, char splitter, char ** buffer, unsigned int max_word_size=32)
+    unsigned int chopstring(const char * string, char splitter, char ** buffer, unsigned int max_word_size)
     {
         /* USE like this:
          	
@@ -392,62 +508,7 @@ namespace utils
 
     #endif 
     }
-    
-    
-//     int         chopstring          (char ** buffer, const char * string, iSize_t size, char splitter)
-//     {
-//         int count = 0;
-//         
-//         if (strlen(string) > 0)
-//         {
-//             count = 1;
-//         }
-//         
-//         char *  source;
-//         char *  ptr;
-//         
-//         source=(char *)malloc(size + 1);
-//         strcpy(source, string);
-//         
-//         ptr = strchr(source, splitter);
-//         while (ptr != NULL)
-//         {
-//             count++;
-//             ptr=strchr(ptr + 1, splitter);
-//         }
-//         
-//         char * index = source;
-//         
-//         buffer = (char**)calloc(count, sizeof(char*));
-// 
-//         for (uint8_t i=0; i<count; i++)
-//         {
-//             buffer[i] = (char *)calloc(LEN_NAME, sizeof(char));
-//             ptr = strchr(index, splitter);
-// 
-//             if (ptr==NULL)  { strcpy(buffer[i], index); }
-//             else            
-//             { 
-//                 strncpy(buffer[i], index, ptr - index);
-//                 index = ptr + 1;
-//             }
-// 
-//             debug_io("-->Chunk %u : %s",i, buffer[i]);
-//         }
-//         
-//         free (source);
-//         
-//         return count;
-//     }
-        
-// for (uint8_t i=0; i<=n; i++)
-// {
-//     free(c[i]);
-// }
-// free(c);
-// }
-    
-    
+
 #if defined (ARDUINO)
     namespace board
     {

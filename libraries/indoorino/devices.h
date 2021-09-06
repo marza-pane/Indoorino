@@ -27,197 +27,271 @@
 
 namespace indoorino
 {
-    
-    class DeviceTemplate;
-    
-    //      _________________________________________
-    //      |                                       |
-    //      |       Device List Wrapper             |
-    //      |_______________________________________|
-    //
-    //
-    
-    class Devices
-    {
-    protected:
-        std::vector<DeviceTemplate *>   _devs;
-        void clean_nullp (void);
-
-    public:
-         Devices();
-        ~Devices();
-        
-    public:
-        DeviceTemplate  *   operator[]  (const int  i);
-        DeviceTemplate  *   operator()  (const char *);
-        const auto      &   operator()  (void) { return _devs; }
-        
-    public:
-
-                
-        int         exist       (const char *);
-        bool        remove      (const char *);
-        bool        add         (packet::ipacket *);
-        bool        add         (const char *b, const char *d, iCom_t c, iPin_t p=0);
-        void        show        (void);
-        iSize_t     size        (void) { return _devs.size(); }
-        void        clear       (void);
-                
-        friend class BoardTemplate;
-    };
-
-    //      _________________________________________
-    //      |                                       |
-    //      |       Device Template                 |
-    //      |_______________________________________|
-    //
-        
-    class DeviceTemplate
-    {
-        
-    protected:
-        packet::ipacket             _conf;
-        packet::ipacket             _stat;
-
-    protected:
-        std::vector<std::string>    _services;
-        void    add_service         (const char *);
-        
-    public:
-
-        DeviceTemplate(const char *b, const char *d, iCom_t c, iPin_t p=0);
-        
-        virtual ~DeviceTemplate() { _services.clear(); }
-        
-        void                loop            (void) {};
-        virtual void        parse           (packet::ipacket *);
-        
-        iCom_t              devtype         () { return _conf.command();                    }
-        const char  *       name            () { return (const char *)_conf.p_devname();    }
-        const char  *       boardname       () { return (const char *)_conf.p_name();       }
-        const char  *       type            () { return (const char *)lyt::devicetype_Com2Str(_conf.command()); }
-        
-        void                set_offline     () { *_stat.p_status() = 2;                     }
-        bool                is_connected    () { return (*_stat.p_status() == 0);           }
-        void                show            (void);
-        uint8_t             pin             () { return (uint8_t)(*_conf.p_pin1());         }
-
-        packet::ipacket&    config          () { return _conf; }
-        packet::ipacket&    status          () { return _stat; }
-
-        void                request_probe   (void);
-        int                 has_service     (const char *);
-
-// // //         friend class Devices;
-        friend class BoardTemplate;
-    };
-    
-    //      _____________________________________________
-    //      |                                           |
-    //      |       D E V I C E S    S P A C E          |
-    //      |___________________________________________|
-    //
-    
     namespace devs
     {
+    
+        class   BoardTemplate;
         
-        class DeviceAlarm : public DeviceTemplate
+        class   DeviceTemplate;
+        
+        
+        //      _________________________________________
+        //      |                                       |
+        //      |       Board List                      |
+        //      |_______________________________________|
+        //
+
+
+        class Boards
+        {
+        
+        private:
+
+        protected:        
+            std::vector<BoardTemplate *>  _boards;
+        public:
+
+            Boards() {};
+            ~Boards() { this->clear(); }
+            
+            BoardTemplate   *   operator[]  (const iSize_t i) { return _boards.at(i); };
+            BoardTemplate   *   operator()  (const char *);
+            auto&               operator()  (void) { return _boards; };
+            
+            int             exist       (const char *);
+            bool            remove      (const char *);
+            bool            add         (packet::ipacket *);
+            iSize_t         size        () { return _boards.size(); }
+            void            clear       (void);    
+            void            read_layout (void);    
+            
+            void            begin       (void) { this->read_layout(); }
+            bool            save        (void);
+            bool            load        (void);
+            void            show        (void);
+            
+//             friend class indoorino::IndoorinoSystem;
+        };
+
+        //      _________________________________________
+        //      |                                       |
+        //      |       Device List Wrapper             |
+        //      |_______________________________________|
+        //
+
+        
+        class Devices
         {
         protected:
-            bool                            _enabled = false;
-            bool                            _on_alarm = false;
-            int32_t                         _alarm_value = 0;            
-            std::vector<packet::ipacket>    _signals;
+            std::vector<DeviceTemplate *>   _devs;
 
-            void    parse           (packet::ipacket *);
+        public:
+            Devices();
+            ~Devices();
             
         public:
+            DeviceTemplate *  operator[]  (const int  i);
+            DeviceTemplate *  operator()  (const char *);
+            const auto     &  operator()  (void) { return _devs; }
             
-            DeviceAlarm(const char *b, const char *d, iCom_t c, iPin_t p=0):DeviceTemplate(b, d, c ,p) {}
+        public:
 
-            bool    alarm_enabled   (void) { return _enabled;  }
-            bool    onalarm         (void) { return _on_alarm; }
-            void    alarm_reset     (void) 
-            {
-                _enabled=false;
-                _on_alarm=false;
-                _alarm_value =0;
-            }
-            const auto& alarm_signals () { return _signals; }
+                    
+            int         exist       (const char *);
+            bool        remove      (const char *);
+            bool        add         (packet::ipacket *);
+            bool        add         (const char *b, const char *d, iCom_t c, iPin_t p=0);
+            void        show        (void);
+            iSize_t     size        (void) { return _devs.size(); }
+            void        clear       (void);
+                    
+            friend class indoorino::devs::BoardTemplate;
+        };
+
+//      ___________________________________________________________________________________________________
+//                                                                                                 
+//                ══════⊹⊱≼≽⊰⊹══════      B O A R D    T E M P L A T E      ══════⊹⊱≼≽⊰⊹══════           
+//      ___________________________________________________________________________________________________
+//
+        
+        class   BoardTemplate
+        {
+        private:
+            bool                            _enabled=true;
+            bool                            _is_online=false; // IS THIS IMPLEMENTED ??
+
+        protected:
             
-        };
-        
-        /*          R E L A Y                       */
-        class Relay : public DeviceTemplate
-        {
-        private:
-            uint8_t         _relay_stat=0;
-        public:
-            Relay(const char *b, const char *d, iCom_t c, iPin_t p=0);
+            indoorino::devs::Devices        _devices;
+            std::chrono::seconds            _lag;
+
+            std::vector<packet::netpacket>  _rxqueue; // TODO
+            std::vector<packet::netpacket>  _txqueue; // TODO
             
-            void            parse           (packet::ipacket *);
-            void            set_on          (void) {};
-            void            set_off         (void) {};
+            packet::ipacket                 _config[2];
+            packet::ipacket                 _status[2];
 
-            uint8_t         relay_status()  { return _relay_stat; }
-        };
-        
-        /*          D H T 2 2                       */
-        class DHT22 : public DeviceTemplate
-        {
-        private:
         public:
-            DHT22(const char *b, const char *d, iCom_t c, iPin_t p=0);
-            double          temperature     (void);
-            double          humidity        (void);
-
-            void            parse           (packet::ipacket *) {};
             
-        };
+            BoardTemplate(const char *);
+            virtual ~BoardTemplate();
 
-        
-        /*          G E N E R I C   S W I T C H     */
-        class GenericSwitch : public DeviceTemplate
-        {
-        private:
-            uint8_t         _switch_state=false;
         public:
-            GenericSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);  
-            bool            state           (void) { return _switch_state; }
-        };
+            void            parse           (packet::netpacket *);
+            void            send_config     (void);
+            void            send_status     (void);
+            void            read_layout     (void);
+            
+        public:
+            const char  *   name            () { return _config[0].p_name(); }
+            const char  *   type            () { return _config[0].p_type(); }
+            const char  *   board           () { return _config[0].p_board(); }
+            
+            const iSize_t   devnum          (void);
 
-        /*          F L O O D   S W I T C H         */
-        class FloodSwitch : public GenericSwitch
-        {
-        private:
-        public:
-            FloodSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);            
-            void            parse           (packet::ipacket *);
-        };
-        
-        /*          R A I N   S W I T C H           */
-        class RainSwitch : public GenericSwitch
-        {
-        private:
-        public:
-            RainSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);            
-//             void            parse           (packet::ipacket *) {};
-        };
+            auto&           devices         (void) { return _devices; }
 
-        
-        /*          D U S T   P. M.   25            */
-        class DustPM25 : public DeviceTemplate
-        {
-        private:
+            const packet::ipacket * config  () { return _config; }
+            const packet::ipacket * status  () { return _status; }
+            
         public:
-            DustPM25(const char *b, const char *d, iCom_t c, iPin_t p=0);            
-//             void            parse           (packet::ipacket *) {};
+            void            show            (void);
+            void            set_offline     () { _is_online = false; }
+            
+            std::vector<packet::netpacket>& rxpackets() { return _rxqueue; } 
+            std::vector<packet::netpacket>& txpackets() { return _txqueue; } 
+            std::chrono::system_clock::time_point& boardtime (void);
+            
+            friend class indoorino::devs::Boards;
         };
+        
+    
+//      ___________________________________________________________________________________________________
+//                                                                                                 
+//                ══════⊹⊱≼≽⊰⊹══════    D E V I C E S    T E M P L A T E    ══════⊹⊱≼≽⊰⊹══════           
+//      ___________________________________________________________________________________________________
+//
+            
+        class DeviceTemplate
+        {
 
+        protected:
+            packet::ipacket             _conf;
+            packet::ipacket             _stat;
+
+        protected:
+
+            
+        public:
+
+            DeviceTemplate(const char *b, const char *d, iCom_t c, iPin_t p=0);
+            
+            virtual ~DeviceTemplate() {}
+            
+            virtual void        parse           (packet::ipacket *);
+            
+            iCom_t              devtype         () { return _conf.command();                    }
+            const char  *       name            () { return (const char *)_conf.p_devname();    } 
+            const char  *       boardname       () { return (const char *)_conf.p_name();       }
+            const char  *       type            () { return (const char *)lyt::devicetype_Com2Str(_conf.command()); }
+            
+            void                set_offline     () { *_stat.p_status() = 2;                     }
+            bool                is_connected    () { return (*_stat.p_status() == 0);           }
+            void                show            (void);
+            uint8_t             pin             () { return (uint8_t)(*_conf.p_pin1());         }
+
+            packet::ipacket&    config          () { return _conf; }
+            packet::ipacket&    status          () { return _stat; }
+            
+            friend class indoorino::devs::BoardTemplate;
+
+        };
         
-        
-        
-    } /* namespace : devs */
+    } /* namespace:devs */
+
+} /*namespace : indoorino */
+
+#endif /* INDOORINO_NETWORK */
+
+#endif /* _SRC_DEVICES_H_ */
+
+
+//              _________________________________________
+//              |                                       |
+//              |       D E V I C E S P A C E           |
+//              |_______________________________________|
+// 
+    
+//     namespace devs
+//     {        
+//         /*          R E L A Y                       */
+//         class Relay : public DeviceTemplate
+//         {
+//             /*
+//              * This class is suitable for all kind of remote switch controllers
+//              */
+// 
+//         public:
+//             Relay(const char *b, const char *d, iCom_t c, iPin_t p=0);
+//             void            parse           (packet::ipacket *);
+//             uint8_t         state           (void) { return bool(*_stat.p_level()); }
+//             
+//             void            set_on          (void) {};
+//             void            set_off         (void) {};
+//         };
+//         
+//         /*          D H T 2 2                       */
+//         class DHT22 : public DeviceTemplate
+//         {
+//         private:
+//         public:
+//             DHT22(const char *b, const char *d, iCom_t c, iPin_t p=0);
+//             void            parse           (packet::ipacket *);
+// 
+//             double          temperature     (void);
+//             double          humidity        (void);            
+//         };
+// 
+//         
+//         /*          G E N E R I C   S W I T C H     */
+//         class GenericSwitch : public DeviceTemplate
+//         {
+//         public:
+//             GenericSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);  
+//             void            parse           (packet::ipacket *);
+//             bool            state           (void) { return bool(*_stat.p_level()); }
+//         };
+// 
+//         /*          F L O O D   S W I T C H         */
+//         class FloodSwitch : public GenericSwitch
+//         {
+//         private:
+//         public:
+//             FloodSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);            
+//         };
+//         
+//         /*          R A I N   S W I T C H           */
+//         class RainSwitch : public GenericSwitch
+//         {
+//         private:
+//         public:
+//             RainSwitch(const char *b, const char *d, iCom_t c, iPin_t p=0);            
+//         };
+// 
+//         
+//         /*          D U S T   P. M.   25            */
+//         class DustPM25 : public DeviceTemplate
+//         {
+//         private:
+//         public:
+//             DustPM25(const char *b, const char *d, iCom_t c, iPin_t p=0);            
+//             void            parse           (packet::ipacket *);
+//         };
+// 
+//         
+//         
+//         
+//     } /* namespace : devs */
 
     
 
@@ -481,14 +555,4 @@ namespace indoorino
     
     
     
-    
-    
-    
-} /*namespace : indoorino */
-
-#endif /* INDOORINO_NETWORK */
-
-
-#endif /* _SRC_DEVICES_H_ */
-
 

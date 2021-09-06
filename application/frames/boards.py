@@ -17,7 +17,7 @@ class UiBoards(PanedTemplate):
             PanedTemplate.__init__(self, parent, **kwargs)
 
             self._listbox = ListBoxTemplate(self)
-            self._scroll = tk.Scrollbar(self._listbox)
+            # self._scroll = tk.Scrollbar(self._listbox)
             self._type = ''
             self._source = Config.layout.devtypes
 
@@ -40,9 +40,10 @@ class UiBoards(PanedTemplate):
                 selectmode=tk.SINGLE,
             )
             self._listbox.bind("<<ListboxSelect>>", self.callback_select)
-            self._listbox.config(yscrollcommand=self._scroll.set)
-            self._scroll.config(command=self._listbox.yview)
-            self._scroll.configure(width=10)
+            self._listbox.build()
+            # self._listbox.config(yscrollcommand=self._scroll.set)
+            # self._scroll.config(command=self._listbox.yview)
+            # self._scroll.configure(width=10)
 
             for key in self._source:
                 self._listbox.insert(tk.END, key)
@@ -60,7 +61,7 @@ class UiBoards(PanedTemplate):
                 width=w,
                 heigh=h,
             )
-            self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
+            # self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
             self._listbox.on_resize()
 
     class TopAddDevice(TopLevelTemplate, BoardLinkTemplate):
@@ -194,7 +195,7 @@ class UiBoards(PanedTemplate):
             BoardLinkTemplate.__init__(self, board)
 
             self._devlist = ListBoxTemplate(self)
-            self._scroll = tk.Scrollbar(self._devlist)
+            # self._scroll = tk.Scrollbar(self._devlist)
             self._buttons = dict()
             self.device = ''
 
@@ -215,9 +216,10 @@ class UiBoards(PanedTemplate):
                 selectmode=tk.SINGLE,
             )
             self._devlist.bind("<<ListboxSelect>>", self.callback_select)
-            self._devlist.config(yscrollcommand=self._scroll.set)
-            self._scroll.config(command=self._devlist.yview)
-            self._scroll.configure(width=10)
+            self._devlist.build()
+            # self._devlist.config(yscrollcommand=self._scroll.set)
+            # self._scroll.config(command=self._devlist.yview)
+            # self._scroll.configure(width=10)
 
             for key in self.get_board().device.keys():
                 self._devlist.insert(tk.END, str(key))
@@ -270,7 +272,7 @@ class UiBoards(PanedTemplate):
                 heigh=h_butt,
                 width=0.5 * w - 8
             )
-            self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
+            # self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
             self._devlist.on_resize()
 
     class DeviceEditorFrame(PanedTemplate, DeviceLinkTemplate):
@@ -2757,4 +2759,4 @@ class UiBoards(PanedTemplate):
             )
 
 
-print('Loaded frames.boards')
+print('Loaded gui.frame.boards')

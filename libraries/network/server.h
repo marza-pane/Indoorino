@@ -19,8 +19,15 @@ namespace net
 {
     class IndoorinoServer
     {
-    private:
+    protected:
+        bool                    _flag_netchek=false;
         std::thread             _thr_netcheck;
+        std::mutex              _mtx_netcheck;
+        std::condition_variable _cv_netchek;
+        
+//         void        start_netchek   (void);
+//         void        stop_netchek    (void);
+        
     protected:
         utils::ObjectQueue<packet::netpacket> _rxqueue;
         

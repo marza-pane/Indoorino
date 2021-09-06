@@ -2,7 +2,7 @@
  * packetStub.cpp
  *
  *  Created on: Apr 25, 2020
- *   Edited on: Aug 06, 2021 - 01:00:15
+ *   Edited on: Sep 05, 2021 - 23:01:21
  *      Author: n00b
  *  This code is code-generated
  */
@@ -59,6 +59,12 @@ namespace packet
 			return (char *) (payload());
 		case IBACOM_SYS_REQ :
 			return (char *) (payload());
+		case IBACOM_LGT_DEV_SET :
+			return (char *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME);
+		case IBACOM_LGT_AUTO_OFF :
+			return (char *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME);
+		case IBACOM_LGT_TIMER_SET :
+			return (char *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME);
 		case IBACOM_LYT_CONF :
 			return (char *) (payload());
 		case IBACOM_LYT_MAP :
@@ -202,6 +208,16 @@ namespace packet
 		case IBACOM_GENERIC_ALARM :
 			return (char *) (payload());
 		case IBACOM_PROBE_AMBIENT :
+			return (char *) (payload());
+		case IBACOM_LGT_DEV_SET :
+			return (char *) (payload());
+		case IBACOM_LGT_AUTO_OFF :
+			return (char *) (payload());
+		case IBACOM_LGT_TIMER_SET :
+			return (char *) (payload());
+		case IBACOM_LGT_TIMER_STAT :
+			return (char *) (payload());
+		case IBACOM_LGT_TIMER_ENTRY :
 			return (char *) (payload());
 		case IBACOM_SYS_PROBE_DATA :
 			return (char *) (payload());
@@ -369,6 +385,16 @@ namespace packet
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_PROBE_AMBIENT :
 			return (char *) (payload() + LEN_NAME);
+		case IBACOM_LGT_DEV_SET :
+			return (char *) (payload() + LEN_NAME);
+		case IBACOM_LGT_AUTO_OFF :
+			return (char *) (payload() + LEN_NAME);
+		case IBACOM_LGT_TIMER_SET :
+			return (char *) (payload() + LEN_NAME);
+		case IBACOM_LGT_TIMER_STAT :
+			return (char *) (payload() + LEN_NAME);
+		case IBACOM_LGT_TIMER_ENTRY :
+			return (char *) (payload() + LEN_NAME);
 		case IBACOM_SYS_PROBE_DATA :
 			return (char *) (payload() + LEN_NAME);
 		case IBACOM_SET_ENV_ALARM :
@@ -409,6 +435,16 @@ namespace packet
 			return (char *) (payload() + LEN_NAME + LEN_NAME);
 		case IBACOM_PROBE_AMBIENT :
 			return (char *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint32_t));
+		case IBACOM_LGT_DEV_SET :
+			return (char *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_LGT_AUTO_OFF :
+			return (char *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_LGT_TIMER_SET :
+			return (char *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_LGT_TIMER_STAT :
+			return (char *) (payload() + LEN_NAME + LEN_DEVNAME);
+		case IBACOM_LGT_TIMER_ENTRY :
+			return (char *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_SYS_PROBE_DATA :
 			return (char *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_ENV_ALARM :
@@ -493,6 +529,10 @@ namespace packet
 			return (uint32_t *) (payload() + LEN_NAME + LEN_DEVNAME);
 		case IBACOM_SESSION_STAT :
 			return (uint32_t *) (payload() + LEN_NAME + sizeof(uint8_t));
+		case IBACOM_LGT_TIMER_SET :
+			return (uint32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + SERIAL_TX_BUFFER_SIZE);
+		case IBACOM_LGT_TIMER_ENTRY :
+			return (uint32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + sizeof(uint8_t));
 		case IBACOM_SET_ENV_ALARM :
 			return (uint32_t *) (payload() + LEN_DEVNAME + LEN_NAME + sizeof(int32_t));
 		case IBACOM_ACK_ENV_ALARM :
@@ -651,6 +691,16 @@ namespace packet
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint32_t) + LEN_NAME + LEN_NAME + LEN_NAME + LEN_NAME);
 		case IBACOM_SYS_REQ :
 			return (int32_t *) (payload() + SERIAL_TX_BUFFER_SIZE);
+		case IBACOM_LGT_DEV_SET :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + SERIAL_TX_BUFFER_SIZE);
+		case IBACOM_LGT_AUTO_OFF :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + SERIAL_TX_BUFFER_SIZE);
+		case IBACOM_LGT_TIMER_SET :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + SERIAL_TX_BUFFER_SIZE + sizeof(uint32_t));
+		case IBACOM_LGT_TIMER_STAT :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + sizeof(uint8_t) + sizeof(uint8_t));
+		case IBACOM_LGT_TIMER_ENTRY :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + sizeof(uint8_t) + sizeof(uint32_t));
 		case IBACOM_SET_ENV_ALARM :
 			return (int32_t *) (payload() + LEN_DEVNAME + LEN_NAME);
 		case IBACOM_ENV_ALARM :
@@ -673,6 +723,8 @@ namespace packet
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint32_t) + LEN_NAME + LEN_NAME + LEN_NAME + LEN_NAME + sizeof(int32_t));
 		case IBACOM_SYS_REQ :
 			return (int32_t *) (payload() + SERIAL_TX_BUFFER_SIZE + sizeof(int32_t));
+		case IBACOM_LGT_TIMER_STAT :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(int32_t));
 		case IBACOM_ENV_ALARM :
 			return (int32_t *) (payload() + LEN_NAME + LEN_NAME + LEN_LABEL + LEN_LABEL + sizeof(uint32_t) + sizeof(int32_t));
 		default:
@@ -689,6 +741,8 @@ namespace packet
 			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint32_t) + LEN_NAME + LEN_NAME + LEN_NAME + LEN_NAME + sizeof(int32_t) + sizeof(int32_t));
 		case IBACOM_SYS_REQ :
 			return (int32_t *) (payload() + SERIAL_TX_BUFFER_SIZE + sizeof(int32_t) + sizeof(int32_t));
+		case IBACOM_LGT_TIMER_STAT :
+			return (int32_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(int32_t) + sizeof(int32_t));
 		default:
 			error_packet_call(label());
 			return nullptr;
@@ -1019,6 +1073,10 @@ namespace packet
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
 		case IBACOM_STATUS_RELAY :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME + sizeof(uint8_t));
+		case IBACOM_LGT_TIMER_STAT :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME);
+		case IBACOM_LGT_TIMER_ENTRY :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME);
 		default:
 			error_packet_call(label());
 			return nullptr;
@@ -1055,6 +1113,8 @@ namespace packet
 			return (uint8_t *) (payload() + LEN_NAME);
 		case IBACOM_SRV_CONF :
 			return (uint8_t *) (payload() + INET_ADDRSTRLEN + sizeof(uint32_t) + sizeof(uint32_t));
+		case IBACOM_LGT_TIMER_STAT :
+			return (uint8_t *) (payload() + LEN_NAME + LEN_DEVNAME + LEN_NAME + sizeof(uint8_t));
 		case IBACOM_ENV_ALARM :
 			return (uint8_t *) (payload() + LEN_NAME + LEN_NAME + LEN_LABEL + LEN_LABEL + sizeof(uint32_t) + sizeof(int32_t) + sizeof(int32_t));
 		case IBACOM_ALARM_DEVSTAT :

@@ -10,7 +10,7 @@
 
 #if defined (INDOORINO_CLIENT)
     
-#include "../common/icommon.h"
+#include "../common/indoorino.h"
 #include "../network/client.h"
 #include "../indoorino/layout.h"
 

@@ -10,7 +10,7 @@
 #include "../network/server.h"
 #include "indoorino-system.h"
 
-#if defined (INDOORINO_NETWORK)
+#if defined (INDOORINO_SERVER)
 
 #include "layout.h"
 #include "paths.h"
@@ -209,9 +209,23 @@ namespace indoorino
         }
         
         bool    HomeMap::save               (void) { return false;} // TODO
+        
         bool    HomeMap::load               (void) { return false;} // TODO
-        void    HomeMap::send2client        (void) {} // TODO
-        void    HomeMap::parse              (packet::ipacket *) {}  // TODO
+
+        void    HomeMap::send2client        (void)
+        {
+                        
+            for (auto &a : _areas)
+            {
+                for (auto &l : a._locations)
+                {
+                    packet::ipacket p(IBACOM_LYT_MAP);
+                    strcpy(p.p_label1(), a._name);
+                    strcpy(p.p_label2(), l.c_str());
+                    Server.shell.broadcast(&p);
+                }
+            }
+        }
     
         //      _________________________________________
         //      |                                       |
@@ -422,6 +436,12 @@ namespace indoorino
             iSize_t count = _services.size();
             iSize_t count_dev = 0;
             iSize_t i = 0;
+            
+            if( count == 0 )
+            {
+                warning_os("LAYOUT:save: no data to save!");
+                return false;
+            }
             
             info_os("LAYOUT:save: writing System.layout to %s [%u packets]", filepath, count);
             file.write((char *)(&count), sizeof(iSize_t));
@@ -711,13 +731,21 @@ namespace indoorino
                                 incoming->p_label1(), incoming->p_label2(),
                                 incoming->p_label3(), incoming->p_type()
                             )
-                        ); 
+                        );
+                        
+                        
                         // Update System
+                        int k = System.is_service(incoming->p_desc1());
+                        if (k != -1)
+                        {
+                            System.services[k]->read_layout();
+                        }
+                        System.boards.read_layout();
                     }
                 }
                 else
                 {
-                    warning_os("LAYOUT:parse: no service %s for %s:%s", incoming->p_desc1(), incoming->p_label1(), incoming->p_label2());
+                    warning_os("LAYOUT:parse: no service <%s> for <%s:%s>", incoming->p_desc1(), incoming->p_label1(), incoming->p_label2());
                 }
                 
             }
@@ -735,38 +763,48 @@ namespace indoorino
                 if (strcmp(incoming->p_command(), "ADD") == 0)
                 {
                     
-                    int index = is_service(incoming->p_desc2());
+                    int index = is_service(incoming->p_desc1());
                     if (index == -1)
                     {
                         for (auto & t : indoorino::lyt::LAYOUT_SERVICES_TYPE)
-                        {
-                            if (strcmp(incoming->p_desc1(), t) == 0)
+                        {   // check if it is a valid type
+                            if (strcmp(incoming->p_desc2(), t) == 0)
                             {
-                                _services.push_back(indoorino::lyt::Service(incoming->p_desc1(), incoming->p_desc2(), incoming->p_label1(), incoming->p_label2(), incoming->p_label3()));
+                                // WARNING: Layout layer has services init(type, name) but packets and all other dependecies has services init(name, type)
+                                _services.push_back(indoorino::lyt::Service(incoming->p_desc2(), incoming->p_desc1(), incoming->p_label1(), incoming->p_label2(), incoming->p_label3()));
+
                                 // Update System
-                                break;
+                                System.services.read_layout();
+                                return;
                             }
                         }
+                        warning_os("LAYOUT:PARSE:ADD-SERVICE: invalid type <%s>", incoming->p_desc2());
                     }
+                    warning_os("LAYOUT:PARSE:ADD-SERVICE: <%s> already exist", incoming->p_desc1());
+                    
                 }
                 else if (strcmp(incoming->p_command(), "CLEAR") == 0)
                 {
-                    int index = is_service(incoming->p_desc2());
+                    int index = is_service(incoming->p_desc1());
                     if (index != -1)
                     {
                         _services.at(index).devices().clear();
                         // Update System
+                        System.services.read_layout();
                     }
+                    else warning_os("LAYOUT:PARSE:CLEAR-SERVICE: invalid service name <%s>", incoming->p_desc1());
                 }
                 else if (strcmp(incoming->p_command(), "REM") == 0)
                 {
-                    int index=is_service(incoming->p_desc2());
+                    int index=is_service(incoming->p_desc1());
                     if (index != -1)
                     {
-                        alert_os("LAYOUT:parse: removing service %s:%s - %s", incoming->p_label1(), incoming->p_label2(), incoming->p_desc1());
+                        alert_os("LAYOUT:parse: removing service <%s:%s> - <%s>", incoming->p_label1(), incoming->p_label2(), incoming->p_desc1());
                         _services.erase(_services.begin() + index);
                         // Update System
+                        System.services.read_layout();
                     }
+                    else warning_os("LAYOUT:PARSE:CLEAR-SERVICE: invalid service name <%s>", incoming->p_desc1());
                 }
             }
             
@@ -779,8 +817,8 @@ namespace indoorino
             for (auto &s : _services)
             {
                 packet::ipacket p(IBACOM_LYT_SERVICE);
-                strcpy(p.p_desc1(), s.type());
                 strcpy(p.p_desc1(), s.name());
+                strcpy(p.p_desc2(), s.type());
                 strcpy(p.p_label1(), s.desc());
                 strcpy(p.p_label2(), s.area());
                 strcpy(p.p_label3(), s.location());
@@ -808,7 +846,7 @@ namespace indoorino
         void    Layout::reset               (void)
         {
             _services.clear();
-            alert_os("LAYOUT:reset: restoring defaualt layout");
+            warning_os("LAYOUT:reset: restoring defaualt layout");
             for (auto &s : LAYOUT_DEFAULT_SERVICES)
             {
                 if ( strlen(s.name) && strlen(s.area) && strlen(s.location) && (is_service(s.name) == -1) )
@@ -1029,7 +1067,7 @@ namespace indoorino
 
 } /* namespace:indoorino */
     
-#endif /* INDOORINO_NETWORK */
+#endif /* INDOORINO_SERVER */
 
 
 

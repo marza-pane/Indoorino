@@ -7,7 +7,7 @@
  */
 
 #if defined (ARDUINO)
-#include "icommon.h"
+#include "indoorino.h"
 
 #define BUFFER_SIZE 300
 //      _____________________________________________________________________

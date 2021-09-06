@@ -114,20 +114,20 @@ namespace benchmark
 
         SerialDebugPrint(F("\n\nTesting Flash Arguments\n"));
 
-        debug_os("\tDEBUG:passing NO ARGS");
-        debug_os("\tDEBUG:passing %s %s", "RAM string", "argument");
+        info_os("\tDEBUG:passing NO ARGS");
+        info_os("\tDEBUG:passing %s %s", "RAM string", "argument");
     
         SerialDebugPrint(F("\tDEBUG:Passing a PROGMEM argument: "));
-        debug_os("%s", P2C(s));
+        info_os("%s", P2C(s));
         SerialDebugPrint(F("\tDEBUG:Passing a __FSH argument: "));
-        debug_os("%s", F2C(f));
+        info_os("%s", F2C(f));
         SerialDebugPrint(F("\tDEBUG:Passing multiple args: "));
-        debug_os("%s %s", P2C(s), F2C(f));
+        info_os("%s %s", P2C(s), F2C(f));
         SerialDebugPrint(F("\tDEBUG:formatting FSH with sprintf: "));
         
         char buff[SERIAL_TX_BUFFER_SIZE] {0};
         sprintf_P(buff, c, "string", "compiled", "format");
-        debug_os("%s", buff);
+        info_os("%s", buff);
     }
 
     void        b_board     (void)
@@ -135,13 +135,13 @@ namespace benchmark
 
         SerialDebugPrint(F("\n\nBOARD DEFAULT DEFINITIONS (please enable DEBUG_GENERIC)\n"));
     
-        debug_board("\tBoard   type:   %s", P2C(BOARD_TYPE));
-        debug_board("\tProject type:   %s", P2C(INDOORINO_TYPE));
-        debug_board("\tNetwork name:   %s", P2C(BOARD_NAME));
-        debug_board("\tDefault deices: %u", DEFAULT_DEVNUM);
+        info_board("\tBoard   type:   %s", P2C(BOARD_TYPE));
+        info_board("\tProject type:   %s", P2C(INDOORINO_TYPE));
+        info_board("\tNetwork name:   %s", P2C(BOARD_NAME));
+        info_board("\tDefault deices: %u", DEFAULT_DEVNUM);
         
         #if defined (ARDUINO)
-            debug_board("\tTotal/free RAM: %u/%u", utils::board::available_ram(), RAMEND);
+            info_board("\tTotal/free RAM: %u/%u", utils::board::available_ram(), RAMEND);
             
         #if defined(ESP8266)
             String s;
@@ -162,38 +162,38 @@ namespace benchmark
 
             SerialDebugPrint(F("\n\nESP BOARD PROPERTIES\nFirmware:"));
 
-            debug_board("\n\tChip Id       : %08X", ESP.getChipId());
+            info_board("\n\tChip Id       : %08X", ESP.getChipId());
 
             s = ESP.getCoreVersion();
             s.getBytes(buffer, SERIAL_TX_BUFFER_SIZE);
-            debug_board("\tCore version  : %s", buffer);
+            info_board("\tCore version  : %s", buffer);
             
             s = ESP.getSdkVersion();
             s.getBytes(buffer, SERIAL_TX_BUFFER_SIZE);
-            debug_board("\tSDK  version  : %s", buffer);
+            info_board("\tSDK  version  : %s", buffer);
             
-            debug_board("\tBoot version  : %u", ESP.getBootVersion());
-            debug_board("\tBoot mode     : %u", ESP.getBootMode());
-            debug_board("\tFlash chip Id : %08X", ESP.getFlashChipId());
-            debug_board("\tCPU frequency : %u MHz\nFile system (SPIFFS)", ESP.getCpuFreqMHz());
-            debug_board("\tSketch Flash RAM is size: %0.3f/%0.3f MB", flashChipSize,realFlashChipSize);
-            debug_board("\tFlash frequency  : %f MHz", flashFreq); 
-            debug_board("\tFlash write mode : %s\n", (ideMode == FM_QIO ? "QIO" : ideMode == FM_QOUT ? "QOUT" : ideMode == FM_DIO ? "DIO" : ideMode == FM_DOUT ? "DOUT" : "UNKNOWN"));
+            info_board("\tBoot version  : %u", ESP.getBootVersion());
+            info_board("\tBoot mode     : %u", ESP.getBootMode());
+            info_board("\tFlash chip Id : %08X", ESP.getFlashChipId());
+            info_board("\tCPU frequency : %u MHz\nFile system (SPIFFS)", ESP.getCpuFreqMHz());
+            info_board("\tSketch Flash RAM is size: %0.3f/%0.3f MB", flashChipSize,realFlashChipSize);
+            info_board("\tFlash frequency  : %f MHz", flashFreq); 
+            info_board("\tFlash write mode : %s\n", (ideMode == FM_QIO ? "QIO" : ideMode == FM_QOUT ? "QOUT" : ideMode == FM_DIO ? "DIO" : ideMode == FM_DOUT ? "DOUT" : "UNKNOWN"));
 
-            debug_board("\tSRAM Total : %f KB", fileTotalKB);
-            debug_board("\tSRMA Used  : %f KB", fileUsedKB);
-            debug_board("\tBlock size : %lu B", fs_info.blockSize);
-            debug_board("\tPage size  : %lu B", fs_info.pageSize);
-            debug_board("\tMaximum open files   : %lu", fs_info.maxOpenFiles);
-            debug_board("\tMaximum path length  : %lu", fs_info.maxPathLength);
+            info_board("\tSRAM Total : %f KB", fileTotalKB);
+            info_board("\tSRMA Used  : %f KB", fileUsedKB);
+            info_board("\tBlock size : %lu B", fs_info.blockSize);
+            info_board("\tPage size  : %lu B", fs_info.pageSize);
+            info_board("\tMaximum open files   : %lu", fs_info.maxOpenFiles);
+            info_board("\tMaximum path length  : %lu", fs_info.maxPathLength);
 
             Dir dir = SPIFFS.openDir("/");
-            debug_board("\tSPIFFS directory {/} :");
+            info_board("\tSPIFFS directory {/} :");
             while (dir.next())
             {
                 s = dir.fileName();
                 s.getBytes(buffer, SERIAL_TX_BUFFER_SIZE);
-                debug_board("\t%s",buffer);
+                info_board("\t%s",buffer);
             }
 
         #endif /* ESP8266 */
@@ -210,17 +210,39 @@ namespace benchmark
         for (uint8_t i=0; i<UINT8_MAX; i++) buffer[i]=i; 
 
         
-        debug_os("\n\tDump Array:");
+        info_os("\n\tDump Array:");
         utils::dump_hex(buffer, UINT8_MAX - 1);
-        debug_os("\tTime String (2000): %s", utils::time_string(SECONDS_FROM_1970_TO_2000));
-        debug_os("\tTime String (2010): %s",     utils::time_string(SECONDS_FROM_1970_TO_2010));
-        debug_os("\tTime String (2100): %s",     utils::time_string(SECONDS_FROM_1970_TO_2100));
+        info_os("\tTime String (2000): %s",     utils::timestring_epoch32(SECONDS_FROM_1970_TO_2000));
+        info_os("\tTime String (2010): %s",     utils::timestring_epoch32(SECONDS_FROM_1970_TO_2010));
+        info_os("\tTime String (2100): %s",     utils::timestring_epoch32(SECONDS_FROM_1970_TO_2100));
+
+        info_os("\tTime (64) String (2000): %s",     utils::timestring_epoch64(SECONDS_FROM_1970_TO_2000));
+        info_os("\tTime (64) String (2010): %s",     utils::timestring_epoch64(SECONDS_FROM_1970_TO_2010));
+        info_os("\tTime (64) String (2100): %s",     utils::timestring_epoch64(SECONDS_FROM_1970_TO_2100));
 
         #if defined(ARDUINO)
-        debug_os("\tTime String (compiletime): %s", utils::time_string(DateTime(F(__DATE__), F(__TIME__)).unixtime()));
+        info_os("\tTime String (compiletime): %s", utils::timestring_epoch32(DateTime(F(__DATE__), F(__TIME__)).unixtime()));
         #endif
-        debug_os("\tTime String (epoch): %s",       utils::time_string(utils::epoch_now()));
-        debug_os("\tTime String (random): %s",      utils::time_string(utils::random_signed(0, SECONDS_FROM_1970_TO_2010)));
+        info_os("\tTime String (epoch): %s",       utils::timestring_epoch32(utils::epoch_now()));
+        info_os("\tTime String (random): %s",      utils::timestring_epoch32(utils::random_signed(0, SECONDS_FROM_1970_TO_2010)));
+        
+        info_os("\tDelta Time  (secs): %s",      utils::format_seconds(utils::random_signed(0, 3600)));
+        info_os("\tDelta Time  (hour): %s",      utils::format_seconds(utils::random_signed(3600, SECONDS_PER_DAY)));
+        info_os("\tDelta Time  (days): %s",      utils::format_seconds(utils::random_signed(SECONDS_PER_DAY, SECONDS_PER_DAY * 30)));
+        info_os("\tDelta Time  (years):%s",      utils::format_seconds(utils::random_signed(SECONDS_PER_YEAR, SECONDS_PER_YEAR * 20)));
+
+        info_os("\tchrono2unixepoch (now):%s",      utils::timestring_epoch32(utils::chrono2unixepoch(std::chrono::system_clock::now())));
+        
+        #if defined (__linux__)
+        
+        auto t0 = std::chrono::system_clock::now();
+        info_os("\tTime chrono (now):%s",utils::timestring_chrono(t0));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        auto t1 = std::chrono::system_clock::now();
+        info_os("\tTime chrono (now):%s",utils::timestring_chrono(t1));
+        
+        info_os("\tDuration Time  (secs):%s",      utils::format_duration(std::chrono::duration_cast<std::chrono::seconds>(t1 - t0)));
+        #endif
     }
     
     void        b_queue     (void)
@@ -232,7 +254,7 @@ namespace benchmark
         utils::Queue<int> que_int;
         for (uint8_t i=0; i<10; i++)
         {
-            debug_io("pushing and appending %u [%u]", i, que_int.count());
+            info_io("pushing and appending %u [%u]", i, que_int.count());
             que_int.push_back(i);
             que_int.push_front(i);
             
@@ -240,8 +262,8 @@ namespace benchmark
         
         while (que_int.count() > 0)
         {
-           debug_io("popping [%u] %u", que_int.count(), que_int.pop_front());
-           debug_io("popping [%u] %u", que_int.count(), que_int.pop_back());
+           info_io("popping [%u] %u", que_int.count(), que_int.pop_front());
+           info_io("popping [%u] %u", que_int.count(), que_int.pop_back());
         }
 
         
@@ -253,19 +275,19 @@ namespace benchmark
             t->x=i+2;
             t->y=20-i;
             que_pac.push_back(t);
-            debug_io("pushing %u:%u [%u:%u]", t->x, t->y, que_pac.is_empty(), que_pac.count());
+            info_io("pushing %u:%u [%u:%u]", t->x, t->y, que_pac.is_empty(), que_pac.count());
         }
         Test * r;
         while (que_int.count() > 5)
         {
             r = que_pac.pop_front();
-            debug_io("popping %u:%u [%u:%u]", r->x, r->y, que_pac.is_empty(), que_pac.count());
+            info_io("popping %u:%u [%u:%u]", r->x, r->y, que_pac.is_empty(), que_pac.count());
             delete r;
             r = que_pac.pop_back();
-            debug_io("popping %u:%u [%u:%u]", r->x, r->y, que_pac.is_empty(), que_pac.count());
+            info_io("popping %u:%u [%u:%u]", r->x, r->y, que_pac.is_empty(), que_pac.count());
             delete r;
         }
-        debug_io("len= %u", que_pac.count());
+        info_io("len= %u", que_pac.count());
         que_pac.clear();
     }
     
@@ -276,12 +298,12 @@ namespace benchmark
         utils::List<int> q;
         for (uint8_t i=0; i<10; i++)
         {
-            debug_io("pushing %u [%u]", i, q.count());
+            info_io("pushing %u [%u]", i, q.count());
             q.push(i);
-            debug_io("append  %u [%u]", i, q.count());
+            info_io("append  %u [%u]", i, q.count());
             q.append(i);
-            debug_io("read h  %d", q[0]);
-            debug_io("read b  %d", q[-1]);
+            info_io("read h  %d", q[0]);
+            info_io("read b  %d", q[-1]);
             
 //             #if defined(ARDUINO)
 //             debug("\t- Free SRAM is %u", utils::board::available_ram());
@@ -292,13 +314,13 @@ namespace benchmark
         iSize_t s=q.count();
         for (int i=0; i<s; i++)
         {
-            debug_io("reading [%d]", q[i]);
-            debug_io("gnidaer [%d]", q[-i]);
+            info_io("reading [%d]", q[i]);
+            info_io("gnidaer [%d]", q[-i]);
         }
 
         for (uint8_t i=0; i<s; i++)
         {
-           debug_io("popping %u [%u]", q.pop(), q.count());
+           info_io("popping %u [%u]", q.pop(), q.count());
         }
         
         q.clear();
@@ -312,12 +334,12 @@ namespace benchmark
             t->x=i+2;
             t->y=20-i;
             f.push(t);
-            debug_io("append  %u:%u [%u:%u]", t->x, t->y, f.is_empty(), f.count());
+            info_io("append  %u:%u [%u:%u]", t->x, t->y, f.is_empty(), f.count());
             t = new Test();
             t->x=i+8;
             t->y=28-i;
             f.append(t);
-            debug_io("pushing %u:%u [%u:%u]", t->x, t->y, f.is_empty(), f.count());
+            info_io("pushing %u:%u [%u:%u]", t->x, t->y, f.is_empty(), f.count());
         }
 
         s=f.count();
@@ -325,12 +347,12 @@ namespace benchmark
         for (uint8_t i=0; i<s; i++)
         {
             r = f[i];
-            debug_io("reading [%u] [%u:%u]", i, r->x, r->y);
+            info_io("reading [%u] [%u:%u]", i, r->x, r->y);
         }
         for (uint8_t i=0; i<s; i++)
         {
             r = f.pop();
-            debug_io("popping %u:%u [%u:%u]", r->x, r->y, f.is_empty(), f.count());
+            info_io("popping %u:%u [%u:%u]", r->x, r->y, f.is_empty(), f.count());
             delete r;
         }
         
@@ -344,12 +366,12 @@ namespace benchmark
             t->x=i+8;
             t->y=28-i;
             f.append(t);
-            debug_io("pushing[%u:%u]", f.is_empty(), f.count());
+            info_io("pushing[%u:%u]", f.is_empty(), f.count());
         }
         s=f.count();
         for (uint8_t i=0; i<s; i++)
         {
-            debug_io("removing [%u]", i);
+            info_io("removing [%u]", i);
             f.rem(0);
         }
         for (uint8_t i=0; i<10; i++)
@@ -362,13 +384,13 @@ namespace benchmark
             t->x=i+8;
             t->y=28-i;
             f.append(t);
-            debug_io("pushing[%u:%u]", f.is_empty(), f.count());
+            info_io("pushing[%u:%u]", f.is_empty(), f.count());
         }
         s=f.count();
         for (uint8_t i=0; i<s; i++)
         {
             r = f[i];
-            debug_io("reading [%u] [%u:%u]", i, r->x, r->y);
+            info_io("reading [%u] [%u:%u]", i, r->x, r->y);
         }
 
         debug_mem("Removing specific 10: %u:%u", f[10]->x, f[10]->y);
@@ -384,7 +406,7 @@ namespace benchmark
         for (uint8_t i=0; i<s; i++)
         {
             r = f[i];
-            debug_io("reading [%u] [%u:%u]", i, r->x, r->y);
+            info_io("reading [%u] [%u:%u]", i, r->x, r->y);
         }
         f.clear();
                 
@@ -398,18 +420,18 @@ namespace benchmark
         packet::packet_fst_ p;
         utils::ObjectQueue<packet::ipacket> qpacket;
        
-        debug_io("Variable Map:");
+        info_pack("Variable Map:");
         for (iCom_t i=0; i<VARMAP_NUMBER; i++)
         {
             memcpy_P(&s, &packet::VariableMap[i], sizeof(s)); 
-            debug_io("\t[%03.3u] : %s [type:size] = [%c:%u]", i, s.name, s.type, s.size);
+            info_pack("\t[%03.3u] : %s [type:size] = [%c:%u]", i, s.name, s.type, s.size);
         }
             
-        debug_io("Packet Map:");
+        info_pack("Packet Map:");
         for (iCom_t i=0; i<TOTAL_IBACOM; i++)
         {
             memcpy_P(&p, &packet::PacketMap[i], sizeof(p)); 
-            debug_io("\t[%03.3u] : IBACOM %u:%s -- count[%u] : ", i, p.comm, p.label,  p.count);
+            info_pack("\t[%03.3u] : IBACOM %u:%s -- count[%u] : ", i, p.comm, p.label,  p.count);
             for (iCom_t k=0; k<p.count; k++)
             {        
                 for (iCom_t j=0; j<VARMAP_NUMBER; j++)
@@ -417,39 +439,39 @@ namespace benchmark
                     if (p.params[k] == j)
                     {
                         memcpy_P(&s, &packet::VariableMap[j], sizeof(s)); 
-                        debug_io("\t\t[%03.3u] : %s [type:size] = [%c:%u]", j, s.name, s.type, s.size);
+                        info_pack("\t\t[%03.3u] : %s [type:size] = [%c:%u]", j, s.name, s.type, s.size);
                     }
                 }
             }
         }
         
-        debug_io("\nNow testing all packets...");
+        info_pack("\nNow testing all packets...");
         for (iCom_t i=0; i<TOTAL_IBACOM; i++)
         {
             memcpy_P(&p, &packet::PacketMap[i], sizeof(p));
             qpacket.push_back(new packet::ipacket(p.comm));
     #if defined(ARDUINO)
-            debug_io("\t- Free SRAM is %u", utils::board::available_ram());
+            info_pack("\t- Free SRAM is %u", utils::board::available_ram());
             if (utils::board::available_ram() < 250)    break;
     #endif
         }    
         
-        debug_io("\nMax allocalbe packets for %s : %u/%u\n", P2C(BOARD_TYPE), qpacket.count(), TOTAL_IBACOM);
+        info_pack("\nMax allocalbe packets for %s : %u/%u\n", P2C(BOARD_TYPE), qpacket.count(), TOTAL_IBACOM);
         SerialDebugPrint("\n");
         while(qpacket.count())
         {
             packet::ipacket * p = qpacket.pop_front();
-            debug_io("%s", p->description());
+            info_pack("%s", p->description());
 //             dump_packet(p);
             delete p;
         }
         
-        debug_io("\n\nNow testing packet methods...");
+        info_pack("\n\nNow testing packet methods...");
 
 
 //         packet::ipacket * q = new packet::ipacket(IBACOM_REPORT);
     #if defined(ARDUINO)
-            debug_io("\t- Free SRAM is %u", utils::board::available_ram());
+            info_pack("\t- Free SRAM is %u", utils::board::available_ram());
             if (utils::board::available_ram() < 250)    return;
     #endif        
 //         debug_io("label: %s", q->label());

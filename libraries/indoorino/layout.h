@@ -9,7 +9,7 @@
 #ifndef _SRC_LAYOUT_H_
 #define _SRC_LAYOUT_H_
 
-#if defined (INDOORINO_NETWORK)
+#if defined (INDOORINO_SERVER)
 
 // #include "boards.h"
 #include "../common/utils.h"
@@ -127,7 +127,6 @@ namespace indoorino
             }
         };
         
-
         class LayoutKey
         {
         private:
@@ -389,10 +388,10 @@ namespace indoorino
             "porch",
             "pantry",
             "hallway",
-            "bedroom_W",
-            "bedroom_E",
-            "bathroom_W",
-            "bathroom_E",
+            "bedroom",
+            "guestroom",
+            "bathroom",
+            "toilet",
             "workshop",
             "cellar",
             "heating",
@@ -437,19 +436,8 @@ namespace indoorino
         
         /* Here all home locations ... */
         
-
         
-//         #define LYT_NUM_ALARMS_TYPE     6
-//         const char LAYOUT_ALARM_TYPE[LYT_NUM_ALARMS_TYPE][LEN_NAME]
-//         {
-//             "FIRE",
-//             "FLOOD",
-//             "HAZARD",
-//             "POWERGRID"
-//             "GENERIC",
-//         };
-        
-        #define LYT_NUM_SERVICES 15
+        #define LYT_NUM_SERVICES 13
         const char LAYOUT_SERVICES_TYPE[LYT_NUM_SERVICES][LEN_NAME]
         {
             
@@ -463,7 +451,7 @@ namespace indoorino
             "CLIMATE:INDOOR",
             "CLIMATE:OUTDOOR",
             "GATES",
-            "ENERGY"
+            "ENERGY",
             "CAMERAS",
             "GARDEN",
         };
@@ -636,7 +624,7 @@ namespace indoorino
 
 } /* namespace:indoorino */
     
-#endif /* INDOORINO_NETWORK */
+#endif /* INDOORINO_SERVER */
 
 #endif /* _SRC_LAYOUT_H_ */
 

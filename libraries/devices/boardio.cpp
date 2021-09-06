@@ -329,8 +329,6 @@ namespace utils
             
             
             *p.p_devnum() = conf.devnum();            
-            p.dump();
-
             
             debug_dev("send_config: STD");
             io.send(&p);
@@ -375,7 +373,6 @@ namespace utils
             *p.p_count1()   = (uint8_t)conf.attemps_packet();
 
             debug_dev("send_config: ESP");
-            p.dump();
 
             io.send(&p);
         
@@ -386,7 +383,6 @@ namespace utils
         debug_dev("packet:sendConfig: [%u] devices", conf.devnum());    
         for (uint8_t i=0; i<conf.devnum(); i++)
         {                 
-            p.dump();
             io.send(conf.device(&p,i));
         }
         #endif /* INDOORINO_DEVS */
@@ -414,7 +410,6 @@ namespace utils
             *p.p_errors4()  = 0;
                 
             debug_dev("send_status STD");
-            p.dump();
             
             io.send(&p);
             
@@ -460,7 +455,6 @@ namespace utils
             *p.p_serialrx()    =   (uint32_t)io.total_tx();
 
             debug_dev("send_status: ESP");
-            p.dump();
             
             io.send(&p);
             
@@ -501,11 +495,11 @@ namespace utils
         void        send_aes_setup              (const char * key)
         {
         #if defined (ESP8266)
+            alert_os("Setting new AES key");
             packet::ipacket p(IBACOM_CONF_AES);
             memcpy(p.p_aeskey1(), key, LEN_AES_MASTERKEY);
             strcpy(p.p_command(), "SET");
             #if defined(DEBUG_AES)
-            debug_aes("Setting new AES");
             utils::dump_hex(key, LEN_AES_MASTERKEY);
             #endif
             io.send(&p, true);

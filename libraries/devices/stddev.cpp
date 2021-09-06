@@ -104,8 +104,8 @@ void        millisClock::begin            (void)
     _rtcmillis = new RTC_Millis;
     _rtcmillis->begin(DateTime(F(__DATE__), F(__TIME__)));
     
-    debug_dev("clock:%s:begin [%s]", F2C(_id), utils::time_string(FLASHEPOCH));
-    debug_dev("clock: current datetime: %s", utils::time_string(this->epoch()));
+    debug_dev("clock:%s:begin [%s]", F2C(_id), utils::timestring_epoch32(FLASHEPOCH));
+    debug_dev("clock: current datetime: %s", utils::timestring_epoch32(this->epoch()));
 }
 
 void        millisClock::set              (DateTime synctime)
@@ -159,7 +159,7 @@ void            ClockDS3231::begin          (void)
         {
             _flag=true;
             request_time();            
-            debug_dev("clock: current datetime: %s", utils::time_string(_current_time));
+            debug_dev("clock: current datetime: %s", utils::timestring_epoch32(_current_time));
             return;
         }
     }
@@ -169,7 +169,7 @@ void            ClockDS3231::begin          (void)
     }
     
     error_dev("clock: can not init RTC DS3231");
-    debug_dev("clock: MILLIS start! current datetime: %s", utils::time_string(_current_time));
+    debug_dev("clock: MILLIS start! current datetime: %s", utils::timestring_epoch32(_current_time));
     if (_rtcmillis == NULL) _rtcmillis = new RTC_Millis;
     _rtcmillis->begin(DateTime(_current_time));
     blinker.start(3);

@@ -75,18 +75,18 @@
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
 //         #define INDOORINO_ROUTER
         
-        const char BOARD_NAME[] PROGMEM = "KITCHEN.CLIMATE";
-        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
-        #define INDOORINO_SAMPLER
+//         const char BOARD_NAME[] PROGMEM = "KITCHEN.CLIMATE";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
+//         #define INDOORINO_SAMPLER
 
 
 //         const char BOARD_NAME[] PROGMEM = "SRV.PRESCOTT.CLIMATE";
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
 //         #define INDOORINO_ROUTER
 
-//         const char BOARD_NAME[] PROGMEM = "PRESCOTT.CLIMATE";
-//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
-//         #define INDOORINO_CONTROLLER
+        const char BOARD_NAME[] PROGMEM = "PRESCOTT.CLIMATE";
+        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
+        #define INDOORINO_CONTROLLER
         
         
 //         const char BOARD_NAME[] PROGMEM = "WEATHER.SOUTH";
@@ -134,7 +134,7 @@
 //     #define DEBUG_MODULE
 //     #define DEBUG_PACKET
 //     #define DEBUG_PACKETDUMP
-//     #define DEBUG_BENCHMARK
+    #define DEBUG_BENCHMARK
 //     #define DEBUG_CHKSUM // TODO
     
     

@@ -17,57 +17,88 @@
 #include "services.h"
 // #include <deque>
 
+#define SERVICEWAIT_ALARM_OFF_LOOP  60000
+#define SERVICEWAIT_ALARM_ON_LOOP   1000
+#define SERVICE_SEND_ALARM_RATE     10000
+
 namespace indoorino
 {
     namespace alm
     {
-        
-//         class AlarmDevice
-//         {
-//         protected:
-//             const lyt::LayoutKey& layout;
-//         protected:
-//             DeviceTemplate * dev;
-//             bool    valid = false;
-//             bool    enabled = false;
-//             bool    on_alarm = false;
-//             bool    notified = false;
-// 
-//             std::vector<packet::netpacket>  _signals;
-//             
-//         public:
-//             AlarmDevices(lyt::LayoutKey*)
-//             
-//             bool    is_enabled() { return _enabled;  }
-//             bool    is_onalarm() { return _on_alarm; }
-//             
-//             const std::vector<packet::netpacket>& rxpackets () { return _signals; }
-//             
-//             friend  class       Alarms;
-//             
-//             
-//             
-//         }
 
-        
-        
-        class AlarmTemplate : public svc::ServiceTemplate
+        class AlarmService : public svc::ServiceTemplate
         {
-            // std::vector<lyt::LayoutKey>     _devices;
-    
+            
+        public:
+            
+            class AlarmDevice
+            {
+            protected:
+                
+                bool        _enabled  =false;
+                uint32_t    _value    {0};
+                
+                std::vector<packet::ipacket>    _signals;
+                
+            protected:
+                AlarmDevice(indoorino::devs::DeviceTemplate * p):device(p) {};
+                
+            public:
+               ~AlarmDevice() {};
+
+            public:
+                bool        enabled         (void) { return _enabled;  }
+                uint32_t    on_alarm        (void) { return _value;    }
+                const auto& rxpackets       (void) { return _signals;  }
+                
+                indoorino::devs::DeviceTemplate * device;
+                friend class alm::AlarmService;
+                
+            };
+
+            
+            
+//             JUST A REMINDER
+//         protected:            
+//             std::thread _thread;
+//             bool        _running=false;
+//             bool        _update=false;
+// 
+//         protected:
+//             lyt::Service               *    _layout;
+//             std::mutex                      _mtx;
+//             std::condition_variable         _cv;
+            
         protected:
-            void    loop    (void);
+            
+            std::vector<AlarmDevice>  _devices;
+            std::chrono::system_clock::time_point _last_alarm;
+            void    send_alarm  (uint32_t *);
         
         public:
             
-             AlarmTemplate(const lyt::LayoutServiceKey&);
-            ~AlarmTemplate();
+             AlarmService(lyt::Service *);
+            ~AlarmService();
             
-            void    begin   (void);
-            void    stop    (void);
+            void    begin       (void);
+            void    stop        (void);
+            void    loop        (void);
+
+            void    read_layout (void);
+            void    on_update   (void);
+            void    parse       (packet::ipacket *);
+
+            void    send_status (void);
+            uint8_t on_alarm    (void);
+
+        public:
             
+            bool            is_alarm    (void)  { return true; }
+            int             has_device  (const char *, const char *);
+            const auto&     devices     (void)  { return _devices; };
+
         };        
-    
+
     } /* namespace:alm */
     
 } /* namespace:indoorino */

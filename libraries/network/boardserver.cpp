@@ -10,7 +10,7 @@
 #include "../network/server.h"
 #include "../indoorino/indoorino-system.h"
 
-static bool _flag_ping=false;
+// static bool _flag_ping=false;
 
 namespace net
 {
@@ -21,25 +21,8 @@ namespace net
             serverTemplate(queue, port)
     {
         _timeout = std::chrono::milliseconds(TIMEOUT_CLIENT_BOARD);
-        _flag_ping=true;
-        _thread_ping = std::thread([this]()
-        {
-            iEpoch_t timeout=utils::millis() + 60000;
-            info_server("ping thread start!");
-            while (_flag_ping)
-            {
-                iEpoch_t ima = utils::millis();
-                if (ima > timeout)
-                {
-                    timeout = ima + 60000;
-                    for (auto& c: _clientlist)
-                    {
-                        c->ping();
-                    }
-                }
-            }
-            alert_server("Ping thread terminated!");
-        });
+        _pingthread = new Ping(_clientlist);
+
     }
     
     serverBoards::~serverBoards()
@@ -47,13 +30,15 @@ namespace net
         this->stop();
     }
 
+    bool        serverBoards::begin                 (void)
+    {
+        _pingthread->start();
+        return serverTemplate::begin();
+    }
+
     void        serverBoards::stop                  (void)
     {
-        if (_flag_ping)
-        {
-            _flag_ping=false;
-            if (_thread_ping.joinable()) _thread_ping.join();
-        }
+        _pingthread->stop();
         serverTemplate::stop();
     }
     

@@ -430,6 +430,15 @@ class   EntryTemplate(GenericUiTemplate, tk.Entry):
 class   ListBoxTemplate(GenericUiTemplate, tk.Listbox):
     def __init__(self, parent, **kwargs):
         GenericUiTemplate.__init__(self, parent, tk.Listbox, **kwargs)
+        self._scroll = tk.Scrollbar(self)
+        self.config(yscrollcommand=self._scroll.set)
+        self._scroll.config(command=self.yview)
+        self._scroll.configure(width=10)
+
+    def on_resize(self, *args, **kwargs):
+        self.update()
+        self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        return  super(ListBoxTemplate, self).on_resize(*args, **kwargs)
 
 class   TextBoxTemplate(GenericUiTemplate, tk.Text):
     def __init__(self, parent, **kwargs):

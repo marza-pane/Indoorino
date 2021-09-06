@@ -108,6 +108,8 @@ class ApplicationMainFrame(PanedTemplate):
         if not len(name): return
         info_os('Showing [{}]'.format(name))
 
+        alarm_key = 'resources:alarms'
+
         if name == 'treeview':
             if 'disabled' in self.tree_view.state():
                 self.tree_view.state(('!disabled',))
@@ -119,40 +121,33 @@ class ApplicationMainFrame(PanedTemplate):
                 self.on_resize()
             return
 
-        if 'resources:alarms' in name:
 
-            key = 'resources:alarms'
+        elif alarm_key in name:
+
             arg='all'
 
-            chunk = name.split(':')
-            if len(chunk) > 2 :
-                if chunk[2] in [group.alarmtype.lower() for group in System.alarms.groups.values()]:
-                    if len(chunk) == 3:
-                        arg=chunk[2]
-                    else:
-                        data = [
-                            group.name for
-                                group in System.alarms.groups.values() if
-                                group.alarmtype.lower() == chunk[2] and
-                                group.name.split(' ')[0] == chunk[3]]
+            servicename = name.replace(alarm_key, '')[1:]
 
-                        if data:
-                            arg=data[0]
-                        else:
-                            error_ui('application:show:alarms: {} not a valid group'.format(chunk[3]))
-                else:
-                    error_ui('application:show:alarms: {} not a valid type'.format(chunk[2]))
+            if len(servicename.split(':')) > 2:
+                # it's a specific alarm service
+                arg=servicename.split(':')[2].upper()
+            elif len(servicename) and servicename in ( x.alarmtype.lower() for x in System.alarms.services.values() ):
+                # it's a alarm type group!
+                arg=servicename.upper()
 
 
-            if not self.current == key:
+
+            if not self.current == alarm_key:
                 if self.current in self.frames.keys():
                     self.frames[self.current].place_forget()
-                self.current = key
+                self.current = alarm_key
                 self.on_resize()
             self.frames[self.current].show(arg)
             self.frames[self.current].on_update()
+            self.on_resize()
+            return
 
-        if 'boards:' in name:
+        elif 'boards:' in name:
 
             key = 'boards'
             chunk = name.split(':')

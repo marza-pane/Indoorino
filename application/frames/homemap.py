@@ -32,3 +32,5 @@ class UiHomeMap(CanvasTemplate):
         self._scrollx.pack(side=tk.BOTTOM,fill=tk.X)
         self._scrolly.pack(side=tk.RIGHT,fill=tk.Y)
         return w, h
+
+print('Loaded gui.frame.homemap')

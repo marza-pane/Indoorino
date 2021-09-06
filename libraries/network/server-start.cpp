@@ -17,13 +17,13 @@
 // #include "../network/shellserver.h"
 
 
-
-void on_exit         (int exitcode)
+void on_exit         (int exitcode=0)
 {
     printf("\n");
+    
     fflush(stdout);
 
-//     System.save_state();
+    System.save_state();
     System.on_exit();
     
     Server.stop();
@@ -51,17 +51,9 @@ int main (void)
     srand(time(NULL));
     std::cout << "\nIndoorino Server start!" << std::endl;
     
-//     iSize_t size = 40;
-//     char buffer[40] {0};
-//     strcpy(buffer, "Io sono Dio");
-    
-//     benchmark::b_debug();
-//     benchmark::b_board();
-//     benchmark::b_utils();
-//     benchmark::b_queue();
-//     benchmark::b_list();
-//     benchmark::b_packets();
-
+    benchmark::b_board();
+    benchmark::b_utils();
+        
     System.begin();
     Server.begin();
     
@@ -69,10 +61,9 @@ int main (void)
     while (1)
 	{
 
-        System.loop();
         Server.loop();
         
-        /* Qui metti un bel wait() con condition variable su Server.incomin(). Quando arriva il pacchetto esegui System.parse */
+        /* Qui metti un bel wait() con condition variable su Server.incoming(). Quando arriva il pacchetto esegui System.parse */
         
         if (utils::millis() > last)
         {
@@ -80,6 +71,7 @@ int main (void)
             std::cout << ".";
             fflush(stdout);
         }
+        
     }
 	
     std::cout << std::endl;

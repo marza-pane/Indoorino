@@ -2,7 +2,6 @@ import tkinter.messagebox
 
 from common.templates import *
 from indoorino.packet import IndoorinoPacket
-# from widgets.tools import AlarmGroupWidget
 
 class UiAlarms(PanedTemplate):
 
@@ -116,7 +115,7 @@ class UiAlarms(PanedTemplate):
                     pass
                 mainframe = self.master.master.master.master.master.master
 
-                if mainframe.current in System.alarms.groups.keys():
+                if mainframe.current in System.alarms.services.keys():
                     mainframe.alarmframe.show(self.group)
                 else:
                     mainframe.show(self.group)
@@ -140,7 +139,7 @@ class UiAlarms(PanedTemplate):
                     )
                     info = 'UNKNOWN'
                     bg=Palette.generic.WHITE
-                    for item in System.alarms.groups.values():
+                    for item in System.alarms.services.values():
                         if item.name == self.group:
                             # "FIRE",
                             # "FLOOD",
@@ -197,7 +196,7 @@ class UiAlarms(PanedTemplate):
                 self.label_count.configure( text = 'Events: {}'.format(self._total_events))
 
                 # if on alarm just play alarm
-                if self.activate(System.alarms.groups[self.group].is_onalarm):
+                if self.activate(System.alarms.services[self.group].is_onalarm):
                     return
 
                 count_ex = 0
@@ -205,7 +204,7 @@ class UiAlarms(PanedTemplate):
                 count_en = 0
 
                 # counting devices in group to self.devlist
-                for entry in [item for item in System.alarms.groups.values() if item.name == self.group]:
+                for entry in [item for item in System.alarms.services.values() if item.name == self.group]:
                     for device in entry.devices.values():
                         if not any([c.board == device.boardname and c.device == device.devname for c in self.devlist]):
                             print('APPENDING {}:{} to ALARMS'.format(device.boardname, device))
@@ -388,7 +387,7 @@ class UiAlarms(PanedTemplate):
 
         def on_update(self, *args, **kwargs):
             flag_resize=False
-            for group in System.alarms.groups.values():
+            for group in System.alarms.services.values():
                 if group.alarmtype == self.group:
                     if not group.name in [ w.group for w in self.alarmlist.widgetlist ]:
                         self.alarmlist.add(self.AlarmWidget, group.name, bg='blue')
@@ -442,18 +441,21 @@ class UiAlarms(PanedTemplate):
                     self.configure(bg=Palette.generic.BLACK)
                     self.icon.configure(bg=Palette.generic.BLACK)
 
+                    # print('AlarmWidget: {}:{}'.format(self.board, self.device))
+                    # print('System layout devices are: {}'.format(System.layout.devices))
+
                     try:
                         dev = System.layout.devices[(self.board, self.device)]
+                        area = dev.area
+                        location = dev.location
                     except KeyError:
                         error_ui('alarms:display:list:widget: Invalid key {}:{}'.format(self.board, self.device))
-                        dev = {
-                            'area' : '',
-                            'location' : '',
-                        }
+                        area = 'UNKNOWN'
+                        location = 'UNKNOWN'
 
                     data = (
                         ( 'name',  '{}:{}'.format(self.board, self.device), ),
-                        ( 'area',  '{}:{}'.format(dev.area, dev.location),),
+                        ( 'area',  '{}:{}'.format(area, location),),
                         ( 'state', 'DISABLED',),
                         ( 'conn',  'CONNECTED',),
                     )
@@ -487,7 +489,7 @@ class UiAlarms(PanedTemplate):
 
                     if command == 'disable':
                         value = 1
-                        if System.alarms.groups[self._group].devices[(self.board, self.device)].is_enabled:
+                        if System.alarms.services[self._group].devices[(self.board, self.device)].is_enabled:
                             value=0
                         p = IndoorinoPacket()
                         p.build(IBACOM_SET_ENV_ALARM, 'SERVER', {
@@ -510,14 +512,11 @@ class UiAlarms(PanedTemplate):
                         })
                         System.io.send(p)
 
-                def on_update(self, *args, **kwargs):
-
-                    if self.exist() and 'status' in self.get_device().status.dev.packet.payload.keys():
-                        status = self.get_device().status.dev.packet.payload['status']
-                        statustring=self.get_device().status.std['status'].value
+                    # elif command == 'configure': # ready to uncomment
                     else:
-                        status = 5 # generic undefined error
-                        statustring='not exist'
+                        tk.messagebox.showinfo('Sorry', 'Not implemented yet')
+
+                def on_update(self, *args, **kwargs):
 
                     if self.exist():
 
@@ -528,6 +527,13 @@ class UiAlarms(PanedTemplate):
                                 entry.configure(fg=Palette.generic.FG_DEFAULT)
 
                             if dev.is_connected():
+
+                                if self.exist() and 'status' in self.get_device().status.dev.packet.payload.keys():
+                                    status = self.get_device().status.dev.packet.payload['status']
+                                    statustring = self.get_device().status.std['status'].value
+                                else:
+                                    status = 5  # generic undefined error
+                                    statustring = 'not exist'
 
                                 if status == 0:
 
@@ -583,13 +589,13 @@ class UiAlarms(PanedTemplate):
                         )
 
 
-                    if System.alarms.groups[self._group].devices[(self.board, self.device)].is_onalarm:
+                    if System.alarms.services[self._group].devices[(self.board, self.device)].is_onalarm:
                         self.labels['state'].configure(
                             text='ON ALARM',
                             fg=Palette.generic.OFFLINE # it's just red
                         )
                     else:
-                        if System.alarms.groups[self._group].devices[(self.board, self.device)].is_enabled:
+                        if System.alarms.services[self._group].devices[(self.board, self.device)].is_enabled:
                             self.labels['state'].configure(
                                 text='ENABLED',
                                 fg=Palette.generic.ONLINE
@@ -700,7 +706,7 @@ class UiAlarms(PanedTemplate):
                     return
 
                 self.devlist.clear()
-                for entry in System.alarms.groups[name].devices.values():
+                for entry in System.alarms.services[name].devices.values():
                     self.devlist.add(self.AlarmDeviceWidget, entry.boardname, entry.devname, name)
                 self.title.configure( text='{} devices:'.format(name.capitalize()) )
                 self._current = name
@@ -784,16 +790,16 @@ class UiAlarms(PanedTemplate):
 
                 if name == self._current:
                     return
-                if name in System.alarms.groups.keys():
+                if name in System.alarms.services.keys():
                     self._current=name
                 else:
                     error_ui('alarminfo:show: invalid name {}'.format(name))
 
             def callback(self, command):
-                if not self._current in System.alarms.groups.keys():
+                if not self._current in System.alarms.services.keys():
                     return
                 if command == 'acknowledge':
-                    for entry in System.alarms.groups[self._current].devices.values():
+                    for entry in System.alarms.services[self._current].devices.values():
                         p = IndoorinoPacket()
                         p.build(IBACOM_ACK_ENV_ALARM, 'SERVER', {
                             'board': entry.boardname,
@@ -803,30 +809,34 @@ class UiAlarms(PanedTemplate):
                         System.io.send(p)
 
                 elif command == 'disable':
-                    if not self._current in System.alarms.groups.keys():
+                    if not self._current in System.alarms.services.keys():
                         return
-                    for entry in System.alarms.groups[self._current].devices.values():
+
+                    if any([i.is_enabled for i in System.alarms.services[self._current].devices.values()]):
+                        value = 0
+                    else:
+                        value = 1
+                    for entry in System.alarms.services[self._current].devices.values():
                         p = IndoorinoPacket()
                         p.build(IBACOM_SET_ENV_ALARM, 'SERVER', {
                             'board': entry.boardname,
                             'devname': entry.devname,
-                            'value1':0,
+                            'value1':value,
                             'epoch':int(time.mktime(datetime.datetime.now().timetuple()))
                         })
                         System.io.send(p)
                 elif command == 'configure':
                     tk.messagebox.showinfo('Sorry','Not implemented yet')
 
-
             def on_update(self, *args, **kwargs):
 
-                if not self._current in System.alarms.groups.keys():
+                if not self._current in System.alarms.services.keys():
                     return
 
                 self.labels['name'].configure(text=self._current.capitalize())
-                self.values['type'].configure(text=System.alarms.groups[self._current].alarmtype.upper())
+                self.values['type'].configure(text=System.alarms.services[self._current].alarmtype.upper())
 
-                for entry in System.alarms.groups[self._current].devices.values():
+                for entry in System.alarms.services[self._current].devices.values():
                     if (entry.boardname, entry.devname) in System.layout.devices.keys():
                         key = (entry.boardname, entry.devname)
 
@@ -834,14 +844,14 @@ class UiAlarms(PanedTemplate):
                             System.layout.devices[key].area, System.layout.devices[key].location).upper())
                         break
 
-                devnum = len(System.alarms.groups[self._current].devices)
+                devnum = len(System.alarms.services[self._current].devices)
                 if devnum == 0:
                     self.values['devices'].configure(fg=Palette.generic.ERROR_GUI)
                 else:
                     self.values['devices'].configure(fg=Palette.generic.FG_DEFAULT)
                 self.values['devices'].configure(text='{}'.format(devnum))
 
-                if any([i.is_enabled for i in System.alarms.groups[self._current].devices.values()]):
+                if any([i.is_enabled for i in System.alarms.services[self._current].devices.values()]):
                     self.values['enabled'].configure(text='YES')
                 else:
                     self.values['enabled'].configure(text='NO')
@@ -849,12 +859,21 @@ class UiAlarms(PanedTemplate):
                 if not System.io.is_connected():
                     self.values['state'].configure(text='OFFLINE')
                     self.values['state'].configure(fg=Palette.generic.DISABLED)
-                elif System.alarms.groups[self._current].is_onalarm:
+                elif System.alarms.services[self._current].is_onalarm:
                     self.values['state'].configure(text='ON ALARM')
                     self.values['state'].configure(fg=Palette.generic.ERROR_GUI)
                 else:
                     self.values['state'].configure(text='IDLE')
                     self.values['state'].configure(fg=Palette.generic.FG_DEFAULT)
+
+                if any( [i.is_enabled for i in System.alarms.services[self._current].devices.values()] ):
+                    self.buttons['disable'].configure(
+                        text='DISABLE'
+                    )
+                else:
+                    self.buttons['disable'].configure(
+                        text='ENABLE'
+                    )
 
             def on_resize(self, *args, **kwargs):
                 w,h = super(UiAlarms.AlarmDisplay.AlarmInfo, self).on_resize()
@@ -903,7 +922,7 @@ class UiAlarms(PanedTemplate):
                 self.label = LabelTemplate(self)
                 self.button = ButtonTemplate(self)
                 self.listbox = ListBoxTemplate(self)
-                self._scroll = tk.Scrollbar(self.listbox)
+                # self._scroll = tk.Scrollbar(self.listbox)
                 self._event_counts = [0,0]
 
             def build(self, *args, **kwargs):
@@ -925,9 +944,7 @@ class UiAlarms(PanedTemplate):
                     selectmode=tk.SINGLE,
                 )
                 self.listbox.bind("<<ListboxSelect>>", self.callback_select)
-                self.listbox.config(yscrollcommand=self._scroll.set)
-                self._scroll.config(command=self.listbox.yview)
-                self._scroll.configure(width=10)
+                self.listbox.build()
 
                 self.listbox.items=list()
 
@@ -943,7 +960,7 @@ class UiAlarms(PanedTemplate):
                     print('Selected : {}'.format(index))
 
             def callback_clear(self, *event):
-                for dev in System.alarms.groups[self._current].devices.values():
+                for dev in System.alarms.services[self._current].devices.values():
                     dev.clear_events()
                 self._event_counts = [0,0]
                 self.listbox.select_clear(0)
@@ -955,7 +972,7 @@ class UiAlarms(PanedTemplate):
 
                 if name == self._current:
                     return
-                if name in System.alarms.groups.keys():
+                if name in System.alarms.services.keys():
                     self._current = name
                     self.listbox.select_clear(0)
                     self.listbox.delete(0, tk.END)
@@ -966,14 +983,14 @@ class UiAlarms(PanedTemplate):
                     error_ui('alarminfo:show: invalid name {}'.format(name))
 
             def on_update(self, *args, **kwargs):
-                if not self._current in System.alarms.groups.keys():
+                if not self._current in System.alarms.services.keys():
                     return
 
                 # self.listbox.delete(0, tk.END)
 
-                # n_events = len(System.alarms.groups[self._current].events)
+                # n_events = len(System.alarms.services[self._current].events)
                 # n_events = 0
-                for epoch, event in System.alarms.groups[self._current].events.items():
+                for epoch, event in System.alarms.services[self._current].events.items():
                     if event.command == IBACOM_ENV_ALARM:
 
                         entry = '{}:{}'.format(
@@ -998,7 +1015,7 @@ class UiAlarms(PanedTemplate):
 
                 # n_events = self.listbox.size()
                 # n_info = 0
-                for dev in System.alarms.groups[self._current].devices.values():
+                for dev in System.alarms.services[self._current].devices.values():
                     # n_events += len(dev.events)
 
                     for epoch, event in dev.events.items():
@@ -1060,7 +1077,7 @@ class UiAlarms(PanedTemplate):
                     width=w - (2 * off),
                     heigh=h - (2 * off + h_label)
                 )
-                self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
+                self.listbox.on_resize() #_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         def __init__(self, parent, **kwargs):
             CanvasTemplate.__init__(self, parent, **kwargs)
@@ -1143,32 +1160,33 @@ class UiAlarms(PanedTemplate):
         self.on_update()
 
     def loop(self):
-        if Config.flags.update.DEVICES or Config.flags.update.NETWORK or Config.flags.update.SYSTEM:
+        if Config.flags.update.DEVICES or Config.flags.update.NETWORK  or Config.flags.update.SYSTEM:
             self.on_update()
 
     def show(self, arg):
 
-        if arg in [group.alarmtype.lower() for group in System.alarms.groups.values()] or \
-                arg in System.alarms.groups.keys() or \
+        if arg in [group.alarmtype for group in System.alarms.services.values()] or \
+                arg in System.alarms.services.keys() or \
                 arg == 'all':
-            print('Showing {} ALARMS'.format(arg))
+            # print('Showing {} ALARMS'.format(arg))
             self.alarmframe.place_forget()
             for entry in self.alarmgroups.values():
                 entry.place_forget()
 
             self._current = arg
-            if arg in System.alarms.groups.keys():
+            if arg in System.alarms.services.keys():
                 self.alarmframe.show(arg)
             self.on_resize()
         else:
             error_ui('alarms:show: invalid argument {}'.format(arg))
+            print('Possibiities are:')
 
     def on_update(self, *args, **kwargs):
 
         resize_flag = False
 
         # for group, data in Config.layout.alarms.items():
-        for group in System.alarms.groups.values():
+        for group in System.alarms.services.values():
 
             if not group.alarmtype in self.alarmgroups.keys():
                 self.alarmgroups.update(
@@ -1216,7 +1234,7 @@ class UiAlarms(PanedTemplate):
                 )
                 entry.on_resize()
 
-        elif self._current in [group.alarmtype.lower() for group in System.alarms.groups.values()]:
+        elif self._current in [group.alarmtype for group in System.alarms.services.values()]:
             self.alarmgroups[self._current.upper()].place(
                     x=0,
                     y=h_label,
@@ -1225,8 +1243,8 @@ class UiAlarms(PanedTemplate):
                 )
             self.alarmgroups[self._current.upper()].on_resize()
 
-        elif self._current in System.alarms.groups.keys():
-            group = [group.alarmtype for group in System.alarms.groups.values() if group.name == self._current]
+        elif self._current in System.alarms.services.keys():
+            group = [group.alarmtype for group in System.alarms.services.values() if group.name == self._current]
             try:
                 self.alarmgroups[group[0]].place(
                         x=0,
@@ -1245,3 +1263,6 @@ class UiAlarms(PanedTemplate):
                 self.alarmframe.show(self._current)
             except KeyError:
                 pass
+
+print('Loaded gui.frame.alarms')
+

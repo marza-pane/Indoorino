@@ -259,7 +259,7 @@ class UiIOverview(PanedTemplate):
 
             self.label = LabelTemplate(self)
             self.listbox = ListBoxTemplate(self)
-            self._scroll = tk.Scrollbar(self.listbox)
+            # self._scroll = tk.Scrollbar(self.listbox)
 
         def build(self, *args, **kwargs):
             super(UiIOverview.PacketList, self).build(*args)
@@ -289,9 +289,10 @@ class UiIOverview(PanedTemplate):
                 selectmode=tk.SINGLE,
             )
             self.listbox.bind("<<ListboxSelect>>", self.callback_select)
-            self.listbox.config(yscrollcommand=self._scroll.set)
-            self._scroll.config(command=self.listbox.yview)
-            self._scroll.configure(width=10)
+            self.listbox.build()
+            # self.listbox.config(yscrollcommand=self._scroll.set)
+            # self._scroll.config(command=self.listbox.yview)
+            # self._scroll.configure(width=10)
 
         def callback_select(self, *evt):
             index = self.listbox.curselection()
@@ -347,7 +348,8 @@ class UiIOverview(PanedTemplate):
                 width=w - 4,
                 heigh=h - (bh + 6)
             )
-            self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
+            self.listbox.on_resize()
+            # self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
             self.label.place(
                 x=2,
@@ -377,7 +379,7 @@ class UiIOverview(PanedTemplate):
             self.buttons = dict()
 
             self.listbox = ListBoxTemplate(self)
-            self._scroll = tk.Scrollbar(self.listbox)
+            # self._scroll = tk.Scrollbar(self.listbox)
 
         def build(self, *args, **kwargs):
             super(UiIOverview.BoardList, self).build(*args)
@@ -401,9 +403,10 @@ class UiIOverview(PanedTemplate):
                 selectmode=tk.SINGLE,
             )
             self.listbox.bind("<<ListboxSelect>>", self.callback_select)
-            self.listbox.config(yscrollcommand=self._scroll.set)
-            self._scroll.config(command=self.listbox.yview)
-            self._scroll.configure(width=10)
+            self.listbox.build()
+            # self.listbox.config(yscrollcommand=self._scroll.set)
+            # self._scroll.config(command=self.listbox.yview)
+            # self._scroll.configure(width=10)
 
         def callback_select(self, *evt):
             index = self.listbox.curselection()
@@ -447,7 +450,8 @@ class UiIOverview(PanedTemplate):
                 width=w - 4,
                 heigh=h - (bh + 6)
             )
-            self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
+            self.listbox.on_resize()
+            # self._scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
 
             self.buttons['filter'].place(
@@ -881,7 +885,7 @@ class UiIOverview(PanedTemplate):
         return w,h
 
 
-print('Loaded gui.frame.network')
+print('Loaded gui.frame.ioverview')
 
 
 

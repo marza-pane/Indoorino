@@ -205,12 +205,61 @@ namespace net
 
     class serverBoards : public serverTemplate
     {
-    private:
-        std::thread _thread_ping;
+        class Ping
+        {
+        private:
+            bool                                            _state=false;
+            std::thread                                     _thread;
+            std::mutex                                      _mtx;
+            std::condition_variable                         _cv;
+            std::deque<std::shared_ptr<serverConnection>>&  _clist;
+        public:
+            Ping(std::deque<std::shared_ptr<serverConnection>>& c):_clist(c) {};
+           ~Ping() { this->stop(); }
+            
+            void    start   (void)
+            {
+                _state=true;
+                info_server("PING: thread start!");
+                _thread = std::thread( [this]()
+                    {
+                        while (_state)
+                        {
+                            std::unique_lock<std::mutex> lck(_mtx);
+                            _cv.wait_for(lck, std::chrono::seconds(TIMEOUT_PING_SERVICE));
+                            for (auto& c: _clist)
+                            {
+                                c->ping();
+                            }
+                        }
+                        alert_server("PING: thread terminated!");
+                    });            
+            }
+            
+            void    stop    (void)
+            {
+                if (_state)
+                {
+                    info_server("PING: thread stopping...");
+                    std::unique_lock<std::mutex> lck(_mtx);
+                    _state=false;
+                    _cv.notify_all();
+                }
+                if (_thread.joinable())
+                {
+                    _thread.join();
+                }
+            }
+           
+        };
+        
+        Ping * _pingthread=nullptr;
+        
     public:
          serverBoards(utils::ObjectQueue<packet::netpacket>&, uint16_t);
         ~serverBoards();
-
+        
+        bool        begin               (void);
         void        sync_board          (const char *);
         void        sync_board          (void);
         void        stop                (void);

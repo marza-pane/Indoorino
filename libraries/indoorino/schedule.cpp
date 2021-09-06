@@ -40,7 +40,7 @@ namespace indoorino
                  s->description(),
                  s->broadcast,
                  s->shell,
-                 utils::time_string(date));
+                 utils::timestring_epoch32(date));
         
         _txlist.push_back(s);
         return true;
@@ -60,7 +60,7 @@ namespace indoorino
                  s->description(),
                  s->broadcast,
                  s->shell,
-                 utils::time_string(date));
+                 utils::timestring_epoch32(date));
 
         _txlist.push_back(s);
         return true;

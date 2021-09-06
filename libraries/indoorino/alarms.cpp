@@ -18,32 +18,215 @@ namespace indoorino
     namespace alm
     {
 
-        AlarmTemplate::AlarmTemplate(const lyt::LayoutServiceKey& s):svc::ServiceTemplate(s)
+        AlarmService::AlarmService(lyt::Service * s):svc::ServiceTemplate(s)
         {
              
         }
         
-        AlarmTemplate::~AlarmTemplate()
+        AlarmService::~AlarmService()
         {
             this->stop();
+            _devices.clear();
         }
         
-        void        AlarmTemplate::begin               (void)
+        void        AlarmService::begin                 (void)
         {
-            alert_os("SERVICE:ALARM:begin %s @ [%s:%s]",_layout.name, _layout.area, _layout.location);
+            alert_os("SERVICE:ALARM:begin %s @ [%s:%s]",_layout->name(), _layout->area(), _layout->location());
+            _last_alarm = std::chrono::system_clock::from_time_t(0);
             svc::ServiceTemplate::begin();
         }
             
-        void        AlarmTemplate::loop                (void)
+        void        AlarmService::loop                  (void)
         {
-            svc:: ServiceTemplate::loop();            
+            
+            uint waitime = SERVICEWAIT_ALARM_OFF_LOOP;
+            
+            uint32_t value = 0;
+            
+            std::unique_lock<std::mutex> lck (_mtx);
+            
+            for (auto dev : _devices)
+            {
+                if (dev.enabled())
+                {
+                    value = MAX_INTEGER_M_(value, dev.on_alarm());
+//                     if (dev.on_alarm() > value) value = dev.on_alarm();
+                }
+            }
+            
+            if (value > 0)
+            {
+                waitime = SERVICEWAIT_ALARM_ON_LOOP;
+                auto ima = std::chrono::system_clock::now();
+                
+                if (ima > _last_alarm)
+                {
+                    _last_alarm= ima + std::chrono::milliseconds(SERVICE_SEND_ALARM_RATE);
+                    this->send_alarm(&value);
+                }
+                else std::cout << "#";
+            }
+
+            _cv.wait_for(lck, std::chrono::milliseconds(waitime));
+            
         }
         
-        void        AlarmTemplate::stop                (void)
+        void        AlarmService::stop                  (void)
         {
             svc::ServiceTemplate::stop();
         }
 
+        int         AlarmService::has_device            (const char * bname, const char * dname)
+        {
+            int i=0;
+            for (auto dev: _devices)
+            {
+                if (strcmp(dev.device->boardname(), bname) == 0 && strcmp(dev.device->name(), dname) == 0) return i;
+                i++;
+            }
+            return -1;
+        }
+
+        void        AlarmService::on_update            (void)
+        {
+            this->send_status();
+            _cv.notify_all();
+        }
+        
+        void        AlarmService::read_layout           (void)
+        {
+            uint i=0;
+            
+            for (auto dev: _devices)
+            {
+                if (_layout->exist(dev.device->boardname(), dev.device->name()) == -1)
+                {
+                    _devices.erase(_devices.begin() + i);
+                    this->on_update();
+                    return;
+                }
+            }
+            
+            for (auto dev: _layout->devices())
+            {
+                if (this->has_device(dev.boardname(), dev.devname()) == -1)
+                {
+                    if (System.is_device(dev.boardname(), dev.devname()))
+                    {
+                        _devices.push_back( AlarmDevice(System.get_device(dev.boardname(), dev.devname())) );
+//                          reinterpret_cast<devs::GenericSwitch *> (System.get_device(dev.boardname(), dev.devname())) );
+//                         _devices.push_back( reinterpret_cast<devs::GenericSwitch *> (System.get_device(dev.boardname(), dev.devname())) );
+                    }
+                }
+            }            
+        }
+
+        void        AlarmService::parse                 (packet::ipacket * p)
+        {
+            
+            if ( (p->command() >= IBACOM_HEAT_ALARM) && (p->command() <= IBACOM_GENERIC_ALARM) )
+            {
+                alert_os("ALARM:got %s from <%s:%s> : level=%d ",p->label(), p->p_board(), p->p_devname(), *p->p_value1());  
+                
+                int index = has_device(p->p_board(), p->p_devname());
+                
+                if ( index != -1 )
+                {
+                    _devices.at(index)._value = * p->p_value1();
+                    _devices.at(index)._signals.push_back(packet::ipacket(p));
+                    this->on_update();
+                    
+                    memcpy(_devices.at(index).device->status().p_level(), p->p_value1(), sizeof(uint8_t));
+                    Server.shell.broadcast(&_devices.at(index).device->status());
+                    
+                }
+            }
+            
+            else if ( p->command() == IBACOM_SET_ENV_ALARM )
+            {
+                int index = has_device(p->p_board(), p->p_devname());
+                
+                if ( index != -1 )
+                {
+                    bool b=bool(*p->p_value1());
+                    
+                    if      (  _devices.at(index).enabled() && !b ) alert_os("ALARM:SET <%s:%s> DISABLED", p->p_board(), p->p_devname());                    
+                    else if ( !_devices.at(index).enabled() &&  b ) alert_os("ALARM:SET <%s:%s> ENABLED",  p->p_board(), p->p_devname());
+                        
+                    _devices.at(index)._enabled=b;                        
+                    _devices.at(index)._signals.push_back(packet::ipacket(p));
+                    this->on_update();
+                }
+                
+            }
+            else if ( p->command() == IBACOM_ACK_ENV_ALARM )
+            {
+                int index = has_device(p->p_board(), p->p_devname());
+                
+                if ( index != -1 )
+                {
+                    alert_os("ALARM:parsing ACK for <%s:%s>", p->p_board(), p->p_devname());
+                    if (_devices.at(index).on_alarm())
+                    {
+                        _devices.at(index)._value=0;
+                        _devices.at(index)._signals.push_back(packet::ipacket(p));
+                        _last_alarm = std::chrono::system_clock::from_time_t(0);
+                        this->on_update();
+                    }
+                    
+                }
+            }
+        }
+        
+        
+        void        AlarmService::send_alarm            (uint32_t * value)
+        {
+            packet::ipacket q(IBACOM_ENV_ALARM);
+            alert_os("ALARM: sending ENV ALARM (%d)!", value);
+            
+            uint32_t epoch  = utils::epoch_now();
+            
+            strcpy(q.p_desc1(),     this->name());
+            strcpy(q.p_desc2(),     this->type());
+            strcpy(q.p_label1(),    this->area());
+            strcpy(q.p_label2(),    this->location());
+            memcpy(q.p_epoch(),     &epoch, sizeof(uint32_t));
+            memcpy(q.p_value1(),    value, sizeof(int32_t));
+
+            Server.shell.broadcast(&q);            
+        }
+        
+        void        AlarmService::send_status           (void)
+        {
+            for (auto dev: _devices)
+            {
+                alert_os("ALARM:%s: sending updates for dev %s:%s",_layout->name(),dev.device->boardname(), dev.device->name());
+                packet::ipacket p(IBACOM_ALARM_DEVSTAT);
+                
+                strcpy(p.p_board(),   dev.device->boardname());
+                strcpy(p.p_devname(), dev.device->name());
+                strcpy(p.p_desc1(),   this->name());
+                
+                uint8_t enabled = uint8_t(dev.enabled());
+                uint32_t value = uint32_t(dev.on_alarm());
+                
+                memcpy(p.p_status(), &enabled, sizeof(uint8_t));
+                memcpy(p.p_value1(), &value,   sizeof(uint32_t));
+
+                Server.shell.broadcast(&p);             
+                
+            }
+        }
+        
+        uint8_t AlarmService::on_alarm                  (void)
+        {
+            uint8_t i;
+            for (auto dev: _devices)
+            {
+                if (dev.on_alarm()) i++;
+            }
+            return i;         
+        }
         
     } /* namespace:alm */
     

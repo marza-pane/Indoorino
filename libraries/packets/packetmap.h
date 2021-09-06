@@ -2,7 +2,7 @@
  * packetmap.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: Aug 06, 2021 - 01:00:15
+ *   Edited on: Sep 05, 2021 - 23:01:21
  *      Author: n00b
  *  This code is code-generated
  */
@@ -961,6 +961,61 @@ namespace packet
 		{
 			IBACOM_SYS_REQ, 5,
 			"system request", { 1, 25, 26, 27, 28 } // command, value1, value2, value3, value4
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7150 - IBACOM_LGT_DEV_SET - light device set             |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_LGT_DEV_SET, 5,
+			"light device set", { 4, 10, 12, 1, 25 } // board, devname, desc1, command, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7151 - IBACOM_LGT_AUTO_OFF - light auto turn off         |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_LGT_AUTO_OFF, 5,
+			"light auto turn off", { 4, 10, 12, 1, 25 } // board, devname, desc1, command, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7152 - IBACOM_LGT_TIMER_SET - light timer set            |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_LGT_TIMER_SET, 6,
+			"light timer set", { 4, 10, 12, 1, 16, 25 } // board, devname, desc1, command, epoch, value1
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7153 - IBACOM_LGT_TIMER_STAT - light timer status        |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_LGT_TIMER_STAT, 8,
+			"light timer status", { 4, 10, 12, 53, 54, 25, 26, 27 } // board, devname, desc1, level, status, value1, value2, value3
+		},
+	
+	
+	//    ________________________________________________________________________
+	//    |                                                                      |
+	//    |    IBACOM - 7154 - IBACOM_LGT_TIMER_ENTRY - light timer interval     |
+	//    |______________________________________________________________________|
+	//
+		{
+			IBACOM_LGT_TIMER_ENTRY, 6,
+			"light timer interval", { 4, 10, 12, 53, 16, 25 } // board, devname, desc1, level, epoch, value1
 		},
 	
 	

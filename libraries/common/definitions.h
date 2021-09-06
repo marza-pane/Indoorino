@@ -104,6 +104,8 @@
 //     #include <iterator>
 //     #include <cstdint>
 //     #include <iomanip>
+    #define NDO_DURATION std::pair<std::chrono::system_clock::time_point, std::chrono::seconds>
+    #define NDO_EVENTBOOL std::pair<std::chrono::system_clock::time_point, bool>
         
     #include "boards/board-x86pc.h"
     #include "../AES/src/AESLib.h"
@@ -138,6 +140,10 @@ typedef     uint32_t    iPid_t;
 
 #ifndef SECONDS_PER_DAY
 #define SECONDS_PER_DAY             86400L
+#endif
+
+#ifndef SECONDS_PER_YEAR
+#define SECONDS_PER_YEAR            31536000L
 #endif
 
 
@@ -175,7 +181,7 @@ typedef     uint32_t    iPid_t;
 #define     LEN_DEVNAME             16
 #define     LEN_SSID                32
 #define     LEN_PSK                 64
-#define     LEN_DATETIMESTR         22
+#define     LEN_DATETIMESTR         24
 #define     LEN_AES_MASTERKEY       N_BLOCK
 #define     LEN_NETADDRESS          INET_ADDRSTRLEN + 8
 #define     LEN_SERVER_PATH         256
@@ -242,6 +248,7 @@ const char      DEFAULT_SERVER_IP[] PROGMEM = "192.168.1.42";
 #define     TIME_NETWORK_CHECK      1000        // check network connection is established
 #define     TIME_NETWORK_CONNECT    20000       // ESP timeout between WiFi connection attemps
 #define     TIME_BIND_CONNECT       5000        // Delay if new client connection is refused
+#define     TIMEOUT_PING_SERVICE    60000       // Used in boardserver.Ping service
 
 #define     TIMEOUT_CLIENT          30000L      // default life time of a client
 #define     TIMEOUT_SERIAL_READ     700         // Serial read timeout (while waiting packet)
@@ -365,9 +372,9 @@ typedef struct {
 //             "BEAM7", 40, IBACOM_CONF_RELAY,
 //             "BEAM8", 42, IBACOM_CONF_RELAY
 
-//             "FLOOD1",  8,  IBACOM_CONF_FLOODSWITCH,
-//             "FLOOD2",  9,  IBACOM_CONF_FLOODSWITCH,
-//             "FLOOD3",  10, IBACOM_CONF_FLOODSWITCH,
+            "FLOOD1",  8,  IBACOM_CONF_FLOODSWITCH,
+            "FLOOD2",  9,  IBACOM_CONF_FLOODSWITCH,
+            "FLOOD3",  10, IBACOM_CONF_FLOODSWITCH,
             
         };
 
@@ -413,12 +420,13 @@ typedef struct {
 
         #define PY_SSIZE_T_CLEAN
         #include <Python.h>
-
+        
         const char DEFAULT_TARGET[] PROGMEM = "SERVER";
         const char INDOORINO_TYPE[] PROGMEM = "INDOORINO";     
         const char BOARD_NAME[] PROGMEM = "SHELLCLIENT";
         #define DEFAULT_DEVNUM 0
-
+        #define DEBUG_BENCHMARK
+        
 //      _____________________________________________________________________
 //      |                                                                   |
 //      |       SERVER                                                      |

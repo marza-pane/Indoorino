@@ -86,21 +86,30 @@ class CodeSourcePacket:
         self.server  = dict()
 
         varmap = CodeSourceVariables()
-
         for packet in packet_source_standard:
-            self.generic['IBACOM_{}'.format(packet[1].upper().replace(' ', '_'))] = self.Packet (varmap,
-                packet[0], name=packet[1], label=packet[2], fields=packet[3]
-            )
+            try:
+                self.generic['IBACOM_{}'.format(packet[1].upper().replace(' ', '_'))] = self.Packet (varmap,
+                    packet[0], name=packet[1], label=packet[2], fields=packet[3]
+                )
+            except IndexError:
+                print('\n\t===> invalid source fields number: probably you missed a comma in packet definitions !')
 
         for packet in packet_source_network:
-            self.network['IBACOM_{}'.format(packet[1].upper().replace(' ', '_'))] = self.Packet (varmap,
-                packet[0], name=packet[1], label=packet[2], fields=packet[3]
-            )
+            try:
+                self.network['IBACOM_{}'.format(packet[1].upper().replace(' ', '_'))] = self.Packet (varmap,
+                    packet[0], name=packet[1], label=packet[2], fields=packet[3]
+                )
+            except IndexError:
+                print('\n\t===> invalid source fields number: you missed a comma @ {} !'.format(packet[1]))
 
         for packet in packet_source_server:
-            self.server['IBACOM_{}'.format(packet[1].upper().replace(' ', '_'))] = self.Packet (varmap,
-                packet[0], name=packet[1], label=packet[2], fields=packet[3]
-            )
+            try:
+                self.server['IBACOM_{}'.format(packet[1].upper().replace(' ', '_'))] = self.Packet (varmap,
+                    packet[0], name=packet[1], label=packet[2], fields=packet[3]
+                )
+            except IndexError:
+                print('\n\t===> invalid source fields number: probably you missed a comma in packet definitions !')
+
 
 def print_ibacomtable():
 

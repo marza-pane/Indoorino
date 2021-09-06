@@ -10,7 +10,7 @@
 #include "server.h"
 #include "../indoorino/indoorino-system.h"
 
-static bool net_thread_flag=true;
+static bool flag_netcheck =true;
 
 namespace net
 {    
@@ -26,31 +26,46 @@ namespace net
     {
         stop();
     }
+        
 
+        
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     void        IndoorinoServer::begin           (void)
     {
-    
+        
         _thr_netcheck=std::thread(
         [this]
         {
             static bool isOnline=false;
             
-            while (net_thread_flag)
+            while (flag_netcheck)
             {
-//                 std::cout << ".";
-                if (net::netstatus() != isOnline)
+                bool s = net::netstatus();
+                if (s != isOnline)
                 {
-                    if (net::netstatus())
+                    isOnline = s;
+                    if (s)
                     {
                         info_net("Connected to network! Starting Server");
-                        isOnline=true;
                         board.begin();
                         shell.begin();
                     }
                     else
                     {
                         warning_net("Network is down! Server will start on reconnection");
-                        isOnline=false;
                         board.stop();
                         shell.stop();   
                         std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BIND_CONNECT));
@@ -58,7 +73,7 @@ namespace net
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(TIME_NETWORK_CHECK));
             }
-            warning_net("netstaus thread terminated!");
+            alert_net("net-stat terminated");
             return;
         });
 
@@ -72,7 +87,7 @@ namespace net
         board.loop();
         shell.loop();
 
-        _rxqueue.wait();
+//         _rxqueue.wait();
 
         while (!_rxqueue.is_empty())
         {
@@ -80,18 +95,24 @@ namespace net
             on_packet(p);
             delete p; /* here I delete incoming pacets */
         }
-
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }    
 
     void        IndoorinoServer::stop           (void)
     {
+//         stop_netchek();
+//         std::unique_lock<std::mutex> ul(_rxqueue._block_mutex);
+//         _rxqueue._cvblock.notify_one();
+
         board.stop();
         shell.stop();
         
-        if (net_thread_flag)
+        
+        if (flag_netcheck)
         {
             alert_server("halting server...");
-            net_thread_flag = false;
+            flag_netcheck = false;
             if (_thr_netcheck.joinable()) { _thr_netcheck.join(); }
         }
         
@@ -102,7 +123,6 @@ namespace net
     {   
                 
         info_server("new packet from <%s> to <%s> : %s ", incoming->source, incoming->target, incoming->description());
-        incoming->dump();
         
         /** Sending packet to system parser **/
 
@@ -149,11 +169,7 @@ namespace net
                 
             }
         }
-        
-        
-        
-        
-                
+            
         if (board.has_client(incoming->target))
         {
             /** re-routing packets targeting boards and devices **/

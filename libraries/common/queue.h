@@ -74,7 +74,7 @@ namespace utils
 
         Queue()                   = default;
         Queue(const Queue<OBJ>&)  = delete;   
-        virtual ~Queue() { clear(); };
+        virtual ~Queue() { clear(); _cvblock.notify_one(); };
 
         
     public:
@@ -222,8 +222,8 @@ namespace utils
                 #endif
                 _queue.emplace_front(std::move(item));
 
-//                 std::unique_lock<std::mutex> ul(_block_mutex);
-//                 _cvblock.notify_one();
+                std::unique_lock<std::mutex> ul(_block_mutex);
+                _cvblock.notify_one();
             #endif
             return true;
         }     
@@ -256,8 +256,8 @@ namespace utils
                 #endif
                 _queue.emplace_back(std::move(item));
 
-//                 std::unique_lock<std::mutex> ul(_block_mutex);
-//                 _cvblock.notify_one();
+                std::unique_lock<std::mutex> ul(_block_mutex);
+                _cvblock.notify_one();
             #endif
             return true;
         }
@@ -308,14 +308,15 @@ namespace utils
         
         void        wait()
         {
-//             #if defined(__linux__)
-//             while (is_empty())
-//             {
-//                 std::unique_lock<std::mutex> ul(_block_mutex);
-//                 _cvblock.wait(ul);
-//             }
-//             #endif
+            #if defined(__linux__)
+            while (is_empty())
+            {
+                std::unique_lock<std::mutex> ul(_block_mutex);
+                _cvblock.wait(ul);
+            }
+            #endif
         }
+
     };
 
     

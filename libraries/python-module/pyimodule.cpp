@@ -388,7 +388,7 @@ PyObject    *   pyi_fetch                 (PyObject *self, PyObject *args)
         Py_RETURN_FALSE;
     }
     
-    p->dump();
+    //->dump();
     
     p->toDictionary(obj);
     
@@ -399,7 +399,7 @@ PyObject    *   pyi_fetch                 (PyObject *self, PyObject *args)
 
 
         /*      C O M M I T      */
-PyObject    *   pyi_commit          (PyObject *self, PyObject *args)
+  PyObject    *   pyi_commit          (PyObject *self, PyObject *args)
 {
     static PyObject * obj=nullptr;
 
@@ -521,109 +521,148 @@ PyObject    *   pyi_commit          (PyObject *self, PyObject *args)
         warning_os("module:config: invalid type");
         Py_RETURN_NONE;
     }
-    
-    PyObject * macros =  PyDict_New();
-    PyDict_SetItemString(macros, "SERIAL_DEFAULT_BAUDRATE", PyLong_FromUnsignedLong(SERIAL_DEFAULT_BAUDRATE));
-    PyDict_SetItemString(macros, "DEFAULT_SERVER_IP", PyUnicode_FromString(DEFAULT_SERVER_IP));
-    PyDict_SetItemString(macros, "DEFAULT_SHELL_PORT", PyLong_FromUnsignedLong(DEFAULT_SHELL_PORT));
-    PyDict_SetItemString(macros, "DEFAULT_BOARD_PORT", PyLong_FromUnsignedLong(DEFAULT_BOARD_PORT));
-    PyDict_SetItemString(macros, "SHA_DIGEST_LENGTH", PyLong_FromUnsignedLong(SHA_DIGEST_LENGTH));
-    PyDict_SetItemString(macros, "LEN_AES_MASTERKEY", PyLong_FromUnsignedLong(LEN_AES_MASTERKEY));
-    PyDict_SetItemString(macros, "SIZEOF_PACKET_HEADER", PyLong_FromUnsignedLong(SIZEOF_PACKET_HEADER));
-    PyDict_SetItemString(macros, "SIZEOF_NET_HEADER", PyLong_FromUnsignedLong(SIZEOF_NET_HEADER));
-    PyDict_SetItemString(macros, "INET_ADDRSTRLEN", PyLong_FromUnsignedLong(INET_ADDRSTRLEN));
-    PyDict_SetItemString(macros, "TIMEOUT_BOARD", PyLong_FromUnsignedLong(TIMEOUT_BOARD));
-    PyDict_SetItemString(macros, "TIMEOUT_CLIENT", PyLong_FromUnsignedLong(TIMEOUT_CLIENT));
-    PyDict_SetItemString(macros, "TIMEOUT_CLIENT_SHELL", PyLong_FromUnsignedLong(TIMEOUT_CLIENT_SHELL));
-    PyDict_SetItemString(macros, "TIMEOUT_CLIENT_BOARD", PyLong_FromUnsignedLong(TIMEOUT_CLIENT_BOARD));
-    PyDict_SetItemString(macros, "FLOAT2INT", PyLong_FromUnsignedLong(FLOAT2UINT_M));
-    PyDict_SetItemString(macros, "PREAMBLE", PyBytes_FromStringAndSize((char * )PREAMBLE, SIZEOF_PREAMBLE));
-    
-    PyObject * constants = PyDict_New();
-    
-    PyObject * list_area        = PyList_New(0);
-    PyObject * list_sub_home    = PyList_New(0);
-    PyObject * list_sub_perim   = PyList_New(0);
-    PyObject * list_devtype     = PyList_New(0);
-    
-    PyObject * list_alarmtype   = PyList_New(0);
-    PyObject * list_alarmgroup  = PyList_New(0);
-    
-    PyObject * list_physic_vals = PyList_New(0);
-    
-    for (int i=0; i<LYT_NUM_AREAS; i++)
-    {
-        PyList_Append(list_area, PyUnicode_FromString(indoorino::layout::global_area[i]));
-    }
-    
-    for (int i=0; i<LYT_NUM_L_HOME; i++)
-    {
-        PyList_Append(list_sub_home, PyUnicode_FromString(indoorino::layout::global_home[i]));
-    }
 
-    for (int i=0; i<LYT_NUM_L_PERIMETER; i++)
-    {
-        PyList_Append(list_sub_perim, PyUnicode_FromString(indoorino::layout::global_perimeter[i]));
-    }
+    PyObject * D_macro =  PyDict_New();
+    
+    PyDict_SetItemString(D_macro, "SERIAL_DEFAULT_BAUDRATE", PyLong_FromUnsignedLong(SERIAL_DEFAULT_BAUDRATE));
+    PyDict_SetItemString(D_macro, "DEFAULT_SERVER_IP", PyUnicode_FromString(DEFAULT_SERVER_IP));
+    PyDict_SetItemString(D_macro, "DEFAULT_SHELL_PORT", PyLong_FromUnsignedLong(DEFAULT_SHELL_PORT));
+    PyDict_SetItemString(D_macro, "DEFAULT_BOARD_PORT", PyLong_FromUnsignedLong(DEFAULT_BOARD_PORT));
+    PyDict_SetItemString(D_macro, "SHA_DIGEST_LENGTH", PyLong_FromUnsignedLong(SHA_DIGEST_LENGTH));
+    PyDict_SetItemString(D_macro, "LEN_AES_MASTERKEY", PyLong_FromUnsignedLong(LEN_AES_MASTERKEY));
+    PyDict_SetItemString(D_macro, "SIZEOF_PACKET_HEADER", PyLong_FromUnsignedLong(SIZEOF_PACKET_HEADER));
+    PyDict_SetItemString(D_macro, "SIZEOF_NET_HEADER", PyLong_FromUnsignedLong(SIZEOF_NET_HEADER));
+    PyDict_SetItemString(D_macro, "INET_ADDRSTRLEN", PyLong_FromUnsignedLong(INET_ADDRSTRLEN));
+    PyDict_SetItemString(D_macro, "TIMEOUT_BOARD", PyLong_FromUnsignedLong(TIMEOUT_BOARD));
+    PyDict_SetItemString(D_macro, "TIMEOUT_CLIENT", PyLong_FromUnsignedLong(TIMEOUT_CLIENT));
+    PyDict_SetItemString(D_macro, "TIMEOUT_CLIENT_SHELL", PyLong_FromUnsignedLong(TIMEOUT_CLIENT_SHELL));
+    PyDict_SetItemString(D_macro, "TIMEOUT_CLIENT_BOARD", PyLong_FromUnsignedLong(TIMEOUT_CLIENT_BOARD));
+    PyDict_SetItemString(D_macro, "FLOAT2INT", PyLong_FromUnsignedLong(FLOAT2UINT_M));
+    PyDict_SetItemString(D_macro, "PREAMBLE", PyBytes_FromStringAndSize((char * )PREAMBLE, SIZEOF_PREAMBLE));
+    
+    PyDict_SetItemString(data, "macros", D_macro);
+    
+    /*   L A Y O U T   */
 
-    for (int i=0; i<LYT_NUM_DEVTYPES; i++)
-    {
-        PyList_Append(list_devtype, PyUnicode_FromString(indoorino::layout::global_devtypes[i]));
-    }
-
-    for (int i=0; i<LYT_NUM_ALARMS; i++)
-    {
-        PyList_Append(list_alarmtype, PyUnicode_FromString(indoorino::layout::global_alarms[i]));
-    }
+    PyObject * D_const =  PyDict_New();
     
-    for (int i=0; i<LYT_NUM_ALARMS_GROUP; i++)
+    PyObject * L_services = PyList_New(0);
+    PyObject * D_devtype = PyDict_New();
+    PyObject * D_ambientvar = PyDict_New();
+    
+    for (auto &s : indoorino::lyt::LAYOUT_SERVICES_TYPE)
     {
-        PyList_Append(list_alarmgroup, PyUnicode_FromString(indoorino::layout::global_alarms_group[i]));
+        PyList_Append(L_services, PyUnicode_FromString(s));
     }
     
-    
-    
-    for (int i=0; i<LYT_NUM_AMBIENTVAR; i++)
+    for (auto &t : indoorino::lyt::LAYOUT_DEVTYPES)
     {
-        PyObject * b = PyList_New(0);
-                                                                                /* v */
-        PyList_Append(b, PyUnicode_FromString(indoorino::layout::global_ambient_types[i]));
-        PyList_Append(b, PyUnicode_FromString(indoorino::layout::global_ambient_units[i]));
+        PyDict_SetItemString(D_devtype, t.label, PyLong_FromUnsignedLong(t.command));
+    }
+    
+    for (auto &p : indoorino::lyt::amb::variables)
+    {
+        PyDict_SetItemString(D_ambientvar, p.description, PyList_New(0));
         
-        PyList_Append(list_physic_vals, b);
+        PyList_Append( PyDict_GetItemString(D_ambientvar, p.description), PyUnicode_FromString(p.type) );
+        PyList_Append( PyDict_GetItemString(D_ambientvar, p.description), PyUnicode_FromString(p.unit) );
+        
     }
     
-/*    
+    PyDict_SetItemString(D_const, "services", L_services);
+    PyDict_SetItemString(D_const, "devtypes", D_devtype);
+    PyDict_SetItemString(D_const, "ambientypes", D_ambientvar);
+    
+//     {
+//         PyDict_SetItemString(homemap, area.name(), PyList_New(0));
+//         for (auto &loc : area())
+//         {
+//             PyList_Append( PyDict_GetItemString(homemap, area.name()), PyUnicode_FromString(loc.c_str()()
+//         }
+// 
+//     }
     
     
-            const char global_ambient_types[LYT_NUM_AMBIENTVAR][LEN_NAME]
-        {
-            "TEMPERATURE",
-            "HUMIDITY",
-            "LIGHT",
-            "POWER",
-            "STATE",
-            "AIR POLLUTION",
-        };
-        const char global_ambient_units[LYT_NUM_AMBIENTVAR][LEN_FIELD]
-        {
-            "C",
-            "RH",
-            "Lux",
-            "kW",
-            "",
-            "ug/m3",
-        };*/
+//     PyDict_SetItemString(data, "layout", PyDict_Copy(buf));
+//     PyDict_Clear(buf);
+    
+//     Py_XDECREF(l_buf);
+//     Py_XDECREF(d_buf);
+    
+//     PyObject * list_area        = PyList_New(0);
+//     PyObject * list_sub_home    = PyList_New(0);
+//     PyObject * list_sub_perim   = PyList_New(0);
+//     PyObject * list_devtype     = PyList_New(0);
+//     
+//     PyObject * list_alarmtype   = PyList_New(0);
+//     PyObject * list_alarmgroup  = PyList_New(0);
+//     
+//     PyObject * list_physic_vals = PyList_New(0);
+    
+    
+    
+//     
+//     for (int i=0; i<LYT_NUM_L_HOME; i++)
+//     {
+//         PyList_Append(list_sub_home, PyUnicode_FromString(indoorino::layout::global_home[i]));
+//     }
+// 
+//     for (int i=0; i<LYT_NUM_L_PERIMETER; i++)
+//     {
+//         PyList_Append(list_sub_perim, PyUnicode_FromString(indoorino::layout::global_perimeter[i]));
+//     }
+// 
+//     for (int i=0; i<LYT_NUM_DEVTYPES; i++)
+//     {
+//         PyList_Append(list_devtype, PyUnicode_FromString(indoorino::layout::global_devtypes[i]));
+//     }
+// 
+//     for (int i=0; i<LYT_NUM_ALARMS; i++)
+//     {
+//         PyList_Append(list_alarmtype, PyUnicode_FromString(indoorino::layout::global_alarms[i]));
+//     }
+//     
+//     for (int i=0; i<LYT_NUM_ALARMS_GROUP; i++)
+//     {
+//         PyList_Append(list_alarmgroup, PyUnicode_FromString(indoorino::layout::global_alarms_group[i]));
+//     }
+//     
+//     
+//     
 
-    
-    
-    PyDict_SetItemString(constants, "area",             list_area);
-    PyDict_SetItemString(constants, "area_home",        list_sub_home);
-    PyDict_SetItemString(constants, "area_perimeter",   list_sub_perim);
-    PyDict_SetItemString(constants, "devtypes",         list_devtype);
-    PyDict_SetItemString(constants, "alarmtypes",       list_alarmtype);
-    PyDict_SetItemString(constants, "alarmgroup",       list_alarmgroup);
-    PyDict_SetItemString(constants, "ambientypes",      list_physic_vals);
+//     
+// /*    
+//     
+//     
+//             const char global_ambient_types[LYT_NUM_AMBIENTVAR][LEN_NAME]
+//         {
+//             "TEMPERATURE",
+//             "HUMIDITY",
+//             "LIGHT",
+//             "POWER",
+//             "STATE",
+//             "AIR POLLUTION",
+//         };
+//         const char global_ambient_units[LYT_NUM_AMBIENTVAR][LEN_FIELD]
+//         {
+//             "C",
+//             "RH",
+//             "Lux",
+//             "kW",
+//             "",
+//             "ug/m3",
+//         };*/
+// 
+//     
+//     
+//     PyDict_SetItemString(constants, "area_home",        list_sub_home);
+//     PyDict_SetItemString(constants, "area_perimeter",   list_sub_perim);
+//     PyDict_SetItemString(constants, "devtypes",         list_devtype);
+//     PyDict_SetItemString(constants, "alarmtypes",       list_alarmtype);
+//     PyDict_SetItemString(constants, "alarmgroup",       list_alarmgroup);
+//     PyDict_SetItemString(constants, "ambientypes",      list_physic_vals);
+
+
 
 //     PyDict_SetItemString(constants, "num_area",             PyLong_FromUnsignedLong(LYT_NUM_AREAS));
 //     PyDict_SetItemString(constants, "num_area_home",        PyLong_FromUnsignedLong(LYT_NUM_L_HOME));
@@ -634,8 +673,8 @@ PyObject    *   pyi_commit          (PyObject *self, PyObject *args)
 
     
     PyDict_SetItemString(data, "version", PyUnicode_FromString(INDOORINO_VERSION));    
-    PyDict_SetItemString(data, "macros", macros);
-    PyDict_SetItemString(data, "const", constants);
+    PyDict_SetItemString(data, "const", D_const);
+
     Py_RETURN_NONE;
 };
 

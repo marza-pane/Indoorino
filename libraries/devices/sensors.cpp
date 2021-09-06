@@ -104,30 +104,31 @@ bool                    Actuator_Relay::set                 (uint32_t value)
         return false;
     }
     
-    debug_dev("setting: RELAY (index=%u, pin=%u)",_confindex, _pin);
     char buffname[LEN_DEVNAME];
     conf.device_name(buffname, _confindex);
+    debug_dev("setting: RELAY %s [pin:%u] ==> %u",buffname, _pin, value);
     
     if (value == 0)
     {
+        digitalWrite(_pin, LOW);
+        this->send_dev_stat();
         if (_relay_stat != 0)
         {
             _relay_stat=0;
+            return true;
 //             sendReport(1, F("RELAY"), F("%s on pin %u turned OFF"), buffname, _pin);
         }
-        digitalWrite(_pin, LOW);
-        return true;
     }
     else
     {
+        digitalWrite(_pin, HIGH);
+        this->send_dev_stat();
         if (_relay_stat == 0)
         {
             _relay_stat=1;
+            return true;
 //             sendReport(1, F("RELAY"), F("%s on pin %u turned ON"), buffname, _pin);
-
         }
-        digitalWrite(_pin, HIGH);
-        return true;
     }
     return false;
 }
@@ -166,11 +167,10 @@ void                    Actuator_Relay::send_probe          (void)
     iEpoch_t e = rtc.epoch();
     
     memcpy(p.p_epoch(), &e, sizeof(uint32_t));
-    strcpy_P(p.p_desc1(), VLABEL_relay);
+    strcpy_P(p.p_desc1(), indoorino::lyt::amb::vartypes[7]);
     memcpy(p.p_value1(),  &_relay_stat, sizeof(uint8_t));
     utils::board::io.send(&p);
 
-    
 }
 
 
@@ -277,11 +277,12 @@ void                    Sensor_Switch::send_probe           (void)
     uint32_t v=this->value();
     
     memcpy(p.p_epoch(), &e, sizeof(uint32_t));
-    strcpy_P(p.p_desc1(), VLABEL_switch);
+    strcpy_P(p.p_desc1(), indoorino::lyt::amb::vartypes[7]);
     memcpy(p.p_value1(),  &v, sizeof(uint32_t));
     utils::board::io.send(&p);
     
 }
+
 
 
 void                    SwitchSensor_Flood::loop            (void)
@@ -358,7 +359,7 @@ void                    SwitchSensor_Flood::send_alarm      (void)
     strcpy(p.p_board(), P2C(BOARD_NAME));
     strcpy(p.p_devname(), _name);
         
-    int32_t     value=1;
+    int32_t     value=this->value();
     uint32_t    epoch=rtc.epoch();
     
     memcpy(p.p_epoch(), &epoch, sizeof(uint32_t));
@@ -674,14 +675,14 @@ void                    Sensor_DHT22::send_probe            (void)
     
     memcpy(p.p_epoch(), &e, sizeof(uint32_t));
     
-    strcpy_P(p.p_desc1(), VLABEL_temperature);
+    strcpy_P(p.p_desc1(), indoorino::lyt::amb::vartypes[0]);
     memcpy(p.p_value1(),  &t, sizeof(int32_t));
     
-    strcpy_P(p.p_desc2(), VLABEL_humidity);
+    strcpy_P(p.p_desc2(), indoorino::lyt::amb::vartypes[1]);
     memcpy(p.p_value2(),  &h, sizeof(int32_t));
     
     utils::board::io.send(&p);
-    
+
 }
 //      _____________________________________________________________________
 //      |                                                                   |
@@ -796,11 +797,11 @@ void                    Sensor_PM25dust::send_probe         (void)
     
     memcpy(p.p_epoch(), &e, sizeof(uint32_t));
     
-    strcpy_P(p.p_desc1(), VLABEL_dust);
+    strcpy_P(p.p_desc1(), indoorino::lyt::amb::vartypes[8]);
     memcpy(p.p_value1(),  &v, sizeof(int32_t));
         
     utils::board::io.send(&p);
-    
+      
 }
 
 int32_t                 Sensor_PM25dust::value              (void)

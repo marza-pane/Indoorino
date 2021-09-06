@@ -122,6 +122,7 @@ class UiHomeLights(CanvasTemplate):
                     if device.status.dev['relay_state'].data:
                         # send turn OFF
                         d = {
+                            'name':self.board,
                             'devname': self.device,
                             'command': 'SET',
                             'value1': 0
@@ -136,6 +137,7 @@ class UiHomeLights(CanvasTemplate):
                     else:
                         # send turn ON
                         d = {
+                            'name':self.board,
                             'devname': self.device,
                             'command': 'SET',
                             'value1': 1
@@ -335,18 +337,24 @@ class UiHomeLights(CanvasTemplate):
             #         self.on_update()
             #         return
 
-            for key, light in System.layout.lights.items():
-                if not light.devname in self.devices.keys() \
-                        and light.boardname == self._boardname \
-                        and light.group == self._group:
-                    debug_ui('Adding {}:{}'.format(light.boardname, light.devname))
-                    self.devices.update(
-                        {
-                            light.devname: UiHomeLights.Device(self, light.boardname, light.devname)
-                        }
-                    )
-                    self.devices[light.devname].build()
-                    resize_flag = True
+            for light in System.layout.lights.values():
+                for dev in light.devices.values():
+                    if dev.boardname == self._boardname \
+                        and light.name == self._group \
+                        and not dev.devname in self.devices.keys():
+
+                        debug_ui('Adding {}:{}'.format(dev.boardname, dev.devname))
+                        self.devices.update(
+                            {
+                                dev.devname: UiHomeLights.Device(self, dev.boardname, dev.devname)
+                            }
+                        )
+                        self.devices[dev.devname].build()
+                        resize_flag = True
+
+                # if not light.devname in self.devices.keys() \
+                #         and light.boardname == self._boardname \
+                #         and light.group == self._group:
 
                 if resize_flag:
                     self.on_resize()
@@ -456,16 +464,17 @@ class UiHomeLights(CanvasTemplate):
             #         self.on_update()
             #         return
 
-            for key, light in System.layout.lights.items():
-                if not light.boardname in self.boards.keys():
-                    debug_ui('Adding {}:{}'.format(light.group, light.boardname))
-                    self.boards.update(
-                        {
-                            light.boardname: UiHomeLights.Board(self, light.boardname, self._group)
-                        }
-                    )
-                    self.boards[light.boardname].build()
-                    resize_flag = True
+            for light in System.layout.lights.values():
+                for board in light.boards:
+                    if light.name == self._group and not board in self.boards.keys():
+                        debug_ui('Adding {}:{}'.format(light.name, board))
+                        self.boards.update(
+                            {
+                                board: UiHomeLights.Board(self, board, self._group)
+                            }
+                        )
+                        self.boards[board].build()
+                        resize_flag = True
 
             for item in self.boards.values():
                 item.on_update()
@@ -556,22 +565,22 @@ class UiHomeLights(CanvasTemplate):
 
         resize_flag=False
 
-        # for key in self.widgets.keys():
-        #     if not key in [i.group for i in System.layout.lights.values()]:
-        #         self.widgets[key].on_closing()
-        #         self.widgets.pop(key)
-        #         self.on_update()
-        #         return
+        for key in self.widgets.keys():
+            if not key in [i.name for i in System.layout.lights.values()]:
+                self.widgets[key].on_closing()
+                self.widgets.pop(key)
+                self.on_update()
+                return
 
 
         for key, light in System.layout.lights.items():
-            if not light.group in self.widgets.keys():
+            if not light.name in self.widgets.keys():
                 self.widgets.update(
                     {
-                        light.group : self.Group(self, light.group)
+                        light.name : self.Group(self, light.name)
                     }
                 )
-                self.widgets[light.group].build()
+                self.widgets[light.name].build()
                 resize_flag=True
 
         for widget in self.widgets.values():
@@ -682,4 +691,7 @@ class CanvasBeamFrame(TransparentFrameContainer):
         )
         self.children[2].on_resize()
 
-        
+
+
+print('Loaded gui.frame.homelights')
+

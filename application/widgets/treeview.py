@@ -79,7 +79,7 @@ class ResourceTreeView(TreeViewTemplate):
         # for entry in self.get_children(self._structure['alarms']):
         #     self.delete(entry)
 
-        for alarm in System.alarms.groups.values():
+        for alarm in System.alarms.services.values():
             if not alarm.alarmtype in self.alarmgroups.keys():
                 self.alarmgroups.update(
                     {

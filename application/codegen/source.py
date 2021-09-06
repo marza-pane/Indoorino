@@ -256,21 +256,28 @@ packet_source_server = (
     ( 7010,     'srv_req',          'server request',                       ('command',)),
 
     ( 7012,     'srv_conf',         'server config',                        ('ip1', 'port1', 'port2', 'status', 'table1')),
-
     ( 7100,     'sys_req',          'system request',                       ('command','value1','value2','value3','value4')),
 
-    ( 7505,     'sys_probe_data',   'probes data',                          ('board','devname','desc1','table1','table2')), # epoches and values
+    ( 7150,     'lgt_dev_set',       'light device set',                    ('board', 'devname', 'desc1', 'command','value1')),                                 # SET/ON/OFF and value
+    ( 7151,     'lgt_auto_off',      'light auto turn off',                 ('board', 'devname', 'desc1', 'command','value1',)),                                # SET/ABORT and seconds
+    ( 7152,     'lgt_timer_set',     'light timer set',                     ('board', 'devname', 'desc1', 'command','epoch', 'value1',)),                       # ADD/CLEAR, start epoch and seconds
+    ( 7153,     'lgt_timer_stat',    'light timer status',                  ('board', 'devname', 'desc1', 'level', 'status', 'value1', 'value2', 'value3')),    # is_on, is_enabled and num of timers, starts in
+    ( 7154,     'lgt_timer_entry',   'light timer interval',                ('board', 'devname', 'desc1', 'level', 'epoch',  'value1')),                        # id (1,2,3...), start, seconds
+
+
+    ( 7505,     'sys_probe_data',   'probes data',                          ('board','devname','desc1','table1','table2')),     # epoches and values
 
     ( 7701,     'set_env_alarm',    'enable environment alarm',             ('devname','board','value1', 'epoch')),
     ( 7702,     'ack_env_alarm',    'alarm acknowledge',                    ('devname','board', 'epoch')),
     ( 7703,     'env_alarm',        'environment alarm signal',             ('desc1', 'desc2', 'label1', 'label2',
                                                                              'epoch', 'value1', 'value2', 'status')),
-    ( 7705,     'alarm_devstat',    'device alarm status',                  ('devname','board', 'desc1', 'value1', 'status')), # enabled, onalarm
+    ( 7705,     'alarm_devstat',    'device alarm status',                  ('devname','board', 'desc1', 'value1', 'status')),  # enabled, onalarm
+
 
     ( 8008,     'lyt_conf',         'layout config command',                ('command','board', 'devname',)),
     ( 8010,     'lyt_map',          'layout home map',                      ('command','label1', 'label2',)), #area, location
     ( 8012,     'lyt_device',       'layout device',                        ('devname','board', 'label1', 'label2', 'label3', 'type', 'desc1')), #area, location, usability, type (to lookup in layout::LayoutDevKey), and service
-    ( 8014,     'lyt_service',      'layout service conf',                  ('command','desc1','desc2','label1', 'label2', 'label3')),
+    ( 8014,     'lyt_service',      'layout service conf',                  ('command','desc1','desc2','label1', 'label2', 'label3')), # name, type, desc, area, location
 
     # ( 8022,     'lyt_weather',      'layout weather station',               ('devname','board', 'label1', 'type')),
     # ( 8050,     'lyt_alarms',       'layout alarms',                        ('devname','board', 'label1', 'type')),

@@ -6,7 +6,7 @@
  */
 
 #if defined(ESP8266)
-#include "../common/icommon.h"
+#include "../common/indoorino.h"
 
 /* 
  * Questo è il nome della boaard attaccata al seriale.
@@ -364,7 +364,7 @@ void            IndoorinoEspClient::on_packet       (packet::netpacket * p)
 {
     
     debug_net("on_packet from <%s> to <%s>", p->source, p->target);
-    p->dump();
+//     p->dump();
     
     uint8_t hash[SHA_DIGEST_LENGTH];
     if (p->command() == IBACOM_ACK)

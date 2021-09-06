@@ -401,63 +401,9 @@ class AppConfig:
         #         self.__getitem__(almtype)[group][bname].update( { dname : data } )
 
         def __init__(self, data):
-            self.areas = tuple(data['area']) # list
-            self.devtypes = tuple(data['devtypes']) #list
-            self.ambientypes = tuple(data['ambientypes']) #list of lists of 2 (name, unit)
-            self.location = dict()
-
-            self.location.update(
-                {
-                    'home' : data['area_home'],
-                    'perimeter' : data['area_perimeter'],
-                    # 'garden' : data['area_garden'],
-                    # 'forset' : data['area_forset'],
-                    # 'sheds' : data['area_sheds'],
-                    # 'gate' : data['area_gate'],
-                    # 'pool' : data['area_pool'],
-                    # 'barbie' : data['area_barbie'],
-                    # 'woodshed' : data['area_woodshed'],
-                    # 'sauna' : data['area_sauna'],
-                }
-            )
-            # self.devices = dict()
-            # self.lights=self.Lights()
-            # self.sensors=self.Sensors()
-            # self.alarms=self.Alarms()
-
-        # def parse(self, packet):
-        #
-        #     try:
-        #         key = '{}:{}'.format(packet.payload['board'], packet.payload['devname'])
-        #     except KeyError:
-        #         return
-        #
-        #     info_database('Layout:parse: packet {}'.format(packet))
-        #     if packet.command == IBACOM_LYT_DEVICE:
-        #         self.devices.update(
-        #             {   key : {
-        #                     'devtype'   : packet.payload['type'],
-        #                     'area'      : packet.payload['label1'],
-        #                     'location'  : packet.payload['label2'],
-        #                 }
-        #             }
-        #         )
-        #
-        #     # key is something like <KITCHEN.WEATHER::DHT2>
-        #
-        #     elif packet.command == IBACOM_LYT_LIGHTS:
-        #
-        #         if not key in self.devices.keys():
-        #             warning_os('Layout:lights: could not find {} in device dict'.format(key))
-        #
-        #         self.lights.parse(packet)
-        #
-        #     elif packet.command == IBACOM_LYT_ALARMS:
-        #
-        #         if not key in self.devices.keys():
-        #             warning_os('Layout:lights: could not find {} in device dict'.format(key))
-
-                # self.alarms.parse(packet)
+            self.services = tuple(data['services']) # list
+            self.devtypes = dict(data['devtypes']) #dict
+            self.ambientypes = dict(data['ambientypes']) # dict of lists of 2 (type, unit)
 
     class Flags:
 

@@ -392,27 +392,27 @@ class UiWeather(PanedTemplate):
     def on_update(self, *args, **kwargs):
 
         _flag=False
-        for key, lyt in System.layout.weather.items():
-            if not key[0] in self.list_indoor.keys():
-
-                if not lyt.weathertype:
-                    self.list_indoor.update({
-                        key[0]: UiWeather.StationListEntry(self, key[0])
-                    })
-                    self.list_indoor[key[0]].build()
-                else:
-                    self.list_outdoor.update({
-                        key[0]: UiWeather.StationListEntry(self, key[0])
-                    })
-                    self.list_outdoor[key[0]].build()
-
-                self.frames.update({
-                    key[0]:UiWeather.StationWidget(self, key[0])
-                })
-
-                self.frames[key[0]].build()
-
-                _flag=True
+        # for key, lyt in System.layout.weather.items():
+        #     if not key[0] in self.list_indoor.keys():
+        #
+        #         if not lyt.weathertype:
+        #             self.list_indoor.update({
+        #                 key[0]: UiWeather.StationListEntry(self, key[0])
+        #             })
+        #             self.list_indoor[key[0]].build()
+        #         else:
+        #             self.list_outdoor.update({
+        #                 key[0]: UiWeather.StationListEntry(self, key[0])
+        #             })
+        #             self.list_outdoor[key[0]].build()
+        #
+        #         self.frames.update({
+        #             key[0]:UiWeather.StationWidget(self, key[0])
+        #         })
+        #
+        #         self.frames[key[0]].build()
+        #
+        #         _flag=True
 
         for item in self.list_indoor.values():
             item.on_update()
@@ -475,3 +475,6 @@ class UiWeather(PanedTemplate):
             self.frames[self._current].on_resize()
 
         return w,h
+
+
+print('Loaded gui.frame.weather')

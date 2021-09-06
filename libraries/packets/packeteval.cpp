@@ -164,7 +164,7 @@ namespace packet
             #if defined (ARDUINO)
                 iEpoch_t t=0;
                 memcpy(&t, this->p_epoch(), sizeof(iEpoch_t));
-                debug_os("Updating RTC time: <%s>", utils::time_string(t));
+                debug_os("Updating RTC time: <%s>", utils::timestring_epoch32(t));
                 rtc.set(t);
                 utils::board::send_status();
                 break;
@@ -202,7 +202,7 @@ namespace packet
                 info_pack("\tMessage: %s",   p_message());
                 info_pack("\tName:    %s",   p_name()); 
                 info_pack("\tEpoch:   %lu", *p_epoch());
-                info_pack("\tDate:    %s",   utils::time_string(*p_epoch())); 
+                info_pack("\tDate:    %s",   utils::timestring_epoch32(*p_epoch())); 
                 info_pack("\tLevel:   %u",  *p_level());            
                 return;
             #else
@@ -219,7 +219,7 @@ namespace packet
                 std::cout << "\tMessage: " << p_message() << std::endl;
                 std::cout << "\tName:    " << p_name()    << std::endl; 
                 std::cout << "\tEpoch:   " << *p_epoch()  << std::endl;
-                std::cout << "\tDate:    " << utils::time_string(*p_epoch()) << std::endl; 
+                std::cout << "\tDate:    " << utils::timestring_epoch32(*p_epoch()) << std::endl; 
             #endif
                 break;
             }
@@ -322,7 +322,6 @@ namespace packet
                     if (strcmp(this->p_command(), "SET") == 0)
                     {
                         devices[this->p_devname()]->set(*this->p_value1());
-                        devices[this->p_devname()]->send_dev_stat();
                     }
                     else if (strcmp(this->p_command(), "ADD") == 0)
                     {

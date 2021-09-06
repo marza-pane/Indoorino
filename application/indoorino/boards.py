@@ -193,6 +193,7 @@ class BoardParameters:
 
     def update(self):
 
+        Config.flags.update.BOARD=True
         for key, item in self.config.std.items():
             item.set(self.config.std.packet.payload[item.name])
 
@@ -231,6 +232,7 @@ class IndoorinoBoard (BoardParameters):
         if self._online and time.perf_counter() > self._timeout:
             self._online=False
             Config.flags.update.BOARD=True
+            Config.flags.update.DEVICES=True
 
         for dev in self._devs.values():
             dev.loop()
@@ -251,17 +253,15 @@ class IndoorinoBoard (BoardParameters):
                 self.set_board_type(packet)
             self.config.std.packet.payload = packet.payload
             self.update()
-            return
 
-        if packet.command == IBACOM_STATUS_STD:
+        elif packet.command == IBACOM_STATUS_STD:
             self.status.std.packet.payload = packet.payload
             self.update()
-            return
 
-        if IBACOM_CONF_STD < packet.command <= IBACOM_CONF_CAMERA:
+        elif IBACOM_CONF_STD < packet.command <= IBACOM_CONF_CAMERA:
 
             if self.config.board.packet.command == 0:
-                info_boards('%s setting config.board to %s'.format(self.name, packet.label))
+                info_boards('{} setting config.board to {}'.format(self.name, packet.label))
                 self.config.board.packet.build(packet.command, packet.payload['name'], packet.payload)
             elif self.config.board.packet.command != packet.command:
                 error_boards('illegal replace {} CONFIG type'.format(self.name))
@@ -270,14 +270,15 @@ class IndoorinoBoard (BoardParameters):
             self.update()
 
             if packet.command == IBACOM_CONF_ESP:
-                self.config.board['local_address'].ip = packet.payload['ip1']
-                self.config.board['local_address'].port = packet.payload['port1']
-                self.config.board['remote_address'].ip = packet.payload['ip2']
-                self.config.board['remote_address'].port = packet.payload['port2']
+                try:
+                    self.config.board['local_address'].ip = packet.payload['ip1']
+                    self.config.board['local_address'].port = packet.payload['port1']
+                    self.config.board['remote_address'].ip = packet.payload['ip2']
+                    self.config.board['remote_address'].port = packet.payload['port2']
+                except KeyError:
+                    error_os('Board has not been set to {}'.format(packet.label))
 
-            return
-
-        if IBACOM_STATUS_STD < packet.command <= IBACOM_STATUS_CAMERA:
+        elif IBACOM_STATUS_STD < packet.command <= IBACOM_STATUS_CAMERA:
 
             if self.status.board.packet.command == 0:
                 self.status.board.packet.build(packet.command, packet.payload['name'], packet.payload)
@@ -286,9 +287,8 @@ class IndoorinoBoard (BoardParameters):
                 return
             self.status.board.packet.payload = packet.payload
             self.update()
-            return
 
-        if IBACOM_CONF_ASENSOR <= packet.command <= IBACOM_CONF_DEVSTD or \
+        elif IBACOM_CONF_ASENSOR <= packet.command <= IBACOM_CONF_DEVSTD or \
                 IBACOM_STATUS_ASENSOR <= packet.command <= IBACOM_STATUS_DEVSTD:
 
             name = packet.payload['devname']
@@ -296,9 +296,10 @@ class IndoorinoBoard (BoardParameters):
                 alert_boards('Adding device {}:{}'.format(packet.payload['name'], packet.payload['devname']))
                 self._devs[name] = IndoorinoDevice(self.name, name, packet.payload['pin1'])
                 Config.flags.update.DEVICES = True
-            self._devs[name].parse(packet)
+            if self._devs[name].parse(packet):
+                Config.flags.update.DEVICES = True
 
-        if packet.command in (IBACOM_PROBE_AMBIENT, IBACOM_SYS_PROBE_DATA,):
+        elif packet.command in (IBACOM_PROBE_AMBIENT, IBACOM_SYS_PROBE_DATA,):
             if packet.payload['devname'] in self._devs.keys():
                 self._devs[packet.payload['devname']].parse(packet)
 

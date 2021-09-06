@@ -4,6 +4,15 @@
  *  Created 3.1.0 on: Jul 27, 2021 (SERVER)
  * 
  *      Author: n00b
+ * 
+ *
+
+//                 bool flag=true;
+//                 std::mutex mtx;
+//                 mtx.lock();
+//                 flag = your_fucking_var;
+//                 mtx.unlock();
+
  */
 
 #if defined (INDOORINO_NETWORK)
@@ -12,6 +21,7 @@
 #include "indoorino-system.h"
 #include "services.h"
 #include "alarms.h"
+#include "service-lights.h"
 
 // #include "../network/server.h"
 
@@ -27,26 +37,65 @@ namespace indoorino
 //      |_______________________________________|
 //
 
-
+        ServiceTemplate * Services::operator()      (const char * name)
+        {
+            int i=this->exist(name);
+            
+            if (i == -1)
+            {
+                error_os("FATAL:SERVICE: invalid call for service <%s>", name);
+                return nullptr;
+            }
+            
+            return _threadlist.at(i);
+        }
+        
         void        Services::begin                 (void)
         {
-            for (auto s: System.layout.services())
+            alert_os("SERVICES: starting services...");
+            this->read_layout();
+        }
+        
+        void        Services::clear                 (void)
+        {
+            for (auto p : _threadlist)
             {
-                auto p = lyt::LayoutServiceKey(s.type(), s.name(), s.desc(), s.area(), s.location());
-                if (this->add(p))
-                {
-                    for (auto d: s.devices())
-                        _threadlist.back()->add_device(d);
-                }
-                
+                p->stop();
+                delete p;
             }
+            _threadlist.clear();
+        }
+        
+        void        Services::read_layout           (void)
+        {
+            info_os("SERVICE:reading layout...");
+            for (auto p : _threadlist)
+            {
+                int i = System.layout.is_service(p->name()); 
+                if (i == -1)
+                {
+                    warning_os("SERVICE:update: not found in System.layout.services() <%s> removing service", p->name());
+                    this->remove(p->name());
+                    this->read_layout();
+                    return;
+                }
+            }
+
+            
+            for (auto &s: System.layout.services())
+            {
+                
+                if (this->exist(s.name()) == -1) this->add(&s);
+                
+                _threadlist.back()->read_layout();
+            }            
         }
         
         int         Services::exist                 (const char *name)
         {
             int index=0;
             
-            for (auto &s : _threadlist)
+            for (auto s : _threadlist)
             {
                 if ( strcmp(s->name(), name) == 0 ) return index;
                 index++;
@@ -65,21 +114,22 @@ namespace indoorino
             }
             
             _threadlist.at(index)->stop();
+            delete _threadlist.at(index);
             _threadlist.erase(_threadlist.begin() + index);
             return true;
         }
 
-        bool        Services::add                   (const lyt::LayoutServiceKey& key)
+        bool        Services::add                   (lyt::Service * key)
         {
-            int index = this->exist(key.name);
+            int index = this->exist(key->name());
 
             if (index != -1)
             {
-                warning_os("SERVICE:LIST:add: %s already in list [%d]", key.name, index);
+                warning_os("SERVICE:LIST:add: %s already in list [%d]", key->name(), index);
                 return false;
             }
 
-            const char * command = key.type;
+            const char * command = key->type();
         
             if (strlen(command) == 0)
             {
@@ -135,51 +185,27 @@ namespace indoorino
             {
                 error_os("SERVICE:LIST:add: nullptr type buffer! - memory leaked");
                 return false;
-            }
+            }               
             
             debug_os("SERVICE:LIST:add: new service %s ==> %s @ [%s:%s] ",
-                    command, key.name, key.area, key.location);
+                    command, key->name(), key->area(), key->location());
             
             bool flag = false;
             if ( strcmp(c[0], "ALARM") == 0 )
             {
-                if ( strcmp(c[1], "FIRE") == 0 )
-                {
-                    _threadlist.push_back(new alm::AlarmTemplate(key));
-                    _threadlist.back()->begin();
-                    flag=true;
-                }
-                if ( strcmp(c[1], "FLOOD") == 0 )
-                {
-                    _threadlist.push_back(new alm::AlarmTemplate(key));                
-                    _threadlist.back()->begin();
-                    flag=true;
-                }
-                else
-                {
-                    
-                }
-                
+                _threadlist.push_back(new alm::AlarmService(key));
+                _threadlist.back()->begin();
+                flag=true;                
             }
-            if ( strcmp(c[0], "LIGHTS") == 0 )
+            else if ( strcmp(c[0], "LIGHTS") == 0 )
             {
-                if ( strcmp(c[1], "INDOOR") == 0 )
-                {
-                    _threadlist.push_back(new LightsTemplate(key));
-                    _threadlist.back()->begin();
-                    flag=true;
-                }            
-                if ( strcmp(c[1], "OUTDOOR") == 0 )
-                {
-                    _threadlist.push_back(new LightsTemplate(key));                
-                    _threadlist.back()->begin();
-                    flag=true;
-                }
-                else
-                {
-                    
-                }
-                
+                _threadlist.push_back(new lgt::LightService(key));
+                _threadlist.back()->begin();
+                flag=true;
+            }
+            else
+            {
+                error_os("SERVICES: unknow service type <%s>", command);
             }
             
             for (uint8_t i=0; i<n; i++)
@@ -201,7 +227,7 @@ namespace indoorino
 //      |_______________________________________|
 //
 
-        ServiceTemplate::ServiceTemplate(const lyt::LayoutServiceKey& s):_layout(s)
+        ServiceTemplate::ServiceTemplate(lyt::Service * s):_layout(s)
         {
 
         };
@@ -210,28 +236,22 @@ namespace indoorino
         void        ServiceTemplate::begin          (void)
         {
             info_os("SERVICE:%s: %s @ [%s:%s] thread start!",
-                        _layout.type, _layout.name, _layout.area, _layout.location);            
+                        _layout->type(), _layout->name(), _layout->area(), _layout->location());            
             _running = true;
             _thread = std::thread(
 
             [this]
             
             {
-                
-//                 bool flag=true;
-//                 std::mutex mtx;
-//                 mtx.lock();
-//                 flag = your_fucking_var;
-//                 mtx.unlock();
 
                 while (_running)
                 {
                     this->loop();
-//                     std::cout << "@";
+                    // std::cout << "@";
                 }
                 
                 warning_os("SERVICE:%s: %s @ [%s:%s] shutting down!",
-                           _layout.type, _layout.name, _layout.area, _layout.location);
+                           _layout->type(), _layout->name(), _layout->area(), _layout->location());
                 return;
             });
         
@@ -241,110 +261,43 @@ namespace indoorino
         void        ServiceTemplate::loop           (void)
         {
             std::unique_lock<std::mutex> lck(_mtx);
-            _cv.wait_for(lck, std::chrono::milliseconds(1000));
+            _cv.wait_for(lck, std::chrono::milliseconds(60000));
         }
         
                     /*      S T O P     */
         void        ServiceTemplate::stop           (void)
         {
-            debug_os("SERVICE:%s: stopping!", _layout.name);
+            debug_os("SERVICE:%s: stopping!", _layout->name());
             if (_running)
             {
-//                 _mtx.lock();
                 std::unique_lock<std::mutex> lck(_mtx);
                 _running = false;
                 _cv.notify_all();
-//                 _mtx.unlock();
-                debug_os("SERVICE:%s: set thread flag", _layout.name);
+                debug_os("SERVICE:%s: set thread flag", _layout->name());
             }
             
             if (_thread.joinable())
             {
                 _thread.join();
-                alert_os("SERVICE:%s: thread terminated!", _layout.name);
+                alert_os("SERVICE:%s: thread terminated!", _layout->name());
             }
         
         }
     
-    
-    
-        bool        ServiceTemplate::add_device     (lyt::LayoutKey& key)
-        {                
-            if (has_device(key.boardname(), key.devname()) == -1 )
-            {
-                DeviceTemplate * p = System.boards(key.boardname())->devices()(key.devname());
-                if (p != nullptr)
-                {
-                    info_os("SERVICE:%s:add-device: %s:%s", _layout.name, key.boardname(), key.devname()); 
-                    _devices.push_back(p);
-                    return true;
-                }
-                else error_dev("SERVICE:add-device: call to System.board().device() returned nullptr", key.boardname(), key.devname());
-            }
-            else warning_os("SERVICE:add-device: invalid board/device %s/%s", key.boardname(), key.devname());
-            return false;
-        }
-        
-        bool        ServiceTemplate::rem_device     (const char *bname, const char *dname)
-        {
-            int index = has_device(bname, dname);
-            if (index == -1)
-            {
-                warning_os("SERVICE:rem-device: could not find %s:%s", bname, dname);
-                return false;
-            }
-            
-            _devices.erase(_devices.begin() + index);
-            return true;
-        }
-        
         int         ServiceTemplate::has_device     (const char * bname, const char *dname)
         {
             int index = 0;
-            for (auto &dev : _devices)
+            for (auto &dev : _layout->devices())
             {   
-                if ( (strcmp(dev->boardname(), bname) == 0) && (strcmp(dev->name(), dname) == 0) )
+                if ( (strcmp(dev.boardname(), bname) == 0) && (strcmp(dev.devname(), dname) == 0) )
                     return index;
                 index++;
             }
             return -1;
         }
 
-            
-//      _________________________________________
-//      |                                       |
-//      |       Services implementation         |
-//      |_______________________________________|
-//
-    
-    
-        LightsTemplate::LightsTemplate(const lyt::LayoutServiceKey& s):ServiceTemplate(s)
-        {
-             
-        }
-        
-        LightsTemplate::~LightsTemplate()
-        {
-            this->stop();
-        }
-    
-        void        LightsTemplate::begin                (void)
-        {
-            alert_os("SERVICE:LIGHTS:begin %s @ [%s:%s]",_layout.name, _layout.area, _layout.location);
-            ServiceTemplate::begin();
-        }
 
-        void        LightsTemplate::loop                 (void)
-        {
-            ServiceTemplate::loop();
-        }
-        
-        void        LightsTemplate::stop                 (void)
-        {
-            ServiceTemplate::stop();
-        }
-    
-    } /* namespace:db */
+    } /* namespace:svc */
     
 } /* namespace:indoorino */
     

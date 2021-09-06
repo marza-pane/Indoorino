@@ -2,7 +2,7 @@
  * comtable.h
  *
  *  Created on: Apr 25, 2020
- *   Edited on: Aug 06, 2021 - 01:00:15
+ *   Edited on: Sep 05, 2021 - 23:01:21
  *      Author: n00b
  *  This code is code-generated
  */
@@ -18,7 +18,7 @@
 
 
 #if defined (__linux__)
-	#define TOTAL_IBACOM 81
+	#define TOTAL_IBACOM 86
 	#define MAX_PACKET_ENTRIES 13
 #elif defined (ESP8266)
 	#define TOTAL_IBACOM 66
@@ -132,6 +132,11 @@
 #define	IBACOM_SRV_REQ                      7010
 #define	IBACOM_SRV_CONF                     7012
 #define	IBACOM_SYS_REQ                      7100
+#define	IBACOM_LGT_DEV_SET                  7150
+#define	IBACOM_LGT_AUTO_OFF                 7151
+#define	IBACOM_LGT_TIMER_SET                7152
+#define	IBACOM_LGT_TIMER_STAT               7153
+#define	IBACOM_LGT_TIMER_ENTRY              7154
 #define	IBACOM_SYS_PROBE_DATA               7505
 #define	IBACOM_SET_ENV_ALARM                7701
 #define	IBACOM_ACK_ENV_ALARM                7702

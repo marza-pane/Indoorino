@@ -4,7 +4,7 @@
 ## NOTE: this project is still under development. 
 
 Indoorino is a multi platform packet system C/C++ library. It provides tools for user defined smart-homes. 
-The whole system is made by a server on a local static address that manage connections from ESP devices and UI shells. Connection framework is asynchronous, packets are encrypted before sending and can besafe transimitted by a checksum.
+The whole system is made by a server on a local static address that manage connections from ESP devices and UI shells. Connection framework is asynchronous, packets are encrypted before sending and can be safe transimitted by a checksum.
 ESP and AVR boards (usually Arduino) comincate via serial and provides ambient data and actuators to the server. UI shell is also a client but on a different port and let the user interact with the devices. Library provides the following components:
 
  1) Packets framework, upgradable and house control oriented.
@@ -16,7 +16,7 @@ ESP and AVR boards (usually Arduino) comincate via serial and provides ambient d
  
 about me:
 
-I have no idea why I'm writing all of this. Ah, yep, it's my hobby. But that's engouf from me, let's here some valuable opinions
+I have no idea why I'm writing all of this. Ah, yep, it's my hobby. But that's enough from me, let's here some valuable opinions
 
 stackoverflow: your question is just like you, stupid and pointless.
 

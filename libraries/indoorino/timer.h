@@ -55,10 +55,11 @@ namespace indoorino
             _threads.push_back(
                 std::thread( [this, start, period] 
                     {
+                        std::unique_lock<std::mutex> lck(_mtx);
+                        
                         if (!_enabled) return;
 
                         auto now = std::chrono::system_clock::now();
-                        std::unique_lock<std::mutex> lck(_mtx);
                         
                         if (now < start)
                         {
@@ -99,6 +100,7 @@ namespace indoorino
         
         bool    existhread      (std::chrono::system_clock::time_point start, std::chrono::seconds period)
         {
+            std::unique_lock<std::mutex> lck(_mtx);
             if (_enabled)
             {
                 for (auto e: _eventable)

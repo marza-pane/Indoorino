@@ -139,20 +139,20 @@ ClockDS3231::~ClockDS3231()
 void            ClockDS3231::begin          (void)
 {
     _flag=false;
-    debug_dev("clock:%s:begin", F2C(_id));
+    debug_dev("CLOCK:%s:begin", F2C(_id));
     
-    uint32_t startime=max(FLASHEPOCH, _current_time);
-    startime = FLASHEPOCH;
+    uint32_t startime=MAX_INTEGER_M_(FLASHEPOCH, _current_time);
     if ( _rtclock->begin())
     {
         if (_rtclock->lostPower())
         {
             _rtclock->adjust(startime);
-//             sendReport(3, _id, F("begin: power loss. Please check clock battery"));
+            warning_dev("CLOCK: power loss. Please check clock battery");
         }
         if (!_rtclock->now().isValid())
         {
             _rtclock->adjust(startime);
+            warning_dev("CLOCK: invalid epoch. Please check connection");
 //             sendReport(3, _id, F("begin: invalid epoch. Please check connection"));
         }
         else
@@ -165,6 +165,7 @@ void            ClockDS3231::begin          (void)
     }
     else
     {
+            error_dev("CLOCK: can not init DS3231");
 //         sendReport(3, _id, F("begin: can not init DS3231"));
     }
     

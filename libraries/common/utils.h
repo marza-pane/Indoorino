@@ -45,7 +45,6 @@ namespace utils
 {
     iEpoch_t    epoch_now           (void);
     void        wait                (unsigned long msec);
-    char    *   timestring_epoch32  (const uint32_t epoch);
     bool        is_devname          (const char * p, uint8_t min_size=4, uint8_t max_size=LEN_NAME);
     bool        is_readable         (const char * p, uint8_t min_size=1, uint8_t max_size=SERIAL_TX_BUFFER_SIZE);
     void        debughelper         (const __FSH *, ...);
@@ -54,12 +53,13 @@ namespace utils
     iSize_t     chopstring          (const char *string, const char splitter, char ** buffer, iSize_t max_word_size=LEN_NAME);
     uint32_t    random_signed       (uint32_t start=0, uint32_t stop=UINT16_MAX);
     double      random_double       (double   start=0, double   stop=DBL_MAX);
+    char    *   format_seconds      (uint32_t secs);
+    char    *   timestring_epoch32  (const uint32_t epoch);
+    char    *   timestring_epoch64  (const uint64_t epoch);
 
 #if defined(__linux__)
 
     time_t      millis              (void);
-    char    *   format_seconds      (uint32_t secs);
-    char    *   timestring_epoch64  (const uint64_t t);
     char    *   timestring_chrono   (std::chrono::system_clock::time_point t);
     char    *   format_duration     (std::chrono::seconds t);
     
@@ -185,8 +185,8 @@ namespace utils
 
 
 /*
- * 
 
+SHORT STATEMENT
 Question is whether we can somehow write the following expression without both then and else parts
 
     (integer == 5) ? (THENEXPR) : (ELSEEXPR);
@@ -200,9 +200,9 @@ If you only need the else part use ||:
 If you want a return value:
     return (integer == 5) ? THENEXPR : ELSEEXPR
 
- *
+
  
- 
+TRY/CATCH
 try
 {
 }
@@ -212,7 +212,7 @@ std::cerr << "Exception caught : " << e.what() << std::endl;
 }
 
  
- 
+STD::VECTOR TIPS-&-TRICKS
 std::vector<int> vec1;
 vec1.reserve(30);  // Allocate space for 30 items, but vec1 is still empty.
 
@@ -220,10 +220,9 @@ std::vector<int> vec2;
 vec2.resize(30);  // Allocate space for 30 items, and vec2 now contains 30 items.
 
  
- 
+BASIC CHRONO
 #include <iostream>
 #include <chrono>
-
 int main()
 {
     auto start = std::chrono::steady_clock::now( );
@@ -234,6 +233,24 @@ int main()
     
     std::cout << "milliseconds since start: " << elapsed.count( ) << '\n';
 }
+
+
+DUMP MEMORY
+struct A
+{
+  int a;
+  std::string b;
+  void dump()
+  {
+    char * start=reinterpret_cast<char*>(this);
+    char * end=&(start+sizeof(A));
+    while (start!=end)
+    {
+      std::cout<<(int)*start;
+      ++start;
+    }
+  }
+};
 
 
 */

@@ -4,22 +4,29 @@ from indoorino.packet import IndoorinoPacket
 import numpy as np
 
 
-class UiDeviceWidgetTemplate(CanvasTemplate, DeviceLinkTemplate):
-    def __init__(self, parent, board, device, option, **kwargs):
-        CanvasTemplate.__init__(self, parent, **kwargs)
-        DeviceLinkTemplate.__init__(self, board, device)
-        self._option = option
+
 
 class UiHomeLights(CanvasTemplate):
 
-    class Device(UiDeviceWidgetTemplate):
+    class DeviceTemplate(CanvasTemplate, DeviceLinkTemplate):
+        def __init__(self, parent, board, device, option, **kwargs):
+            CanvasTemplate.__init__(self, parent, **kwargs)
+            DeviceLinkTemplate.__init__(self, board, device)
+            self._option = option
 
-        def __init__(self, parent, board, device, option=None, **kwargs):
-            UiDeviceWidgetTemplate.__init__(self, parent, board, device, option=option, **kwargs)
+    class Device(DeviceTemplate):
+
+        def __init__(self, parent, board, device, service, option=None, **kwargs):
+            UiHomeLights.DeviceTemplate.__init__(self, parent, board, device, option=option, **kwargs)
+
+            self._service=service
+
             self.button=PanedTemplate(self)
             self.icon=PictureTemplate(self.button, Icons.lights.beamspot.OFFLINE())
-            self.label_name=LabelTemplate(self)
-            self.label_device=LabelTemplate(self)
+            self.labels=dict()
+
+            # self.label_name=LabelTemplate(self)
+            # self.label_device=LabelTemplate(self)
 
             self._waiting=False
             self._status=False
@@ -62,35 +69,61 @@ class UiHomeLights(CanvasTemplate):
             self.button.build()
             self.icon.build()
 
+            for key in ('name', 'position', 'type'):
+                self.labels.update({
+                    key:LabelTemplate(
+                        self,
+                        anchor=tk.W,
+                        padx=5,
+                        font=Fonts.monobold(8),
+                        text=key.capitalize(),
+                        bg='blue'
+                    )
+                })
+                self.labels[key].bind_mouse_motion()
+
             self.bind_mouse_buttons()
+            self.icon.bind_mouse_motion()
 
-            self.label_device.bind("<ButtonPress-1>", self.on_press)
-            self.label_device.bind("<ButtonRelease-1>", self.on_release)
-
-            self.label_name.bind("<ButtonPress-1>", self.on_press)
-            self.label_name.bind("<ButtonRelease-1>", self.on_release)
+            for item in self.labels.values():
+                item.bind("<ButtonPress-1>", self.on_press)
+                item.bind("<ButtonRelease-1>", self.on_release)
 
             self.button.bind("<ButtonPress-1>", self.on_button_press)
             self.button.bind("<ButtonRelease-1>", self.on_button_release)
+
             self.icon.bind("<ButtonPress-1>", self.on_button_press)
             self.icon.bind("<ButtonRelease-1>", self.on_button_release)
 
             self.button.configure(
                 relief=tk.RAISED
             )
-            self.label_device.configure(
-                anchor=tk.W,
-                padx=10,
-                font=Fonts.monobold(8),
+
+            self.labels['name'].configure(
+                font=Fonts.monobold(7),
                 text='{}::{}'.format(self.board, self.device)
             )
-            self.label_name.configure(
-                anchor=tk.W,
-                padx=10,
-                font=Fonts.monobold(9),
+            self.labels['type'].configure(
+                font=Fonts.monobold(7),
                 text='{}'.format(self._option)
             )
 
+            p='UNKNOWN'
+            for dev in System.layout.devices.values():
+                if self.board == dev.boardname and self.device == dev.devname:
+                    p = '{}::{}'.format(dev.area, dev.location)
+                    break
+
+            self.labels['position'].configure(
+                font=Fonts.monobold(7),
+                text=p
+             )
+
+
+            self.icon.settooltip('BUTTON 1')
+            tooltip = 'BUTTON 2'
+            for w in self.labels.values():
+                w.settooltip(tooltip)
         def on_button_press(self, *event):
             self.button.configure(
                 bg=Palette.generic.WHITE,
@@ -122,14 +155,15 @@ class UiHomeLights(CanvasTemplate):
                     if device.status.dev['relay_state'].data:
                         # send turn OFF
                         d = {
-                            'name':self.board,
+                            'board':self.board,
                             'devname': self.device,
+                            'desc1': self._service,
                             'command': 'SET',
                             'value1': 0
                         }
                         p = IndoorinoPacket()
-                        p.build(IBACOM_SET_DEVICE, self.board, d)
-                        System.io.send(p)
+                        p.build(IBACOM_LGT_DEV_SET, "SERVER", d)
+                        System.io.send2server(p)
                         self._waitfor = False
 
                         # self.after(2000, lambda : (device.status.dev['relay_state'].set(False), self.on_update()))
@@ -137,14 +171,15 @@ class UiHomeLights(CanvasTemplate):
                     else:
                         # send turn ON
                         d = {
-                            'name':self.board,
+                            'board':self.board,
                             'devname': self.device,
+                            'desc1': self._service,
                             'command': 'SET',
                             'value1': 1
                         }
                         p = IndoorinoPacket()
-                        p.build(IBACOM_SET_DEVICE, self.board, d)
-                        System.io.send(p)
+                        p.build(IBACOM_LGT_DEV_SET, "SERVER", d)
+                        System.io.send2server(p)
                         self._waitfor = True
 
                         # self.after(2000, lambda : (device.status.dev['relay_state'].set(True), self.on_update()))
@@ -179,29 +214,49 @@ class UiHomeLights(CanvasTemplate):
             )
             if self.exist() and self.get_device().is_connected():
                 p = IndoorinoPacket()
-                p.build(IBACOM_SET_DEVICE, self.board, {
+                p.build(IBACOM_LGT_DEV_SET, "SERVER", {
+                    'board': self.board,
                     'devname': self.device,
+                    'desc1': self._service,
                     'command': 'UPDATE',
                 })
-                System.io.send(p)
+                System.io.send2server(p)
 
         def on_update(self, *args, **kwargs):
 
+            self.icon.settooltip('')
+            tooltip = ''
             if self.exist():
 
                 if System.io.is_connected():
 
                     device = self.get_device()
+                    tooltip = 'service   ::{}\ndevice    ::{}:{}\n'.format(self._service, self.board, self.device)
+                    for dev in System.layout.devices.values():
+                        if self.board == dev.boardname and self.device == dev.devname:
+                            tooltip += 'location  ::{}:{}\n'.format(dev.area, dev.location)
+                            break
+                    tooltip += 'connected ::{}'.format(
+                        'YES' if device.device.is_connected() else 'NO'
+                    )
 
                     if device.is_connected():
+
+                        tooltip += 'status    ::{}'.format(
+                            'ON' if device.status.dev['relay_state'].data else 'OFF'
+                        )
 
                         if device.status.dev['relay_state'].data == self._waitfor:
                             self.waiting = False
 
+
+
                         if device.status.dev['relay_state'].data:
                             self.icon.replace_image(Icons.lights.beamspot.ON())
+                            self.icon.settooltip('Turn OFF')
                         else:
                             self.icon.replace_image(Icons.lights.beamspot.OFF())
+                            self.icon.settooltip('Turn ON')
 
                     else:
                         self.icon.replace_image(Icons.lights.beamspot.DISCONNECTED())
@@ -214,11 +269,15 @@ class UiHomeLights(CanvasTemplate):
                 self.icon.replace_image(Icons.system.NOT_FOUND())
                 self.waiting = False
 
+            for w in self.labels.values():
+                w.settooltip(tooltip)
+
         def on_resize(self, *args, **kwargs):
             w,h=super(UiHomeLights.Device, self).on_resize()
 
             offset = min(w,h) * 0.05
             s_icon = min(w,h) - 2 * offset
+            s_butt = min(w,h) / 3
 
             self.button.place(
                 x=offset,
@@ -234,26 +293,50 @@ class UiHomeLights(CanvasTemplate):
                 heigh=s_icon - 10,
             )
 
-            self.label_name.place(
+            # self.labels['smart'].place(
+            #     # x=offset + s_icon + 5,
+            #     x=offset + s_icon + 0.5 * w,
+            #     y=offset,
+            #     width=w - (s_icon + 2 * offset + 8),
+            #     heigh=0.5 * (h - 2 * offset),
+            # )
+            # self.labels['timer'].place(
+            #     # x=offset + s_icon + 5,
+            #     x=offset + s_icon + 0.5 * w,
+            #     y=0.5 * h,
+            #     width=w - (s_icon + 2 * offset + 8),
+            #     heigh=0.5 * (h - 2 * offset),
+            # )
+
+            self.labels['name'].place(
                 x=offset + s_icon + 5,
                 y=offset,
-                width=w - (s_icon + 2 * offset + 8),
-                heigh=0.5 * (h - 2 * offset),
+                width=w - (s_icon + 3 * offset + 2 * s_butt),
+                heigh=(h - 2 * offset) / 3,
             )
-            self.label_device.place(
+            self.labels['type'].place(
                 x=offset + s_icon + 5,
-                y=0.5 * h,
-                width=w - (s_icon + 2 * offset + 8),
-                heigh=0.5 * (h - 2 * offset),
+                y=offset + (h - 2 * offset) / 3,
+                width=w - (s_icon + 3 * offset + 2 * s_butt),
+                heigh=(h - 2 * offset) / 3,
             )
+
+            self.labels['position'].place(
+                x=offset + s_icon + 5,
+                y=offset + 2 * (h - 2 * offset) / 3,
+                width=w - (s_icon + 3 * offset + 2 * s_butt ),
+                heigh=(h - 2 * offset) / 3,
+            )
+
+
 
             self.icon.on_resize()
 
     class Board(PanedTemplate):
 
-        def __init__(self, parent, name, group):
+        def __init__(self, parent, name, service):
             PanedTemplate.__init__(self, parent)
-            self._group=group
+            self._service=service
             self._boardname=name
             self.devices = dict()
             self.buttons = dict()
@@ -298,29 +381,31 @@ class UiHomeLights(CanvasTemplate):
                         for item in self.devices.values():
                             # if item.get_device().status.dev['relay_state'].data:
                             #     continue
-                            device =item.device
-                            board= item.board
+
                             p = IndoorinoPacket()
-                            p.build(IBACOM_SET_DEVICE, board, {
-                                'devname': device,
+                            p.build(IBACOM_LGT_DEV_SET, "SERVER", {
+                                'board': item.board,
+                                'devname': item.device,
+                                'desc1': self._service,
                                 'command': 'SET',
                                 'value1': 1
                             })
-                            System.io.send(p)
+                            System.io.send2server(p)
 
                     elif command == 'turn OFF':
                         for item in self.devices.values():
                             # if not item.get_device().status.dev['relay_state'].data:
                             #     continue
-                            device =item.device
-                            board= item.board
+
                             p = IndoorinoPacket()
-                            p.build(IBACOM_SET_DEVICE, board, {
-                                'devname': device,
+                            p.build(IBACOM_LGT_DEV_SET, "SERVER", {
+                                'board': item.board,
+                                'devname': item.device,
+                                'desc1': self._service,
                                 'command': 'SET',
                                 'value1': 0
                             })
-                            System.io.send(p)
+                            System.io.send2server(p)
                 else:
                     warning_ui('Can not operate while OFFLINE')
             else:
@@ -330,23 +415,27 @@ class UiHomeLights(CanvasTemplate):
 
             resize_flag = False
 
-            # for key in self.devices.keys():
-            #     if not key in [i.group for i in System.layout.lights.values()]:
-            #         self.devices[key].on_closing()
-            #         self.devices.pop(key)
-            #         self.on_update()
-            #         return
+            if not self._service in System.lights.services.keys():
+                warning_ui('LIGHTS:BOARD invalid service <{}>'.format(self._service))
+                return
 
-            for light in System.layout.lights.values():
+            for key in self.devices.keys():
+                if not key in [dev.devname for dev in System.lights.services[self._service].devices.values() if dev.boardname == self._boardname]:
+                    self.devices[key].on_closing()
+                    self.devices.pop(key)
+                    self.on_update()
+                    return
+
+            for light in System.lights.services.values():
                 for dev in light.devices.values():
                     if dev.boardname == self._boardname \
-                        and light.name == self._group \
+                        and light.name == self._service \
                         and not dev.devname in self.devices.keys():
 
                         debug_ui('Adding {}:{}'.format(dev.boardname, dev.devname))
                         self.devices.update(
                             {
-                                dev.devname: UiHomeLights.Device(self, dev.boardname, dev.devname)
+                                dev.devname: UiHomeLights.Device(self, dev.boardname, dev.devname, self._service)
                             }
                         )
                         self.devices[dev.devname].build()
@@ -404,13 +493,13 @@ class UiHomeLights(CanvasTemplate):
 
     class Group(PanedTemplate):
 
-        def __init__(self, parent, group, **kwargs):
+        def __init__(self, parent, service, **kwargs):
             PanedTemplate.__init__(self, parent, **kwargs)
 
-            self._group=group
+            self._service=service
             self._visible=True
             self.boards = dict()
-            self.label = LabelTemplate(self, text=str(group).upper())
+            self.label = LabelTemplate(self, text=str(service).upper())
             self.compact = PictureTemplate(self, Icons.system.COLLAPSE(), bg=Palette.generic.DISABLED)
 
         def build(self, *args, **kwargs):
@@ -457,20 +546,24 @@ class UiHomeLights(CanvasTemplate):
 
             resize_flag = False
 
-            # for key in self.boards.keys():
-            #     if not key in [i.group for i in System.layout.lights.values()]:
-            #         self.boards[key].on_closing()
-            #         self.boards.pop(key)
-            #         self.on_update()
-            #         return
+            if not self._service in System.lights.services.keys():
+                warning_ui('LIGHTS:GROUP invalid service <{}>'.format(self._service))
+                return
 
-            for light in System.layout.lights.values():
+            for key in self.boards.keys():
+                if not key in System.lights.services[self._service].boards:
+                    self.boards[key].on_closing()
+                    self.boards.pop(key)
+                    self.on_update()
+                    return
+
+            for light in System.lights.services.values():
                 for board in light.boards:
-                    if light.name == self._group and not board in self.boards.keys():
+                    if light.name == self._service and not board in self.boards.keys():
                         debug_ui('Adding {}:{}'.format(light.name, board))
                         self.boards.update(
                             {
-                                board: UiHomeLights.Board(self, board, self._group)
+                                board: UiHomeLights.Board(self, board, self._service)
                             }
                         )
                         self.boards[board].build()
@@ -566,21 +659,21 @@ class UiHomeLights(CanvasTemplate):
         resize_flag=False
 
         for key in self.widgets.keys():
-            if not key in [i.name for i in System.layout.lights.values()]:
+            if not key in [i.name for i in System.lights.services.values()]:
                 self.widgets[key].on_closing()
                 self.widgets.pop(key)
                 self.on_update()
                 return
 
 
-        for key, light in System.layout.lights.items():
-            if not light.name in self.widgets.keys():
+        for key, s in System.lights.services.items():
+            if not s.name in self.widgets.keys():
                 self.widgets.update(
                     {
-                        light.name : self.Group(self, light.name)
+                        s.name : UiHomeLights.Group(self, s.name)
                     }
                 )
-                self.widgets[light.name].build()
+                self.widgets[s.name].build()
                 resize_flag=True
 
         for widget in self.widgets.values():

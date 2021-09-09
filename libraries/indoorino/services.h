@@ -45,7 +45,8 @@ namespace indoorino
         class Services
         {
         private:
-            std::vector<ServiceTemplate *> _threadlist;
+            std::mutex                      _mtx;
+            std::vector<ServiceTemplate *>  _threadlist;
         public:
             
              Services() {}

@@ -261,14 +261,6 @@ class Layout:
                     })
         return data
 
-    @property
-    def lights(self):
-        data = dict()
-        for key, value in self.services.items():
-            if 'LIGHTS' in value.service_type:
-                data.update({key:value})
-        return data
-
     def parse(self, packet):
         # info_database('Layout:parse: packet {}'.format(packet))
 
@@ -616,11 +608,6 @@ class Lights:
 
                         Config.flags.update.SYSTEM = True
 
-
-
-
-
-
         def __init__(self, name, light_type):
             self._name = name
             self._light_type = light_type
@@ -637,6 +624,11 @@ class Lights:
         @property
         def devices(self):
             return self._devices.copy()
+
+        @property
+        def boards(self):
+            return list(set([d.boardname for d in self._devices.values()]))
+
 
         def parse(self, packet):
 
@@ -836,6 +828,16 @@ class IndoorinoCore:
             error_os('Can not save! error:{}'.format(error))
             r.append(filepath)
 
+        filepath = os.path.join(PATH_WS, 'session/lights.ndo')
+        alert_os('Saving lights to {}'.format(filepath))
+        try:
+            handler = open(filepath, 'wb')
+            pickle.dump(self.lights.services, handler, pickle.HIGHEST_PROTOCOL)
+            handler.close()
+        except (FileNotFoundError, FileExistsError, IOError) as error:
+            error_os('Can not save! error:{}'.format(error))
+            r.append(filepath)
+
         return r
 
     def load_session(self):
@@ -879,6 +881,19 @@ class IndoorinoCore:
             try:
                 handler = open(filepath, 'rb')
                 self.alarms.services = pickle.load(handler)
+                Config.flags.update.BOARD = True
+                handler.close()
+            except ModuleNotFoundError:
+                error_os('invalid file: {} could not read!'.format(filepath))
+        else:
+            warning_os('invalid file: {} does not exist!'.format(filepath))
+
+        filepath = os.path.join(PATH_WS, 'session/lights.ndo')
+        if os.path.isfile(filepath):
+            alert_os('Loading lights')
+            try:
+                handler = open(filepath, 'rb')
+                self.lights.services = pickle.load(handler)
                 Config.flags.update.BOARD = True
                 handler.close()
             except ModuleNotFoundError:

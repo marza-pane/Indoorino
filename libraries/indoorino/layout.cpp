@@ -10,7 +10,7 @@
 #include "../network/server.h"
 #include "indoorino-system.h"
 
-#if defined (INDOORINO_SERVER)
+#if defined (INDOORINO_NETWORK)
 
 #include "layout.h"
 #include "paths.h"
@@ -1067,7 +1067,7 @@ namespace indoorino
 
 } /* namespace:indoorino */
     
-#endif /* INDOORINO_SERVER */
+#endif /* INDOORINO_NETWORK */
 
 
 

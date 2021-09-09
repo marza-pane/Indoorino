@@ -216,10 +216,12 @@ namespace benchmark
         info_os("\tTime String (2010): %s",     utils::timestring_epoch32(SECONDS_FROM_1970_TO_2010));
         info_os("\tTime String (2100): %s",     utils::timestring_epoch32(SECONDS_FROM_1970_TO_2100));
 
+        #if defined (INDOORINO_NETWORK)
         info_os("\tTime (64) String (2000): %s",     utils::timestring_epoch64(SECONDS_FROM_1970_TO_2000));
         info_os("\tTime (64) String (2010): %s",     utils::timestring_epoch64(SECONDS_FROM_1970_TO_2010));
         info_os("\tTime (64) String (2100): %s",     utils::timestring_epoch64(SECONDS_FROM_1970_TO_2100));
-
+        #endif
+        
         #if defined(ARDUINO)
         info_os("\tTime String (compiletime): %s", utils::timestring_epoch32(DateTime(F(__DATE__), F(__TIME__)).unixtime()));
         #endif
@@ -231,17 +233,14 @@ namespace benchmark
         info_os("\tDelta Time  (days): %s",      utils::format_seconds(utils::random_signed(SECONDS_PER_DAY, SECONDS_PER_DAY * 30)));
         info_os("\tDelta Time  (years):%s",      utils::format_seconds(utils::random_signed(SECONDS_PER_YEAR, SECONDS_PER_YEAR * 20)));
 
-        info_os("\tchrono2unixepoch (now):%s",      utils::timestring_epoch32(utils::chrono2unixepoch(std::chrono::system_clock::now())));
-        
         #if defined (__linux__)
-        
         auto t0 = std::chrono::system_clock::now();
-        info_os("\tTime chrono (now):%s",utils::timestring_chrono(t0));
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        auto t1 = std::chrono::system_clock::now();
-        info_os("\tTime chrono (now):%s",utils::timestring_chrono(t1));
+        auto t1 = t0 + std::chrono::seconds(10);
         
-        info_os("\tDuration Time  (secs):%s",      utils::format_duration(std::chrono::duration_cast<std::chrono::seconds>(t1 - t0)));
+        info_os("\tchrono2unixepoch (now):%s", utils::timestring_epoch32(utils::chrono2unixepoch(std::chrono::system_clock::now())));
+        info_os("\tTime chrono (now):%s",utils::timestring_chrono(t0));
+        info_os("\tTime chrono (now):%s",utils::timestring_chrono(t1));
+        info_os("\tDuration Time  (secs):%s", utils::format_duration(std::chrono::duration_cast<std::chrono::seconds>(t1 - t0)));
         #endif
     }
     

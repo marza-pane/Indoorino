@@ -69,6 +69,7 @@ namespace indoorino
         void        Services::read_layout           (void)
         {
             info_os("SERVICE:reading layout...");
+            std::unique_lock<std::mutex> lck(_mtx);
             for (auto p : _threadlist)
             {
                 int i = System.layout.is_service(p->name()); 
@@ -80,13 +81,11 @@ namespace indoorino
                     return;
                 }
             }
-
+            lck.unlock();
             
             for (auto &s: System.layout.services())
             {
-                
                 if (this->exist(s.name()) == -1) this->add(&s);
-                
                 _threadlist.back()->read_layout();
             }            
         }
@@ -94,6 +93,7 @@ namespace indoorino
         int         Services::exist                 (const char *name)
         {
             int index=0;
+            std::unique_lock<std::mutex> lck(_mtx);
             
             for (auto s : _threadlist)
             {
@@ -112,6 +112,7 @@ namespace indoorino
                 warning_os("SERVICE:LIST:remove: can not find %s",name);
                 return false;
             }
+            
             
             _threadlist.at(index)->stop();
             delete _threadlist.at(index);
@@ -136,7 +137,9 @@ namespace indoorino
                 warning_os("SERVICE:LIST:add: empty type!");
                 return false;
             }
-                
+
+//             std::unique_lock<std::mutex> lck(_mtx);    
+            
             int  n=0;
             char ** c=nullptr;
             
@@ -191,6 +194,7 @@ namespace indoorino
                     command, key->name(), key->area(), key->location());
             
             bool flag = false;
+            
             if ( strcmp(c[0], "ALARM") == 0 )
             {
                 _threadlist.push_back(new alm::AlarmService(key));

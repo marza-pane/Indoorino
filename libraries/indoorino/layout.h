@@ -9,7 +9,7 @@
 #ifndef _SRC_LAYOUT_H_
 #define _SRC_LAYOUT_H_
 
-#if defined (INDOORINO_SERVER)
+#if defined (INDOORINO_NETWORK)
 
 // #include "boards.h"
 #include "../common/utils.h"
@@ -624,7 +624,7 @@ namespace indoorino
 
 } /* namespace:indoorino */
     
-#endif /* INDOORINO_SERVER */
+#endif /* INDOORINO_NETWORK */
 
 #endif /* _SRC_LAYOUT_H_ */
 

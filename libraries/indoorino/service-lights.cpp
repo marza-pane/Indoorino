@@ -156,7 +156,8 @@ namespace indoorino
                 
                 if ( index != -1 )
                 {
-                    // a set device is passing through
+                    alert_os("LIGHTS: setting device <%s:%s> directly [%s]",
+                             p->p_name(), p->p_devname(), (*p->p_value1() > 0 )?"ON":"OFF");
                 }
             }
             
@@ -164,7 +165,7 @@ namespace indoorino
             {
                 int index = has_device(p->p_board(), p->p_devname());
                 
-                if ( index != -1 )
+                if ( (strcmp(p->p_desc1(), this->name()) == 0) && (index != -1) )
                 {
                     if (strcmp(p->p_command(), "SET") == 0)
                     {
@@ -185,7 +186,7 @@ namespace indoorino
             {
                 int index = has_device(p->p_board(), p->p_devname());
                 
-                if ( index != -1 )
+                if ( (strcmp(p->p_desc1(), this->name()) == 0) && (index != -1) )
                 {
 
                     if (strcmp(p->p_command(), "ADD") == 0)
@@ -196,21 +197,76 @@ namespace indoorino
                         _devices.at(index)->timer.add(
                             std::chrono::system_clock::from_time_t(epoch),
                             std::chrono::seconds(secs));
+                        this->on_update();
                     }
                     
                     if (strcmp(p->p_command(), "CLEAR") == 0)
                     {
                         _devices.at(index)->timer.clear();
+                        this->on_update();
                     }
                 }
             }
+            
+            
+            else if ( p->command() == IBACOM_LGT_DEV_SET )
+            {
+                debug_os("Parsing %s: <%s:%s:%s>", p->description(), p->p_desc1(), p->p_board(), p->p_devname());
+                int index = has_device(p->p_board(), p->p_devname());
+                
+                if ( (strcmp(p->p_desc1(), this->name()) == 0) && (index != -1) )
+                {
+                    packet::netpacket c(IBACOM_SET_DEVICE);
+                    strcpy(c.p_command(), "SET");
+
+                    if (strcmp(p->p_command(), "ON") == 0)
+                    {
+                        *c.p_value1() = 1;
+                    }
+                    else if (strcmp(p->p_command(), "OFF") == 0)
+                    {
+                        *c.p_value1() = 0;
+                    }
+                    else if (strcmp(p->p_command(), "SET") == 0)
+                    {
+                        memcpy(c.p_value1(), p->p_value1(), sizeof(uint32_t));
+                    }
+                    else if (strcmp(p->p_command(), "UPDATE") == 0)
+                    {
+                        strcpy(c.p_command(), "UPDATE");
+                    }
+                    else
+                    {
+                        warning_os("Invalid <%s> command <%s>", p->label(), p->p_command());
+                        return;
+                    }
+                                        
+                    strcpy(c.p_name(), p->p_board());
+                    strcpy(c.p_devname(), p->p_devname());
+
+                    strcpy(c.source, BOARD_NAME);
+                    strcpy(c.target, p->p_board());
+
+                    warning_os("Setting device <%s:%s> via service <%s> : %s",
+                        c.p_name(), c.p_devname(), this->name(), (*c.p_value1() > 0 )?"ON":"OFF");
+                    
+                    // std::thread blablabla
+                    Server.board.send(&c);
+                }
+            }
+            
+            
+            
+            
         }
 
         int         LightService::has_device            (const char * bname, const char * dname)
         {
             int i=0;
+//             std::cout << "Has device [" << bname << ":" << dname << "]" << std::endl; 
             for (auto dev: _devices)
             {
+//                 std::cout << "==>[" << dev->device->boardname() << ":" << dev->device->name() << "]" << std::endl; 
                 if (strcmp(dev->device->boardname(), bname) == 0 && strcmp(dev->device->name(), dname) == 0) return i;
                 i++;
             }
@@ -233,7 +289,7 @@ namespace indoorino
                 uint8_t enabled = uint8_t(dev->timer.is_enabled());
                 uint8_t on = uint8_t(dev->timer.is_on());
                 uint32_t ntimers = uint8_t(dev->timer._eventable.size());
-//                                 
+                                
                 packet::ipacket p(IBACOM_LGT_AUTO_OFF);
                 
                 strcpy(p.p_board(),   dev->device->boardname());
@@ -251,7 +307,7 @@ namespace indoorino
                 memcpy(p.p_status(),  &enabled, sizeof(uint8_t));
                 memcpy(p.p_level(),   &on, sizeof(uint8_t));
                 memcpy(p.p_value1(),  &ntimers, sizeof(uint32_t));
-//                 
+                
                 Server.shell.broadcast(&p);             
 
                 p.init(IBACOM_LGT_TIMER_ENTRY);
@@ -284,13 +340,15 @@ namespace indoorino
                 if (_layout->exist(dev->device->boardname(), dev->device->name()) == -1)
                 {
                     dev->abort_turnoff();
-//                     dev->timers.stop();
+                    dev->timer.clear();
                     _devices.erase(_devices.begin() + i);
                     this->on_update();
                     return;
                 }
             }
             
+            std::unique_lock<std::mutex> lck(_mtx);
+
             for (auto dev: _layout->devices())
             {
                 if (this->has_device(dev.boardname(), dev.devname()) == -1)

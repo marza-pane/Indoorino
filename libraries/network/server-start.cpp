@@ -51,8 +51,8 @@ int main (void)
     srand(time(NULL));
     std::cout << "\nIndoorino Server start!" << std::endl;
     
-    benchmark::b_board();
-    benchmark::b_utils();
+//     benchmark::b_board();
+//     benchmark::b_utils();
         
     System.begin();
     Server.begin();

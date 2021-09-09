@@ -53,7 +53,10 @@ namespace indoorino
     bool    IndoorinoSystem::save_state      (void)
     {
         bool flag=true;
-        
+
+        std::mutex mtx;
+        std::unique_lock<std::mutex> lck(mtx);
+
         if (!boards.save())     flag=false;
         if (!layout.save())     flag=false;
         if (!services.save())   flag=false;
@@ -66,6 +69,9 @@ namespace indoorino
     {
         bool flag=true;
         
+        std::mutex mtx;
+        std::unique_lock<std::mutex> lck(mtx);
+
         if (!boards.load())     flag=false;
         if (!layout.load())     flag=false;
         if (!services.load())   flag=false;

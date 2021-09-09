@@ -61,9 +61,9 @@
 
         /* MANDATORY FOR ARDUINO: choose a unique board name */
 
-//         const char BOARD_NAME[] PROGMEM = "HOUSE.BEAMS";
-//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
-//         #define INDOORINO_CONTROLLER
+        const char BOARD_NAME[] PROGMEM = "HOUSE.BEAMS";
+        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "LIGHTS";
+        #define INDOORINO_CONTROLLER
 
 //         const char BOARD_NAME[] PROGMEM = "SRV.HOUSE.BEAMS";
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
@@ -84,9 +84,9 @@
 //         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "ROUTER";
 //         #define INDOORINO_ROUTER
 
-        const char BOARD_NAME[] PROGMEM = "PRESCOTT.CLIMATE";
-        const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
-        #define INDOORINO_CONTROLLER
+//         const char BOARD_NAME[] PROGMEM = "PRESCOTT.CLIMATE";
+//         const char INDOORINO_RESOURCE_DESC[] PROGMEM = "WEATHER";
+//         #define INDOORINO_CONTROLLER
         
         
 //         const char BOARD_NAME[] PROGMEM = "WEATHER.SOUTH";
@@ -134,7 +134,7 @@
 //     #define DEBUG_MODULE
 //     #define DEBUG_PACKET
 //     #define DEBUG_PACKETDUMP
-    #define DEBUG_BENCHMARK
+//     #define DEBUG_BENCHMARK
 //     #define DEBUG_CHKSUM // TODO
     
     

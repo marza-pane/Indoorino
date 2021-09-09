@@ -111,10 +111,10 @@ bool                    Actuator_Relay::set                 (uint32_t value)
     if (value == 0)
     {
         digitalWrite(_pin, LOW);
-        this->send_dev_stat();
         if (_relay_stat != 0)
         {
             _relay_stat=0;
+            this->send_dev_stat();
             return true;
 //             sendReport(1, F("RELAY"), F("%s on pin %u turned OFF"), buffname, _pin);
         }
@@ -126,6 +126,7 @@ bool                    Actuator_Relay::set                 (uint32_t value)
         if (_relay_stat == 0)
         {
             _relay_stat=1;
+            this->send_dev_stat();
             return true;
 //             sendReport(1, F("RELAY"), F("%s on pin %u turned ON"), buffname, _pin);
         }

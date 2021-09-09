@@ -74,7 +74,11 @@ namespace utils
 
         Queue()                   = default;
         Queue(const Queue<OBJ>&)  = delete;   
-        virtual ~Queue() { clear(); _cvblock.notify_one(); };
+        virtual ~Queue() {
+            #if defined(__linux__)
+            clear(); _cvblock.notify_one();
+            #endif
+        };
 
         
     public:
@@ -182,9 +186,7 @@ namespace utils
                 delete node;
                 _count--;
             #elif defined(__linux__)
-                #if defined (INDOORINO_SERVER)
                 std::scoped_lock lock(_queue_mutex);
-                #endif
                 auto item = std::move(_queue.back());
                 _queue.pop_back();
             #endif

@@ -169,8 +169,6 @@ namespace utils
     #endif
     }
     
-#if defined (__linux__)
-
     char    *   format_seconds      (uint32_t secs)
     {
         static char buffer[LEN_DATETIMESTR];
@@ -256,6 +254,8 @@ namespace utils
         return buffer;
     }
 
+    #if defined (__linux__)
+    
     time_t      millis              (void)
     {
         timeval t;
